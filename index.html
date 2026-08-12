@@ -1183,6 +1183,21 @@
   .app-status.reviewed { background: rgba(0,200,255,.12);  color: var(--cyan); }
   .app-status.accepted { background: rgba(52,211,153,.12); color: #34d399; }
   .app-status.rejected { background: rgba(255,77,77,.12);  color: var(--danger); }
+  /* Saved Jobs list */
+  .saved-job-item {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border2);
+  }
+  .saved-job-item:last-child { border-bottom: none; }
+  .saved-job-info { flex: 1; min-width: 0; }
+  .saved-job-title {
+    font-weight: 600; font-size: .92rem; color: var(--text);
+    cursor: pointer; margin-bottom: 3px;
+  }
+  .saved-job-title:hover { color: var(--cyan); }
+  .saved-job-company { font-size: .8rem; color: var(--muted); }
+  .saved-job-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-shrink: 0; }
+
   /* My Applications panel */
   .my-apps-list { display: flex; flex-direction: column; gap: 12px; padding: 8px 0; }
   .my-app-card {
@@ -1507,7 +1522,11 @@
   <section class="jobs-section hidden" id="jobsSection">
     <div class="jobs-header">
       <h2 class="jobs-heading">💼 Job Board</h2>
+      <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn" style="font-size:.85rem;padding:9px 20px;border-color:rgba(245,158,11,.3);color:#fbbf24;"
+        onclick="openSavedJobs()">🔖 Saved Jobs</button>
       <div id="jobPostBtn"></div>
+    </div>
     </div>
     <div class="jobs-search-row">
       <input type="text" class="jobs-search-input" id="jobSearchInput"
@@ -1557,6 +1576,15 @@
         <button class="btn" onclick="closeModal('applyJobBackdrop')">Cancel</button>
         <button class="btn btn-grad" id="submitApplyBtn" onclick="submitJobApplication()">Submit Application</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Saved Jobs Modal -->
+  <div class="modal-backdrop" id="savedJobsBackdrop" onclick="if(event.target===this)closeModal('savedJobsBackdrop')">
+    <div class="modal" style="max-width:640px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('savedJobsBackdrop')">✕</button>
+      <h2 class="modal-title">🔖 Saved Jobs</h2>
+      <div id="savedJobsList" style="margin-top:16px;"></div>
     </div>
   </div>
 
@@ -3950,6 +3978,66 @@ async function submitJobApplication() {
   } catch (e) {
     showError(errEl, e.message || 'Could not submit application.');
   } finally { btn.textContent = 'Submit Application'; btn.disabled = false; }
+}
+
+async function openSavedJobs() {
+  openModal('savedJobsBackdrop');
+  const el = document.getElementById('savedJobsList');
+  el.innerHTML = `<div class="feed-loading">Loading…</div>`;
+  try {
+    const jobs = await api('GET', '/api/jobs?saved=true&limit=50');
+    const saved = (jobs || []).filter(j => j.savedByMe);
+    if (!saved.length) {
+      el.innerHTML = `<div style="text-align:center;padding:40px 0;color:var(--muted);">
+        <div style="font-size:2rem;margin-bottom:8px;">🔖</div>
+        <div>No saved jobs yet.</div>
+        <div style="font-size:.82rem;margin-top:4px;">Save jobs from the board to find them here.</div>
+      </div>`;
+      return;
+    }
+    el.innerHTML = saved.map(j => {
+      const skills = j.skills ? j.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const skillsHtml = skills.slice(0, 3).map(s => `<span class="skill-chip" style="font-size:.72rem;">${escHtml(s)}</span>`).join('');
+      const applyBtn = j.isMine ? '' :
+        `<button class="job-apply-btn ${j.appliedByMe ? 'applied' : ''}" style="font-size:.78rem;padding:5px 12px;"
+           onclick="openApplyModal('${escHtml(j.id)}','${escHtml(j.title)}','${escHtml(j.company)}')">
+           ${j.appliedByMe ? '✓ Applied' : 'Apply Now'}
+         </button>`;
+      return `
+        <div class="saved-job-item" id="sjitem-${escHtml(j.id)}">
+          <div class="saved-job-info">
+            <div class="saved-job-title" onclick="closeModal('savedJobsBackdrop');openJobDetail('${escHtml(j.id)}')">${escHtml(j.title)}</div>
+            <div class="saved-job-company">${escHtml(j.company)}${j.location ? ' · ' + escHtml(j.location) : ''}</div>
+            <div style="margin-top:4px;">${skillsHtml}</div>
+          </div>
+          <div class="saved-job-actions">
+            ${applyBtn}
+            <button class="job-save-btn saved" style="font-size:.78rem;padding:5px 10px;"
+              onclick="unsaveFromList('${escHtml(j.id)}')">🔖 Unsave</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--danger);padding:20px;">Failed to load saved jobs.</div>`;
+  }
+}
+
+async function unsaveFromList(jobId) {
+  await api('POST', `/api/jobs/${jobId}/save`);
+  // Remove from list
+  const item = document.getElementById(`sjitem-${jobId}`);
+  if (item) item.remove();
+  // Update save button on job card if visible
+  const cardBtn = document.getElementById(`jsave-${jobId}`);
+  if (cardBtn) { cardBtn.classList.remove('saved'); cardBtn.textContent = '🔖 Save'; }
+  // If list is now empty, show empty state
+  const el = document.getElementById('savedJobsList');
+  if (el && !el.querySelector('.saved-job-item')) {
+    el.innerHTML = `<div style="text-align:center;padding:40px 0;color:var(--muted);">
+      <div style="font-size:2rem;margin-bottom:8px;">🔖</div>
+      <div>No saved jobs yet.</div>
+    </div>`;
+  }
 }
 
 async function openMyApplications() {
