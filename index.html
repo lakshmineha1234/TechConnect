@@ -638,6 +638,116 @@
     margin: 0 auto;
   }
 
+  /* ── Toast ── */
+  .app-toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--card); border: 1px solid var(--border2);
+    color: var(--text); padding: 12px 22px; border-radius: 12px;
+    font-size: .88rem; font-weight: 500; z-index: 9999;
+    box-shadow: 0 8px 32px rgba(0,0,0,.35);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
+  }
+  .app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .app-toast.info  { border-color: rgba(0,200,255,.35); }
+  .app-toast.success { border-color: rgba(52,211,153,.4); }
+  .app-toast.error   { border-color: rgba(255,77,77,.4); }
+
+  /* ── Live New Members ── */
+  .live-members-section {
+    background: var(--card); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 20px; margin-bottom: 28px;
+  }
+  .live-members-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .live-members-title {
+    font-size: .95rem; font-weight: 700; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .live-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 0 rgba(34,197,94,.5);
+    animation: livePulse 1.6s ease-in-out infinite;
+    display: inline-block; flex-shrink: 0;
+  }
+  @keyframes livePulse {
+    0%   { box-shadow: 0 0 0 0 rgba(34,197,94,.55); }
+    70%  { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  }
+  .live-members-count { font-size: .78rem; color: var(--muted); }
+  .live-members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .live-member-card {
+    background: var(--bg); border: 1px solid var(--border2);
+    border-radius: 14px; padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: border-color .2s, transform .2s;
+    position: relative; overflow: hidden;
+  }
+  .live-member-card.new-join {
+    animation: slideInMember .45s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes slideInMember {
+    from { opacity: 0; transform: translateY(-14px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .live-member-card:hover { border-color: rgba(0,200,255,.35); transform: translateY(-2px); }
+  .live-member-top { display: flex; align-items: center; gap: 10px; }
+  .live-member-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg,#00c8ff,#a855f7);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1rem; color: #fff;
+    flex-shrink: 0; cursor: pointer; overflow: hidden; position: relative;
+  }
+  .live-member-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .live-member-info { flex: 1; min-width: 0; }
+  .live-member-name {
+    font-weight: 700; font-size: .88rem; color: var(--text);
+    cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .live-member-name:hover { color: var(--cyan); }
+  .live-member-role {
+    font-size: .72rem; padding: 2px 7px; border-radius: 20px;
+    display: inline-block; margin-top: 2px; font-weight: 600;
+  }
+  .live-member-role.student { background: rgba(168,85,247,.15); color: #a855f7; }
+  .live-member-role.pro     { background: rgba(0,200,255,.12);  color: var(--cyan); }
+  .live-member-profession {
+    font-size: .78rem; color: var(--muted); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .live-member-bio {
+    font-size: .78rem; color: var(--muted); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .live-member-skills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .live-member-footer { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+  .live-member-conn-btn {
+    flex: 1; padding: 6px 10px; border-radius: 8px; font-size: .78rem;
+    font-weight: 600; cursor: pointer; border: 1px solid rgba(0,200,255,.35);
+    background: rgba(0,200,255,.08); color: var(--cyan); transition: all .15s;
+  }
+  .live-member-conn-btn:hover { background: rgba(0,200,255,.18); }
+  .live-member-conn-btn.connected  { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.4); color: #34d399; }
+  .live-member-conn-btn.pending    { background: rgba(255,255,255,.05); border-color: var(--border2); color: var(--muted); }
+  .live-member-joined { font-size: .68rem; color: var(--muted); }
+  .live-members-loading { color: var(--muted); font-size: .85rem; padding: 20px 0; text-align: center; }
+  .live-new-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: #22c55e; color: #fff; font-size: .6rem;
+    font-weight: 700; padding: 2px 6px; border-radius: 20px;
+    letter-spacing: .04em;
+  }
+
   /* ── Suggestions strip ── */
   .suggestions-section {
     margin-bottom: 40px;
@@ -1740,6 +1850,19 @@
         </div>
       </div>
 
+      <!-- Live New Members -->
+      <div class="live-members-section" id="liveMembersSection">
+        <div class="live-members-header">
+          <span class="live-members-title">
+            <span class="live-dot"></span> Live — New Members
+          </span>
+          <span class="live-members-count" id="liveMembersCount"></span>
+        </div>
+        <div class="live-members-grid" id="liveMembersGrid">
+          <div class="live-members-loading">Loading members…</div>
+        </div>
+      </div>
+
       <div class="search-bar-wrap">
         <span class="search-icon">🔍</span>
         <input
@@ -2379,7 +2502,7 @@ async function initSession() {
     startChatPolling();
   }
   render();
-  if (currentUser) { doSearch(); initFeed(); initJobs(); initEvents(); loadSuggestions(); }
+  if (currentUser) { doSearch(); initFeed(); initJobs(); initEvents(); loadSuggestions(); initLiveMembers(); }
   // doSearch() will show the "type a name" prompt when query is empty
 }
 
@@ -4330,6 +4453,114 @@ function onFeedInput(el) {
   cc.className = len > 900 ? 'feed-char-count over' : len > 750 ? 'feed-char-count warn' : 'feed-char-count';
 }
 
+/* ── Live New Members ── */
+let liveMembers = [];
+let liveMemberSub = null;
+
+async function initLiveMembers() {
+  const grid = document.getElementById('liveMembersGrid');
+  if (!grid) return;
+  try {
+    liveMembers = await api('GET', '/api/users/new-members?limit=20');
+    renderLiveMembers(false);
+  } catch(e) {
+    grid.innerHTML = `<div class="live-members-loading">Could not load members.</div>`;
+  }
+  // Subscribe to real-time new member events via WebSocket
+  subscribeNewMembers();
+}
+
+function subscribeNewMembers() {
+  if (!stompClient || !stompClient.connected) {
+    setTimeout(subscribeNewMembers, 2000);
+    return;
+  }
+  if (liveMemberSub) { liveMemberSub.unsubscribe(); }
+  liveMemberSub = stompClient.subscribe('/topic/new-member', msg => {
+    try {
+      const member = JSON.parse(msg.body);
+      // Skip self
+      if (member.id === currentUser?.id) return;
+      // Prepend to list
+      liveMembers = [member, ...liveMembers.filter(m => m.id !== member.id)];
+      renderLiveMembers(true);
+      // Flash notification toast
+      showToast(`🟢 ${member.name} just joined TechConnect!`, 'info');
+    } catch(e) {}
+  });
+}
+
+function renderLiveMembers(hasNewJoin) {
+  const grid  = document.getElementById('liveMembersGrid');
+  const count = document.getElementById('liveMembersCount');
+  if (!grid) return;
+  if (!liveMembers.length) {
+    grid.innerHTML = `<div class="live-members-loading">No members yet. Be the first!</div>`;
+    return;
+  }
+  if (count) count.textContent = `${liveMembers.length} members`;
+  grid.innerHTML = liveMembers.map((m, i) => liveMemberCardHtml(m, hasNewJoin && i === 0)).join('');
+}
+
+function liveMemberCardHtml(m, isNew) {
+  const initials = ((m.firstName?.[0] || '') + (m.lastName?.[0] || '')).toUpperCase() || '?';
+  const roleLabel = m.role === 'pro' ? 'IT Professional' : 'Student';
+  const profession = m.role === 'pro'
+    ? [m.jobTitle, m.company].filter(Boolean).join(' @ ')
+    : [m.degree, m.institution].filter(Boolean).join(' · ');
+  const skills = (m.skills || []).slice(0, 3)
+    .map(s => `<span class="skill-chip" style="font-size:.68rem;padding:2px 7px;">${escHtml(s)}</span>`).join('');
+  const connBtn = m.connectedWithMe
+    ? `<button class="live-member-conn-btn connected" disabled>✓ Connected</button>`
+    : m.pendingWithMe
+    ? `<button class="live-member-conn-btn pending" disabled>⏳ Pending</button>`
+    : `<button class="live-member-conn-btn" onclick="liveConnect('${escHtml(m.id)}',this)">+ Connect</button>`;
+  const joined = m.joinedAt ? timeAgo(m.joinedAt) : '';
+
+  return `
+    <div class="live-member-card${isNew ? ' new-join' : ''}" id="lmcard-${escHtml(m.id)}">
+      ${isNew ? '<span class="live-new-badge">NEW</span>' : ''}
+      <div class="live-member-top">
+        <div class="live-member-avatar" onclick="renderUserProfile('${escHtml(m.id)}')">
+          ${initials}
+          <img src="/api/avatar/${escHtml(m.id)}" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="live-member-info">
+          <div class="live-member-name" onclick="renderUserProfile('${escHtml(m.id)}')">${escHtml(m.name)}</div>
+          <span class="live-member-role ${escHtml(m.role)}">${escHtml(roleLabel)}</span>
+        </div>
+      </div>
+      ${profession ? `<div class="live-member-profession">🏢 ${escHtml(profession)}</div>` : ''}
+      ${m.bio ? `<div class="live-member-bio">${escHtml(m.bio)}</div>` : ''}
+      ${skills ? `<div class="live-member-skills">${skills}</div>` : ''}
+      <div class="live-member-footer">
+        ${connBtn}
+        ${joined ? `<span class="live-member-joined">Joined ${joined}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+async function liveConnect(userId, btn) {
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    await api('POST', `/api/connections/${userId}/request`);
+    btn.className = 'live-member-conn-btn pending';
+    btn.textContent = '⏳ Pending';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '+ Connect';
+  }
+}
+
+function timeAgo(iso) {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60)   return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400)return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
 /* ── Comment functions ── */
 async function toggleComments(postId) {
   const section = document.getElementById(`fcmt-${postId}`);
@@ -4709,6 +4940,21 @@ function escHtml(str) {
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ── Toast notifications ── */
+let toastTimer = null;
+function showToast(msg, type = 'info') {
+  let el = document.getElementById('appToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'appToast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.className = `app-toast ${type} show`;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
 }
 
 /* ════════════════════════════════════════

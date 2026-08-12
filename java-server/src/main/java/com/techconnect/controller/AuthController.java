@@ -3,22 +3,23 @@ package com.techconnect.controller;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final JdbcTemplate jdbc;
+    private final SimpMessagingTemplate ws;
     private final BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder(12);
 
-    public AuthController(JdbcTemplate jdbc) {
+    public AuthController(JdbcTemplate jdbc, SimpMessagingTemplate ws) {
         this.jdbc = jdbc;
+        this.ws   = ws;
     }
 
     // ── POST /api/auth/register ───────────────────────────────────────────────
@@ -59,6 +60,30 @@ public class AuthController {
             id, institution, company);
 
         session.setAttribute("userId", id);
+
+        // Broadcast new member to all connected clients
+        try {
+            String institution2 = institution;
+            String company2     = company;
+            Map<String, Object> broadcast = new LinkedHashMap<>();
+            broadcast.put("id",          id);
+            broadcast.put("name",        (firstName + " " + lastName).trim());
+            broadcast.put("firstName",   firstName);
+            broadcast.put("lastName",    lastName);
+            broadcast.put("role",        role);
+            broadcast.put("institution", institution2);
+            broadcast.put("company",     company2);
+            broadcast.put("bio",         "");
+            broadcast.put("location",    "");
+            broadcast.put("jobTitle",    "");
+            broadcast.put("skills",      List.of());
+            broadcast.put("joinedAt",    java.time.Instant.now().toString());
+            broadcast.put("connectionCount", 0);
+            broadcast.put("connectedWithMe", false);
+            broadcast.put("pendingWithMe",   false);
+            ws.convertAndSend("/topic/new-member", broadcast);
+        } catch (Exception ignored) {}
+
         return ResponseEntity.status(201).body(Map.of("user", buildUser(id)));
     }
 

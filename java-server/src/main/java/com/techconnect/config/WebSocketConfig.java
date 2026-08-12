@@ -33,7 +33,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // In-memory broker for user-specific queues
-        config.enableSimpleBroker("/queue");
+        config.enableSimpleBroker("/queue", "/topic");
         // Prefix for @MessageMapping methods
         config.setApplicationDestinationPrefixes("/app");
         // Prefix for user-specific destinations (/user/{id}/queue/...)
