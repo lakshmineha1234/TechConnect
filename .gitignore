@@ -28,6 +28,12 @@ uploads/
 .env
 .env.*
 
+# Claude Code settings
+.claude/
+
+# Embedded sub-repos
+code2doc/
+
 # IDE / OS
 .DS_Store
 Thumbs.db
