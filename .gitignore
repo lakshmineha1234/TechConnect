@@ -1,0 +1,35 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Databases
+data/
+*.sqlite
+*.db
+
+# Java build artifacts
+java-server/target/
+java-server/.jdk/
+java-server/.mvn/
+java-server/server.log
+java-server/server-err.log
+java-server/server-new.log
+java-server/launch.bat
+java-server/run-server.bat
+
+# Logs
+*.log
+server.log
+
+# Uploads (user content)
+uploads/
+
+# Environment
+.env
+.env.*
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
