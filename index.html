@@ -638,6 +638,24 @@
     margin: 0 auto;
   }
 
+  /* ── Online Status dot ── */
+  .online-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #22c55e; border: 2px solid var(--card);
+    position: absolute; bottom: 1px; right: 1px;
+    display: none; z-index: 2;
+  }
+  .is-online .online-dot { display: block; }
+  .online-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: .72rem; color: #22c55e; font-weight: 600;
+  }
+  .online-badge::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%;
+    background: #22c55e; display: inline-block;
+    animation: livePulse 1.6s ease-in-out infinite;
+  }
+
   /* ── Toast ── */
   .app-toast {
     position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -2239,10 +2257,11 @@ function avatarHtml(userId, name, classes = '', style = '', isOwn = false) {
   const ini = initials(name);
   const seed = isOwn ? avatarSeed : 0;
   const src = `/api/profile/avatar/${encodeURIComponent(userId)}?v=${seed}`;
-  const cls = ('avatar-circle ' + classes).trim();
-  return `<div class="${cls}"${style ? ` style="${style}"` : ''}>` +
+  const cls = ('avatar-circle ' + (onlineUsers.has(userId) ? 'is-online ' : '') + classes).trim();
+  return `<div class="${cls}" data-uid="${encodeURIComponent(userId)}"${style ? ` style="${style}"` : ''}>` +
     ini +
     `<img src="${src}" alt="" onerror="this.remove();" data-avatar="${encodeURIComponent(userId)}">` +
+    `<span class="online-dot"></span>` +
     `</div>`;
 }
 
@@ -3104,7 +3123,11 @@ function renderUserProfileModal(p) {
     <div class="uprofile-hero">
       <div class="uprofile-avatar">${escHtml(ini)}<img src="/api/profile/avatar/${encodeURIComponent(p.id)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.remove();" alt=""></div>
       <div style="flex:1;min-width:0;">
-        <div class="uprofile-name">${escHtml(p.name)}</div>
+        <div class="uprofile-name" style="display:flex;align-items:center;gap:8px;">
+          ${escHtml(p.name)}
+          <span class="online-badge" id="profile-online-badge" data-uid="${escHtml(p.id)}"
+                style="display:${onlineUsers.has(p.id) ? 'inline-flex' : 'none'}">Online</span>
+        </div>
         <span class="role-badge ${roleClass}">${roleLabel}</span>
         ${p.location ? `<div style="font-size:.82rem;color:var(--muted);margin-top:6px;">📍 ${escHtml(p.location)}</div>` : ''}
         <div class="uprofile-actions">${actionBtns}</div>
@@ -3195,6 +3218,22 @@ function connectWS() {
           onIncomingMessage(msg);
         } catch (e) { /* ignore malformed frame */ }
       });
+
+      // Subscribe to real-time online status updates
+      stompClient.subscribe('/topic/online-status', frame => {
+        try {
+          const { userId, online } = JSON.parse(frame.body);
+          if (online) onlineUsers.add(userId);
+          else        onlineUsers.delete(userId);
+          updateOnlineDots(userId, online);
+        } catch(e) {}
+      });
+
+      // Subscribe to new member broadcasts
+      subscribeNewMembers();
+
+      // Load who is currently online
+      loadOnlineUsers();
     },
     onDisconnect:     () => { /* auto-reconnect handled by stompjs */ },
     onStompError:     (frame) => { console.warn('STOMP error', frame); },
@@ -3271,7 +3310,11 @@ function renderConvList() {
       <div class="chat-conv-item${active}" onclick="openConversation('${escHtml(c.userId)}','${escHtml(c.name)}','${escHtml(c.role)}')">
         <div class="chat-conv-avatar" style="position:relative;overflow:hidden;">${escHtml(ini)}<img src="/api/profile/avatar/${encodeURIComponent(c.userId)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.remove();" alt="">${unreadDot}</div>
         <div class="chat-conv-info">
-          <div class="chat-conv-name">${escHtml(c.name)}</div>
+          <div class="chat-conv-name" style="display:flex;align-items:center;gap:6px;">
+            ${escHtml(c.name)}
+            <span class="online-badge" id="conv-online-${escHtml(c.userId)}"
+                  style="font-size:.65rem;display:${onlineUsers.has(c.userId) ? 'inline-flex' : 'none'}">Online</span>
+          </div>
           <div class="chat-conv-last">${preview}</div>
         </div>
       </div>`;
@@ -4454,6 +4497,43 @@ function onFeedInput(el) {
 }
 
 /* ── Live New Members ── */
+/* ── Online Status ── */
+const onlineUsers = new Set();
+
+async function loadOnlineUsers() {
+  try {
+    const ids = await api('GET', '/api/users/online');
+    onlineUsers.clear();
+    (ids || []).forEach(id => onlineUsers.add(id));
+    // Apply dots to all avatar elements already in the DOM
+    document.querySelectorAll('[data-uid]').forEach(el => {
+      const uid = decodeURIComponent(el.dataset.uid);
+      el.classList.toggle('is-online', onlineUsers.has(uid));
+    });
+  } catch(e) {}
+}
+
+function updateOnlineDots(userId, isOnline) {
+  // Update every avatar with this userId
+  document.querySelectorAll(`[data-uid="${encodeURIComponent(userId)}"]`).forEach(el => {
+    el.classList.toggle('is-online', isOnline);
+  });
+  // Update chat conversation list if open
+  const convOnline = document.getElementById(`conv-online-${userId}`);
+  if (convOnline) convOnline.style.display = isOnline ? 'inline-flex' : 'none';
+  // Update open profile view
+  const profileOnline = document.getElementById('profile-online-badge');
+  if (profileOnline && profileOnline.dataset.uid === userId) {
+    profileOnline.style.display = isOnline ? 'inline-flex' : 'none';
+  }
+  // Update live member cards
+  const lmCard = document.getElementById(`lmcard-${userId}`);
+  if (lmCard) {
+    const badge = lmCard.querySelector('.lm-online-badge');
+    if (badge) badge.style.display = isOnline ? 'inline-flex' : 'none';
+  }
+}
+
 let liveMembers = [];
 let liveMemberSub = null;
 
@@ -4535,6 +4615,8 @@ function liveMemberCardHtml(m, isNew) {
       ${skills ? `<div class="live-member-skills">${skills}</div>` : ''}
       <div class="live-member-footer">
         ${connBtn}
+        <span class="lm-online-badge online-badge"
+              style="display:${onlineUsers.has(m.id) ? 'inline-flex' : 'none'}">Online</span>
         ${joined ? `<span class="live-member-joined">Joined ${joined}</span>` : ''}
       </div>
     </div>`;
