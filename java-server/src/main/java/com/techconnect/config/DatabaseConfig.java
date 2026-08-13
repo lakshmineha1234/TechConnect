@@ -239,6 +239,24 @@ public class DatabaseConfig {
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_endorse_user  ON skill_endorsements(endorsed_id, skill_name)");
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_endorse_giver ON skill_endorsements(endorser_id)");
+
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS meetings (
+                    id             TEXT PRIMARY KEY,
+                    requester_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    participant_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    title          TEXT NOT NULL,
+                    scheduled_time TEXT NOT NULL,
+                    duration_mins  INTEGER DEFAULT 30,
+                    meeting_link   TEXT DEFAULT '',
+                    notes          TEXT DEFAULT '',
+                    status         TEXT NOT NULL DEFAULT 'pending'
+                                   CHECK(status IN ('pending','accepted','declined','cancelled')),
+                    created_at     TEXT DEFAULT (datetime('now'))
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_meetings_req  ON meetings(requester_id, scheduled_time)");
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_meetings_part ON meetings(participant_id, scheduled_time)");
         };
     }
 }

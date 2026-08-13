@@ -494,9 +494,47 @@
   }
   .events-load-more { display: flex; justify-content: center; margin-top: 20px; }
 
-  /* Create event modal */
+  /* Create event / meeting modal shared grid */
   .event-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .event-form-full { grid-column: 1 / -1; }
+
+  /* Meeting cards */
+  .meeting-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;
+    transition: border-color .18s, transform .18s;
+  }
+  .meeting-card:hover { border-color: rgba(0,229,200,.35); transform: translateY(-2px); }
+  .meeting-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .meeting-card-title { font-weight: 600; font-size: .95rem; color: var(--text); }
+  .meeting-status-badge {
+    font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: .04em; flex-shrink: 0;
+  }
+  .meeting-status-badge.pending  { background: rgba(255,170,0,.12); color: #ffaa33; }
+  .meeting-status-badge.accepted { background: rgba(34,197,94,.12);  color: #22c55e; }
+  .meeting-status-badge.declined { background: rgba(255,77,77,.12);  color: var(--danger); }
+  .meeting-status-badge.cancelled{ background: rgba(255,255,255,.07);color: var(--muted); }
+  .meeting-card-meta { font-size: .82rem; color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
+  .meeting-card-actions { display: flex; gap: 8px; margin-top: 6px; }
+  .meeting-accept-btn {
+    font-size: .78rem; padding: 5px 14px; border-radius: 20px; cursor: pointer; font-weight: 600;
+    background: rgba(34,197,94,.12); color: #22c55e;
+    border: 1px solid rgba(34,197,94,.3); transition: background .18s;
+  }
+  .meeting-accept-btn:hover { background: rgba(34,197,94,.22); }
+  .meeting-decline-btn {
+    font-size: .78rem; padding: 5px 14px; border-radius: 20px; cursor: pointer; font-weight: 600;
+    background: transparent; color: var(--danger);
+    border: 1px solid rgba(255,77,77,.3); transition: background .18s;
+  }
+  .meeting-decline-btn:hover { background: rgba(255,77,77,.08); }
+  .meeting-cancel-btn {
+    font-size: .78rem; padding: 5px 14px; border-radius: 20px; cursor: pointer; font-weight: 600;
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border); transition: background .18s;
+  }
+  .meeting-cancel-btn:hover { color: var(--danger); border-color: rgba(255,77,77,.3); }
 
   /* ── Notification bell ── */
   .notif-btn {
@@ -1788,21 +1826,29 @@
     <div class="events-container">
       <div class="events-header">
         <h2 class="events-heading">🗓 Events &amp; Meetups</h2>
-        <button class="btn btn-grad" style="font-size:.85rem;padding:10px 20px;" onclick="openCreateEventModal()">+ Create Event</button>
+        <!-- shown for IT professionals only -->
+        <button class="btn btn-grad" id="createEventHeaderBtn" style="font-size:.85rem;padding:10px 20px;display:none;" onclick="openCreateEventModal()">+ Create Event</button>
+        <!-- shown for students only -->
+        <button class="btn btn-grad" id="scheduleMeetingHeaderBtn" style="font-size:.85rem;padding:10px 20px;display:none;" onclick="openScheduleMeetingModal()">+ Schedule Meeting</button>
       </div>
 
-      <div class="events-filter-row" id="eventsTypeFilter">
-        <button class="filter-chip active" data-etype="all"       onclick="setEventFilter('all')">All</button>
-        <button class="filter-chip"        data-etype="meetup"    onclick="setEventFilter('meetup')">🤝 Meetups</button>
-        <button class="filter-chip"        data-etype="webinar"   onclick="setEventFilter('webinar')">💻 Webinars</button>
-        <button class="filter-chip"        data-etype="hackathon" onclick="setEventFilter('hackathon')">⚡ Hackathons</button>
-        <button class="filter-chip"        data-etype="workshop"  onclick="setEventFilter('workshop')">🛠 Workshops</button>
+      <!-- Event filters (hidden when My Meetings tab is active) -->
+      <div id="eventFiltersWrap">
+        <div class="events-filter-row" id="eventsTypeFilter">
+          <button class="filter-chip active" data-etype="all"       onclick="setEventFilter('all')">All</button>
+          <button class="filter-chip"        data-etype="meetup"    onclick="setEventFilter('meetup')">🤝 Meetups</button>
+          <button class="filter-chip"        data-etype="webinar"   onclick="setEventFilter('webinar')">💻 Webinars</button>
+          <button class="filter-chip"        data-etype="hackathon" onclick="setEventFilter('hackathon')">⚡ Hackathons</button>
+          <button class="filter-chip"        data-etype="workshop"  onclick="setEventFilter('workshop')">🛠 Workshops</button>
+        </div>
       </div>
 
       <div class="events-when-row">
         <button class="events-when-btn active" data-when="upcoming" onclick="setEventWhen('upcoming')">Upcoming</button>
         <button class="events-when-btn"        data-when="past"     onclick="setEventWhen('past')">Past</button>
         <button class="events-when-btn"        data-when="all"      onclick="setEventWhen('all')">All</button>
+        <!-- shown for students only -->
+        <button class="events-when-btn" id="myMeetingsTab" style="display:none;" data-when="meetings" onclick="setEventWhen('meetings')">📅 My Meetings</button>
       </div>
 
       <div class="events-grid" id="eventsGrid"></div>
@@ -1839,6 +1885,52 @@
       <div style="display:flex;gap:12px;margin-top:20px;justify-content:flex-end;">
         <button class="btn btn-ghost" onclick="closeModal('createEventBackdrop')">Cancel</button>
         <button class="btn btn-grad" id="createEventBtn" onclick="submitCreateEvent()">Create Event</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Meeting Modal (students only) -->
+  <div class="modal-backdrop" id="scheduleMeetingBackdrop" onclick="if(event.target===this)closeModal('scheduleMeetingBackdrop')">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:540px;">
+      <button class="modal-close" onclick="closeModal('scheduleMeetingBackdrop')">✕</button>
+      <h2 class="modal-title">📅 Schedule a Meeting</h2>
+      <div id="scheduleMeetingError" class="form-error" style="display:none;"></div>
+      <div class="event-form-grid">
+        <div class="field event-form-full">
+          <label>Meeting Title / Topic *</label>
+          <input type="text" id="mtTitle" placeholder="Career advice, Resume review, Tech guidance…" maxlength="120"/>
+        </div>
+        <div class="field event-form-full">
+          <label>With (IT Professional) *</label>
+          <select id="mtParticipant" class="search-input" style="padding:10px 14px;">
+            <option value="">Select a connection…</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Date &amp; Time *</label>
+          <input type="datetime-local" id="mtTime"/>
+        </div>
+        <div class="field">
+          <label>Duration</label>
+          <select id="mtDuration" class="search-input" style="padding:10px 14px;">
+            <option value="15">15 minutes</option>
+            <option value="30" selected>30 minutes</option>
+            <option value="45">45 minutes</option>
+            <option value="60">1 hour</option>
+          </select>
+        </div>
+        <div class="field event-form-full">
+          <label>Meeting Link <span style="color:var(--muted);font-weight:400;">(Zoom, Google Meet, Teams…)</span></label>
+          <input type="url" id="mtLink" placeholder="https://meet.google.com/…"/>
+        </div>
+        <div class="field event-form-full">
+          <label>Notes / Agenda <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+          <textarea id="mtNotes" rows="3" placeholder="What do you want to discuss?" maxlength="1000" style="resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closeModal('scheduleMeetingBackdrop')">Cancel</button>
+        <button class="btn btn-grad" id="scheduleMeetingBtn" onclick="submitScheduleMeeting()">Send Request</button>
       </div>
     </div>
   </div>
@@ -4803,6 +4895,17 @@ async function initEvents() {
   eventOffset = 0;
   document.getElementById('eventsGrid').innerHTML = '';
   document.getElementById('eventsLoadMore').style.display = 'none';
+
+  // Show/hide role-specific buttons and tabs
+  const isPro     = currentUser?.role === 'pro';
+  const isStudent = currentUser?.role === 'student';
+  const createEvtBtn  = document.getElementById('createEventHeaderBtn');
+  const scheduleMtBtn = document.getElementById('scheduleMeetingHeaderBtn');
+  const myMtTab       = document.getElementById('myMeetingsTab');
+  if (createEvtBtn)  createEvtBtn.style.display  = isPro     ? 'inline-flex' : 'none';
+  if (scheduleMtBtn) scheduleMtBtn.style.display = isStudent ? 'inline-flex' : 'none';
+  if (myMtTab)       myMtTab.style.display       = isStudent ? 'inline-flex' : 'none';
+
   await loadMoreEvents();
   refreshEventStats();
 }
@@ -4838,7 +4941,12 @@ function setEventWhen(when) {
   eventWhen = when;
   document.querySelectorAll('.events-when-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.when === when));
-  eventOffset = 0; loadMoreEvents();
+  // Hide event type filters when showing meetings
+  const filtersWrap = document.getElementById('eventFiltersWrap');
+  if (filtersWrap) filtersWrap.style.display = when === 'meetings' ? 'none' : '';
+  eventOffset = 0;
+  if (when === 'meetings') loadMyMeetings();
+  else loadMoreEvents();
 }
 
 function eventCardHtml(ev) {
@@ -5010,6 +5118,131 @@ function formatEventDate(iso) {
     return d.toLocaleDateString([], { weekday:'short', month:'short', day:'numeric', year:'numeric' })
          + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
   } catch { return iso; }
+}
+
+/* ════════════════════════════════════════
+   MEETINGS (students only)
+════════════════════════════════════════ */
+async function openScheduleMeetingModal() {
+  document.getElementById('mtTitle').value    = '';
+  document.getElementById('mtTime').value     = '';
+  document.getElementById('mtDuration').value = '30';
+  document.getElementById('mtLink').value     = '';
+  document.getElementById('mtNotes').value    = '';
+  clearError(document.getElementById('scheduleMeetingError'));
+
+  // Populate participant dropdown from connected IT pros
+  const select = document.getElementById('mtParticipant');
+  select.innerHTML = '<option value="">Loading connections…</option>';
+  try {
+    const pros = await api('GET', '/api/meetings/connections');
+    if (pros.length === 0) {
+      select.innerHTML = '<option value="">No connected IT professionals yet</option>';
+    } else {
+      select.innerHTML = '<option value="">Select a connection…</option>' +
+        pros.map(p => {
+          const label = p.jobTitle && p.company ? `${p.name} — ${p.jobTitle} @ ${p.company}`
+                      : p.jobTitle ? `${p.name} — ${p.jobTitle}`
+                      : p.company  ? `${p.name} — ${p.company}`
+                      : p.name;
+          return `<option value="${escHtml(p.id)}">${escHtml(label)}</option>`;
+        }).join('');
+    }
+  } catch {
+    select.innerHTML = '<option value="">Could not load connections</option>';
+  }
+  openModal('scheduleMeetingBackdrop');
+}
+
+async function submitScheduleMeeting() {
+  const errEl = document.getElementById('scheduleMeetingError');
+  const btn   = document.getElementById('scheduleMeetingBtn');
+  clearError(errEl);
+
+  const title         = document.getElementById('mtTitle').value.trim();
+  const participantId = document.getElementById('mtParticipant').value;
+  const scheduledTime = document.getElementById('mtTime').value;
+  const durationMins  = parseInt(document.getElementById('mtDuration').value, 10);
+  const meetingLink   = document.getElementById('mtLink').value.trim();
+  const notes         = document.getElementById('mtNotes').value.trim();
+
+  if (!title)         { showError(errEl, 'Please enter a meeting title.');      return; }
+  if (!participantId) { showError(errEl, 'Please select an IT professional.');   return; }
+  if (!scheduledTime) { showError(errEl, 'Please choose a date and time.');      return; }
+
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  try {
+    const mt = await api('POST', '/api/meetings', { title, participantId, scheduledTime, durationMins, meetingLink, notes });
+    closeModal('scheduleMeetingBackdrop');
+    showToast('Meeting request sent!', 'success');
+    // If My Meetings tab is active, refresh it
+    if (eventWhen === 'meetings') loadMyMeetings();
+  } catch (e) {
+    showError(errEl, e.message || 'Could not send meeting request.');
+  } finally { btn.textContent = 'Send Request'; btn.disabled = false; }
+}
+
+async function loadMyMeetings() {
+  const grid = document.getElementById('eventsGrid');
+  document.getElementById('eventsLoadMore').style.display = 'none';
+  grid.innerHTML = '<div class="events-empty">Loading meetings…</div>';
+  try {
+    const meetings = await api('GET', '/api/meetings');
+    if (meetings.length === 0) {
+      grid.innerHTML = `<div class="events-empty">No meetings yet.<br>Click <strong>Schedule Meeting</strong> to request one with an IT professional!</div>`;
+      return;
+    }
+    grid.innerHTML = '';
+    meetings.forEach(m => grid.insertAdjacentHTML('beforeend', meetingCardHtml(m)));
+  } catch {
+    grid.innerHTML = '<div class="events-empty">Could not load meetings.</div>';
+  }
+}
+
+function meetingCardHtml(m) {
+  const statusLabel = { pending:'Pending', accepted:'Accepted', declined:'Declined', cancelled:'Cancelled' }[m.status] || m.status;
+  const dateStr  = formatEventDate(m.scheduledTime);
+  const duration = m.durationMins ? `${m.durationMins} min` : '';
+  const linkHtml = m.meetingLink
+    ? `<a href="${escHtml(m.meetingLink)}" target="_blank" rel="noopener" style="color:var(--cyan);font-size:.82rem;">🔗 Join Link</a>`
+    : '';
+  const notesHtml = m.notes ? `<div style="font-size:.82rem;color:var(--muted);margin-top:2px;">📝 ${escHtml(m.notes)}</div>` : '';
+
+  // Action buttons depend on whether I'm the requester or participant and the current status
+  let actions = '';
+  if (!m.isMine && m.status === 'pending') {
+    actions = `
+      <button class="meeting-accept-btn"  onclick="updateMeetingStatus('${escHtml(m.id)}','accepted')">✓ Accept</button>
+      <button class="meeting-decline-btn" onclick="updateMeetingStatus('${escHtml(m.id)}','declined')">✕ Decline</button>`;
+  } else if (m.isMine && m.status === 'pending') {
+    actions = `<button class="meeting-cancel-btn" onclick="updateMeetingStatus('${escHtml(m.id)}','cancelled')">Cancel Request</button>`;
+  }
+
+  const withLabel = m.isMine ? `With: ${escHtml(m.participantName)}` : `From: ${escHtml(m.requesterName)}`;
+
+  return `
+    <div class="meeting-card" id="mcard-${escHtml(m.id)}">
+      <div class="meeting-card-top">
+        <div class="meeting-card-title">${escHtml(m.title)}</div>
+        <span class="meeting-status-badge ${m.status}">${statusLabel}</span>
+      </div>
+      <div class="meeting-card-meta">
+        <span>👤 ${withLabel}</span>
+        <span>📅 ${escHtml(dateStr)}${duration ? ' · ' + duration : ''}</span>
+        ${linkHtml ? `<span>${linkHtml}</span>` : ''}
+      </div>
+      ${notesHtml}
+      ${actions ? `<div class="meeting-card-actions">${actions}</div>` : ''}
+    </div>`;
+}
+
+async function updateMeetingStatus(id, status) {
+  try {
+    await api('PUT', `/api/meetings/${id}/status`, { status });
+    // Refresh the meetings list
+    loadMyMeetings();
+    showToast(status === 'accepted' ? 'Meeting accepted!' : status === 'declined' ? 'Meeting declined.' : 'Meeting cancelled.', 'success');
+  } catch (e) { alert(e.message || 'Could not update meeting.'); }
 }
 
 /* ════════════════════════════════════════
