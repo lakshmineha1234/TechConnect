@@ -167,6 +167,40 @@
   .avatar-upload-wrap { display: flex; flex-direction: column; }
 
   .avatar-info { display: flex; flex-direction: column; line-height: 1.2; }
+
+  /* ── Resume upload ── */
+  .resume-upload-section {
+    background: rgba(0,200,255,.04); border: 1px dashed rgba(0,200,255,.25);
+    border-radius: 12px; padding: 16px 18px; margin-top: 4px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .resume-upload-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .resume-upload-btn {
+    font-size: .82rem; padding: 7px 16px; border-radius: 8px; cursor: pointer;
+    background: rgba(0,200,255,.08); border: 1px solid rgba(0,200,255,.25);
+    color: var(--cyan); font-family: 'DM Sans',sans-serif; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px; transition: background .15s;
+  }
+  .resume-upload-btn:hover { background: rgba(0,200,255,.16); }
+  .resume-file-name {
+    font-size: .82rem; color: var(--text); font-weight: 500;
+    max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .resume-remove-btn {
+    font-size: .78rem; padding: 5px 10px; border-radius: 8px; cursor: pointer;
+    background: transparent; border: 1px solid var(--border2);
+    color: var(--muted); font-family: 'DM Sans',sans-serif; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 5px; transition: color .15s, border-color .15s;
+  }
+  .resume-remove-btn:hover { color: var(--danger); border-color: rgba(255,77,77,.3); }
+  .resume-hint { font-size: .73rem; color: var(--muted); }
+  .resume-download-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: .83rem; padding: 8px 18px; border-radius: 20px; font-weight: 600;
+    background: rgba(0,200,255,.08); border: 1px solid rgba(0,200,255,.3);
+    color: var(--cyan); text-decoration: none; transition: background .15s; cursor: pointer;
+  }
+  .resume-download-btn:hover { background: rgba(0,200,255,.18); }
   .avatar-name { font-size: .85rem; font-weight: 600; color: var(--text); }
   .role-badge {
     font-size: .68rem; font-weight: 600; padding: 2px 7px; border-radius: 20px;
@@ -2252,6 +2286,21 @@
       </div>
     </div>
 
+    <!-- Resume upload — students only (shown/hidden by JS) -->
+    <div id="pfResumeSection" class="hidden">
+      <div class="section-heading">Resume / CV</div>
+      <div class="resume-upload-section">
+        <div class="resume-upload-row">
+          <label class="resume-upload-btn" for="resumeFileInput">📎 Upload Resume</label>
+          <input type="file" id="resumeFileInput" accept="application/pdf" style="display:none;" onchange="uploadResume(this)">
+          <span class="resume-file-name" id="resumeFileName" style="display:none;"></span>
+          <button class="resume-remove-btn" id="resumeRemoveBtn" style="display:none;" onclick="removeResume()">✕ Remove</button>
+        </div>
+        <div id="resumeUploadStatus" style="font-size:.75rem;color:var(--muted);"></div>
+        <span class="resume-hint">PDF only · max 5 MB</span>
+      </div>
+    </div>
+
     <div class="section-heading">Skills</div>
     <div class="skills-wrap" id="skillsWrap"></div>
     <div class="skill-input-row">
@@ -2419,6 +2468,73 @@ async function removeAvatar() {
   } catch (e) {
     if (status) { status.textContent = '✗ ' + e.message; }
   }
+}
+
+/* ── Resume upload / remove ── */
+async function uploadResume(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const status = document.getElementById('resumeUploadStatus');
+  if (status) status.textContent = 'Uploading…';
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    const res  = await fetch('/api/profile/resume', {
+      method: 'POST', credentials: 'same-origin', body: form
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    setResumeDisplay(data.name);
+    if (status) { status.textContent = '✓ Resume uploaded!'; setTimeout(() => { if(status) status.textContent=''; }, 3000); }
+  } catch (e) {
+    if (status) { status.textContent = '✗ ' + e.message; setTimeout(() => { if(status) status.textContent=''; }, 4000); }
+  }
+  input.value = '';
+}
+
+async function removeResume() {
+  const status = document.getElementById('resumeUploadStatus');
+  try {
+    await api('DELETE', '/api/profile/resume');
+    setResumeDisplay(null);
+    if (status) { status.textContent = '✓ Resume removed'; setTimeout(() => { if(status) status.textContent=''; }, 3000); }
+  } catch (e) {
+    if (status) { status.textContent = '✗ ' + e.message; }
+  }
+}
+
+function setResumeDisplay(name) {
+  const nameEl   = document.getElementById('resumeFileName');
+  const removeEl = document.getElementById('resumeRemoveBtn');
+  if (!nameEl || !removeEl) return;
+  if (name) {
+    nameEl.textContent    = '📄 ' + name;
+    nameEl.style.display  = 'inline';
+    removeEl.style.display = 'inline-flex';
+  } else {
+    nameEl.style.display   = 'none';
+    removeEl.style.display = 'none';
+  }
+}
+
+async function loadProfileResume(userId, isSelf) {
+  const container = document.getElementById(`uprofile-resume-${userId}`);
+  if (!container) return;
+  try {
+    const info = await api('GET', `/api/profile/resume/${userId}/info`);
+    const sizeKb = Math.round(info.size / 1024);
+    const sizeLabel = sizeKb >= 1024 ? `${(sizeKb/1024).toFixed(1)} MB` : `${sizeKb} KB`;
+    container.innerHTML = `
+      <div class="uprofile-section">
+        <div class="uprofile-section-title">Resume / CV</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <a class="resume-download-btn" href="/api/profile/resume/${encodeURIComponent(userId)}" target="_blank" rel="noopener">
+            📄 View Resume
+          </a>
+          <span style="font-size:.78rem;color:var(--muted);">${escHtml(info.name)} · ${sizeLabel}</span>
+        </div>
+      </div>`;
+  } catch { /* no resume — show nothing */ }
 }
 
 function renderNav() {
@@ -2804,11 +2920,17 @@ async function openProfile() {
   const isStudent = u.role === 'student';
   document.getElementById('pfAcadSection').classList.toggle('hidden', !isStudent);
   document.getElementById('pfProfSection').classList.toggle('hidden',  isStudent);
+  document.getElementById('pfResumeSection').classList.toggle('hidden', !isStudent);
 
   if (isStudent) {
     document.getElementById('pfInstitution').value = u.institution || '';
     document.getElementById('pfDegree').value      = u.degree      || '';
     document.getElementById('pfYear').value        = u.year        || '';
+    // Load existing resume info
+    setResumeDisplay(null);
+    api('GET', `/api/profile/resume/${u.id}/info`)
+      .then(info => setResumeDisplay(info.name))
+      .catch(() => {});
   } else {
     document.getElementById('pfCompany').value    = u.company    || '';
     document.getElementById('pfJobTitle').value   = u.jobTitle   || '';
@@ -3211,6 +3333,8 @@ function renderUserProfileModal(p) {
         <a class="uprofile-link" href="${escHtml(p.github)}"   target="_blank" rel="noopener">GitHub Profile</a></div>` : ''}
     </div>` : '';
 
+  const canSeeResume = p.role === 'student' && (p.isSelf || p.connStatus === 'accepted');
+
   document.getElementById('userProfileContent').innerHTML = `
     <div class="uprofile-hero">
       <div class="uprofile-avatar">${escHtml(ini)}<img src="/api/profile/avatar/${encodeURIComponent(p.id)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.remove();" alt=""></div>
@@ -3229,12 +3353,11 @@ function renderUserProfileModal(p) {
     ${detailSection}
     ${skillsHtml}
     ${linksHtml}
+    <div id="uprofile-resume-${escHtml(p.id)}"></div>
   `;
 
-  // Load endorsements asynchronously and upgrade skill chips
-  if (p.skills?.length) {
-    loadEndorsements(p.id, canEndorse);
-  }
+  if (p.skills?.length) loadEndorsements(p.id, canEndorse);
+  if (canSeeResume)     loadProfileResume(p.id, p.isSelf);
 }
 
 async function loadEndorsements(userId, canEndorse) {

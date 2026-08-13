@@ -199,6 +199,8 @@ public class DatabaseConfig {
 
             // Add avatar_mime column to profiles (idempotent — ignore if already exists)
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN avatar_mime TEXT DEFAULT ''"); } catch (Exception ignored) {}
+            // Add resume_name column to profiles (idempotent)
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN resume_name TEXT DEFAULT ''"); } catch (Exception ignored) {}
 
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS post_comments (
