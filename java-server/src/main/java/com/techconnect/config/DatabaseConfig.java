@@ -259,6 +259,17 @@ public class DatabaseConfig {
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_meetings_req  ON meetings(requester_id, scheduled_time)");
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_meetings_part ON meetings(participant_id, scheduled_time)");
+
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS profile_views (
+                    id        TEXT PRIMARY KEY,
+                    viewer_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    viewed_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    viewed_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(viewer_id, viewed_id, date(viewed_at))
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_pviews_viewed ON profile_views(viewed_id, viewed_at)");
         };
     }
 }
