@@ -76,6 +76,19 @@ public class ChatController {
         messaging.convertAndSendToUser(senderId,    "/queue/chat", msg);
     }
 
+    // ── WebSocket: typing indicator ──────────────────────────────────────────
+    @MessageMapping("/chat.typing")
+    public void typing(@Payload Map<String, String> payload, Principal principal) {
+        if (principal == null) return;
+        String senderId    = principal.getName();
+        String recipientId = payload.get("recipientId");
+        if (recipientId == null || recipientId.isBlank() || senderId.equals(recipientId)) return;
+
+        String senderName = getSenderName(senderId);
+        messaging.convertAndSendToUser(recipientId, "/queue/typing",
+            Map.of("senderId", senderId, "senderName", senderName));
+    }
+
     // ── REST: send a message (fallback when WebSocket is unavailable) ────────
     @PostMapping("/api/chat/send")
     @ResponseBody

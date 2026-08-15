@@ -1283,6 +1283,25 @@
     border-radius: 20px; padding: 3px 12px; margin: 6px 0;
   }
 
+  /* ── Typing indicator ── */
+  .typing-indicator {
+    display: none; align-self: flex-start; align-items: center; gap: 6px;
+    padding: 4px 0 6px; font-size: .78rem; color: var(--muted); font-style: italic;
+  }
+  .typing-indicator.visible { display: flex; }
+  .typing-dots { display: flex; gap: 3px; align-items: center; }
+  .typing-dots span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--muted); display: inline-block;
+    animation: typingBounce 1.2s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: .2s; }
+  .typing-dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: .4; }
+    30%           { transform: translateY(-5px); opacity: 1; }
+  }
+
   .chat-input-area {
     display: flex; flex-direction: column; gap: 0; padding: 10px 16px 14px;
     border-top: 1px solid var(--border2); background: var(--surface2);
@@ -2112,12 +2131,17 @@
       </div>
       <div class="chat-messages hidden" id="chatMessages"></div>
       <div class="chat-input-area hidden" id="chatInputArea">
+        <div class="typing-indicator" id="typingIndicator">
+          <div class="typing-dots"><span></span><span></span><span></span></div>
+          <span id="typingName"></span>
+        </div>
         <div id="chatSendError" style="display:none;color:var(--danger);font-size:.78rem;
              padding:4px 0 6px;width:100%;text-align:center;"></div>
         <div style="display:flex;gap:10px;width:100%;">
           <input type="text" class="chat-input-field" id="chatInputField"
                  placeholder="Type a message…"
-                 onkeydown="if(event.key==='Enter' && !event.shiftKey){ sendChatMessage(); event.preventDefault(); }" />
+                 onkeydown="if(event.key==='Enter' && !event.shiftKey){ sendChatMessage(); event.preventDefault(); }"
+                 oninput="onChatInput()" />
           <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">➤</button>
         </div>
       </div>
@@ -3491,6 +3515,14 @@ function connectWS() {
         } catch(e) {}
       });
 
+      // Subscribe to typing indicators
+      stompClient.subscribe('/user/queue/typing', frame => {
+        try {
+          const { senderId, senderName } = JSON.parse(frame.body);
+          if (senderId === activeChatUserId) showTypingIndicator(senderName);
+        } catch(e) {}
+      });
+
       // Subscribe to new member broadcasts
       subscribeNewMembers();
 
@@ -3509,6 +3541,9 @@ function disconnectWS() {
 }
 
 function onIncomingMessage(msg) {
+  // Hide typing indicator when a real message arrives
+  if (msg.senderId === activeChatUserId) hideTypingIndicator();
+
   // If thread is open for this conversation, append message
   if (activeChatUserId &&
       (msg.senderId === activeChatUserId || msg.recipientId === activeChatUserId)) {
@@ -3703,6 +3738,37 @@ async function sendChatMessage() {
     input.disabled = false;
     input.focus();
   }
+}
+
+// ── Typing indicator ─────────────────────────────────────────────────────────
+let typingTimer      = null;   // auto-hide timer
+let lastTypingSent   = 0;      // throttle: last time we sent a typing event
+
+function onChatInput() {
+  if (!activeChatUserId || !stompClient?.connected) return;
+  const now = Date.now();
+  if (now - lastTypingSent > 2000) {          // send at most once every 2 s
+    lastTypingSent = now;
+    stompClient.publish({
+      destination: '/app/chat.typing',
+      body: JSON.stringify({ recipientId: activeChatUserId }),
+    });
+  }
+}
+
+function showTypingIndicator(name) {
+  const el   = document.getElementById('typingIndicator');
+  const nameEl = document.getElementById('typingName');
+  if (!el || !nameEl) return;
+  nameEl.textContent = name + ' is typing…';
+  el.classList.add('visible');
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => el.classList.remove('visible'), 3000);
+}
+
+function hideTypingIndicator() {
+  clearTimeout(typingTimer);
+  document.getElementById('typingIndicator')?.classList.remove('visible');
 }
 
 // ── Open chat with a specific user (from profile card) ───────────────────────
