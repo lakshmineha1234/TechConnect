@@ -33,10 +33,10 @@ public class ProfileViewController {
 
         try {
             String id = UUID.randomUUID().toString();
-            // UNIQUE(viewer_id, viewed_id, date(viewed_at)) — one entry per day per viewer
+            // UNIQUE(viewer_id, viewed_id, view_date) — one entry per viewer per day
             jdbc.update("""
-                INSERT OR IGNORE INTO profile_views (id, viewer_id, viewed_id)
-                VALUES (?, ?, ?)
+                INSERT OR IGNORE INTO profile_views (id, viewer_id, viewed_id, view_date)
+                VALUES (?, ?, ?, date('now'))
                 """, id, viewerId, viewedId);
         } catch (Exception ignored) {}
 

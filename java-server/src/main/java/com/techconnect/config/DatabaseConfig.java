@@ -265,8 +265,9 @@ public class DatabaseConfig {
                     id        TEXT PRIMARY KEY,
                     viewer_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     viewed_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    view_date TEXT NOT NULL DEFAULT (date('now')),
                     viewed_at TEXT DEFAULT (datetime('now')),
-                    UNIQUE(viewer_id, viewed_id, date(viewed_at))
+                    UNIQUE(viewer_id, viewed_id, view_date)
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_pviews_viewed ON profile_views(viewed_id, viewed_at)");
