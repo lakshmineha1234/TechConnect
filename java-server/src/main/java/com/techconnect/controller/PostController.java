@@ -686,20 +686,33 @@ public class PostController {
         return buildPost(id, userId, content, createdAt, likeCount, likedByMe, 0);
     }
 
-    private static final Pattern HASHTAG_PAT  = Pattern.compile("#([a-zA-Z][a-zA-Z0-9_]{0,49})");
-    private static final Pattern MENTION_PAT  = Pattern.compile("@([A-Za-z][A-Za-z ]{1,48}[A-Za-z])");
+    private static final Pattern HASHTAG_PAT   = Pattern.compile("#([a-zA-Z][a-zA-Z0-9_]{0,49})");
+    // New: @[Display Name](userId)
+    private static final Pattern MENTION_NEW   = Pattern.compile("@\\[([^\\]]{1,80})\\]\\(([^)]{1,40})\\)");
+    // Old: @First Last (name-based, kept for backward compat)
+    private static final Pattern MENTION_OLD   = Pattern.compile("@([A-Za-z][A-Za-z ]{1,48}[A-Za-z])");
 
     private void notifyMentions(String content, String actorId, String refId) {
         if (content == null || content.isBlank()) return;
-        Matcher m = MENTION_PAT.matcher(content);
         Set<String> seen = new HashSet<>();
-        while (m.find()) {
-            String fullName = m.group(1).trim();
-            if (fullName.isBlank() || seen.contains(fullName)) continue;
-            seen.add(fullName);
-            String[] parts     = fullName.split("\\s+", 2);
-            String firstName   = parts[0];
-            String lastName    = parts.length > 1 ? parts[1] : "";
+
+        // New format: @[Name](userId) — use userId directly, no ambiguity
+        Matcher mn = MENTION_NEW.matcher(content);
+        while (mn.find()) {
+            String userId = mn.group(2).trim();
+            if (userId.isBlank() || seen.contains(userId) || userId.equals(actorId)) continue;
+            seen.add(userId);
+            try { notifSvc.create(userId, "mention", actorId, refId); } catch (Exception ignored) {}
+        }
+
+        // Old format: @FirstName LastName — name lookup fallback
+        Matcher mo = MENTION_OLD.matcher(content);
+        while (mo.find()) {
+            String fullName  = mo.group(1).trim();
+            if (fullName.isBlank()) continue;
+            String[] parts   = fullName.split("\\s+", 2);
+            String firstName = parts[0];
+            String lastName  = parts.length > 1 ? parts[1] : "";
             try {
                 List<String> ids = lastName.isBlank()
                     ? jdbc.queryForList(
@@ -708,7 +721,10 @@ public class PostController {
                     : jdbc.queryForList(
                         "SELECT id FROM users WHERE first_name = ? AND last_name = ? AND id != ? LIMIT 3",
                         String.class, firstName, lastName, actorId);
-                ids.forEach(uid -> notifSvc.create(uid, "mention", actorId, refId));
+                ids.stream().filter(id -> !seen.contains(id)).forEach(id -> {
+                    seen.add(id);
+                    try { notifSvc.create(id, "mention", actorId, refId); } catch (Exception ignored) {}
+                });
             } catch (Exception ignored) {}
         }
     }

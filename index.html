@@ -1859,6 +1859,12 @@
   .mention-item:hover, .mention-item.focused { background: rgba(167,139,250,.1); }
   .mention-name { font-size: .86rem; font-weight: 600; color: var(--text); }
   .mention-sub  { font-size: .72rem; color: var(--muted); }
+  .mention-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: var(--purple); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 700;
+  }
 
   /* ── Trending hashtags strip ── */
   .trending-strip {
@@ -6741,47 +6747,64 @@ async function submitPost() {
 let activeHashtag = null;
 
 function renderPostContent(content) {
-  return content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/#([a-zA-Z][a-zA-Z0-9_]{0,49})/g,
-      '<a class="post-hashtag" onclick="filterByHashtag(\'$1\')">#$1</a>')
-    .replace(/@([A-Za-z][A-Za-z ]{1,48}[A-Za-z]|[A-Za-z]{2,})/g,
-      '<span class="post-mention" onclick="openMentionProfile(\'$1\')">@$1</span>');
+  // Escape HTML first, preserving @[Name](userId) and #tag markers for replacement
+  let s = content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // New mention format: @[Name](userId) — link directly by userId
+  s = s.replace(/@\[([^\]]+)\]\(([^)]+)\)/g,
+    (_, name, uid) => `<span class="post-mention" onclick="openUserProfile('${uid.replace(/'/g,'')}')">@${escHtml(name)}</span>`);
+  // Hashtags
+  s = s.replace(/#([a-zA-Z][a-zA-Z0-9_]{0,49})/g,
+    '<a class="post-hashtag" onclick="filterByHashtag(\'$1\')">#$1</a>');
+  // Old mention format: @First Last — fallback name lookup
+  s = s.replace(/@([A-Za-z][A-Za-z ]{1,48}[A-Za-z]|[A-Za-z]{2,})/g,
+    '<span class="post-mention" onclick="openMentionProfile(\'$1\')">@$1</span>');
+  return s;
 }
 
 // ── @Mention autocomplete ─────────────────────────────────────────────────────
 
-let _mentionEl = null; // the textarea that triggered the dropdown
+let _mentionEl          = null;
+let _mentionSuggestions = [];
+let _mentionTimer       = null;
 
 function getMentionMatch(el) {
-  const val = el.value;
-  const pos = el.selectionStart;
-  const before = val.slice(0, pos);
+  const before = el.value.slice(0, el.selectionStart);
   const m = before.match(/@([A-Za-z][A-Za-z ]*)$/);
   return m ? m[1] : null;
 }
 
 function onMentionInput(el) {
   const query = getMentionMatch(el);
-  if (!query) { hideMentionDropdown(); return; }
-  const conns = (connData && connData.accepted) ? connData.accepted : [];
-  const q = query.toLowerCase();
-  const matches = conns.filter(c => c.name.toLowerCase().startsWith(q)).slice(0, 6);
-  if (!matches.length) { hideMentionDropdown(); return; }
+  if (query === null) { hideMentionDropdown(); return; }
   _mentionEl = el;
-  showMentionDropdown(el, matches, query);
+  clearTimeout(_mentionTimer);
+  _mentionTimer = setTimeout(() => _fetchMentionSuggestions(el, query), 200);
 }
 
-function showMentionDropdown(el, suggestions, query) {
-  const dd = document.getElementById('mentionDropdown');
+async function _fetchMentionSuggestions(el, query) {
+  if (_mentionEl !== el) return;
+  try {
+    const results = await api('GET', `/api/users/mention-search?q=${encodeURIComponent(query)}`);
+    if (_mentionEl !== el) return;
+    if (!results.length) { hideMentionDropdown(); return; }
+    _mentionSuggestions = results;
+    showMentionDropdown(el, results);
+  } catch { hideMentionDropdown(); }
+}
+
+function showMentionDropdown(el, suggestions) {
+  const dd   = document.getElementById('mentionDropdown');
   const rect = el.getBoundingClientRect();
-  dd.style.left   = rect.left + 'px';
-  dd.style.top    = (rect.bottom + 4) + 'px';
+  dd.style.left    = rect.left + 'px';
+  dd.style.top     = (rect.bottom + 4) + 'px';
   dd.style.display = 'block';
   dd.innerHTML = suggestions.map((c, i) => `
-    <div class="mention-item${i===0?' focused':''}" onmousedown="event.preventDefault();applyMentionSuggestion('${escHtml(c.name)}')">
+    <div class="mention-item${i===0?' focused':''}" data-idx="${i}"
+         onmousedown="event.preventDefault();applyMentionSuggestion(${i})">
+      <div class="mention-avatar">${initials(c.name)}</div>
       <div>
         <div class="mention-name">${escHtml(c.name)}</div>
-        <div class="mention-sub">${escHtml(c.role || '')}</div>
+        <div class="mention-sub">${escHtml(c.jobTitle || c.role || '')}</div>
       </div>
     </div>`).join('');
 }
@@ -6789,17 +6812,16 @@ function showMentionDropdown(el, suggestions, query) {
 function hideMentionDropdown() {
   const dd = document.getElementById('mentionDropdown');
   if (dd) { dd.style.display = 'none'; dd.innerHTML = ''; }
-  _mentionEl = null;
+  _mentionEl = null; _mentionSuggestions = [];
 }
 
-function applyMentionSuggestion(name) {
-  if (!_mentionEl) return;
-  const el  = _mentionEl;
-  const val = el.value;
-  const pos = el.selectionStart;
-  const before = val.slice(0, pos);
-  const after  = val.slice(pos);
-  const replaced = before.replace(/@([A-Za-z][A-Za-z ]*)$/, '@' + name + ' ');
+function applyMentionSuggestion(idx) {
+  const c = _mentionSuggestions[idx];
+  if (!c || !_mentionEl) return;
+  const el     = _mentionEl;
+  const before = el.value.slice(0, el.selectionStart);
+  const after  = el.value.slice(el.selectionStart);
+  const replaced = before.replace(/@([A-Za-z][A-Za-z ]*)$/, `@[${c.name}](${c.id}) `);
   el.value = replaced + after;
   el.selectionStart = el.selectionEnd = replaced.length;
   el.focus();
@@ -6807,6 +6829,30 @@ function applyMentionSuggestion(name) {
   if (typeof onFeedInput === 'function' && el.id === 'feedTextarea') onFeedInput(el);
 }
 
+// Arrow key + Enter navigation for the dropdown
+document.addEventListener('keydown', e => {
+  const dd = document.getElementById('mentionDropdown');
+  if (!dd || dd.style.display === 'none') return;
+  const items = [...dd.querySelectorAll('.mention-item')];
+  if (!items.length) return;
+  const cur = items.findIndex(el => el.classList.contains('focused'));
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const next = (cur + 1) % items.length;
+    items.forEach((el, i) => el.classList.toggle('focused', i === next));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const prev = (cur - 1 + items.length) % items.length;
+    items.forEach((el, i) => el.classList.toggle('focused', i === prev));
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    const idx = cur >= 0 ? cur : 0;
+    if (_mentionSuggestions[idx]) { e.preventDefault(); applyMentionSuggestion(idx); }
+  } else if (e.key === 'Escape') {
+    hideMentionDropdown();
+  }
+});
+
+// Old-format fallback: open profile by name match in connections
 function openMentionProfile(name) {
   const conns = (connData && connData.accepted) ? connData.accepted : [];
   const match = conns.find(c => c.name.toLowerCase() === name.toLowerCase());

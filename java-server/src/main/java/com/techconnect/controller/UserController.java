@@ -116,6 +116,46 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
+    // ── Mention autocomplete search ───────────────────────────────────────────
+    @GetMapping("/mention-search")
+    public ResponseEntity<List<Map<String, Object>>> mentionSearch(
+            @RequestParam(defaultValue = "") String q, HttpSession session) {
+
+        String uid = (String) session.getAttribute("userId");
+        if (uid == null) return ResponseEntity.status(401).build();
+
+        String trimmed = q.trim();
+        if (trimmed.length() > 50) trimmed = trimmed.substring(0, 50);
+        String like = "%" + trimmed.toLowerCase() + "%";
+
+        List<Map<String, Object>> rows = jdbc.queryForList("""
+            SELECT u.id, u.first_name, u.last_name, u.role, p.job_title,
+                   CASE WHEN EXISTS(
+                     SELECT 1 FROM connections
+                     WHERE status='accepted'
+                       AND ((requester_id=? AND recipient_id=u.id)
+                         OR (requester_id=u.id AND recipient_id=?))
+                   ) THEN 0 ELSE 1 END AS sort_order
+            FROM users u
+            LEFT JOIN profiles p ON p.user_id = u.id
+            WHERE u.id != ?
+              AND (? = '' OR lower(u.first_name || ' ' || u.last_name) LIKE ?)
+            ORDER BY sort_order, u.first_name, u.last_name
+            LIMIT 8
+            """, uid, uid, uid, trimmed, like);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> r : rows) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id",       r.get("id"));
+            m.put("name",     (s(r, "first_name") + " " + s(r, "last_name")).trim());
+            m.put("role",     r.get("role"));
+            m.put("jobTitle", s(r, "job_title"));
+            result.add(m);
+        }
+        return ResponseEntity.ok(result);
+    }
+
     // ── List skill endorsements for a user ───────────────────────────────────
     @GetMapping("/{id}/endorsements")
     public ResponseEntity<List<Map<String, Object>>> getEndorsements(
