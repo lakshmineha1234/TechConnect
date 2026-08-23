@@ -373,6 +373,21 @@ public class DatabaseConfig {
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_pviews_viewed ON profile_views(viewed_id, viewed_at)");
 
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS recommendations (
+                    id           TEXT PRIMARY KEY,
+                    author_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    recipient_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    text         TEXT NOT NULL,
+                    status       TEXT NOT NULL DEFAULT 'pending'
+                                 CHECK(status IN ('pending','approved','hidden')),
+                    created_at   TEXT DEFAULT (datetime('now')),
+                    UNIQUE(author_id, recipient_id)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_recs_recipient ON recommendations(recipient_id, status)");
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_recs_author    ON recommendations(author_id)");
+
             // Purge any rows that reference deleted users (guards against external deletes
             // that bypass the server's foreign-key enforcement).
             jdbc.update("DELETE FROM connections   WHERE requester_id NOT IN (SELECT id FROM users) OR recipient_id  NOT IN (SELECT id FROM users)");

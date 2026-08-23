@@ -2455,6 +2455,14 @@
     display: inline-flex; align-items: center; gap: 4px;
   }
   .project-link:hover { text-decoration: underline; }
+  /* ── Recommendation cards ── */
+  .rec-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 16px; margin-bottom: 12px;
+  }
+  .rec-card:hover { border-color: rgba(0,200,255,.2); }
+  .rec-card-author { font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .rec-card-text   { font-size: .88rem; color: var(--muted); line-height: 1.7; white-space: pre-wrap; }
   /* Edit-mode project item */
   .project-edit-item {
     background: var(--surface); border: 1px solid var(--border2);
@@ -3285,6 +3293,28 @@
     </div>
     <p class="form-error" id="socialRoleError"></p>
     <button class="btn btn-grad" id="socialRoleBtn" style="width:100%;padding:13px;" disabled onclick="completeSocialSignup()">Create Account</button>
+  </div>
+</div>
+
+<!-- ══ WRITE RECOMMENDATION ══ -->
+<div class="modal-backdrop" id="recWriteBackdrop">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <span class="modal-title">Write a Recommendation</span>
+      <button class="modal-close" onclick="closeModal('recWriteBackdrop')" aria-label="Close">✕</button>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);margin:0 0 14px;" id="recWriteSubtitle"></p>
+    <textarea id="recWriteText" rows="6" maxlength="600"
+      placeholder="Describe this person's strengths, work ethic, and what makes them stand out…"
+      style="width:100%;box-sizing:border-box;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:.9rem;resize:vertical;"></textarea>
+    <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+      <span id="recWriteCount" style="font-size:.75rem;color:var(--muted);">0 / 600</span>
+    </div>
+    <p class="form-error" id="recWriteError" style="margin-top:6px;"></p>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-ghost" style="flex:1;" onclick="closeModal('recWriteBackdrop')">Cancel</button>
+      <button class="btn btn-grad" style="flex:1;" id="recWriteBtn" onclick="submitRecommendation()">Send Recommendation</button>
+    </div>
   </div>
 </div>
 
@@ -4802,7 +4832,11 @@ function renderUserProfileModal(p) {
         onclick="closeModal('userProfileBackdrop');openChatWith('${escHtml(p.id)}','${escHtml(p.name)}','${escHtml(p.role)}')">
         💬 Message
       </button>
-      <button class="btn btn-ghost" style="font-size:.85rem;padding:8px 16px;color:var(--teal);border-color:rgba(0,229,200,.3);" disabled>✓ Connected</button>`;
+      <button class="btn btn-ghost" style="font-size:.85rem;padding:8px 16px;color:var(--teal);border-color:rgba(0,229,200,.3);" disabled>✓ Connected</button>
+      <button class="btn btn-ghost" style="font-size:.85rem;padding:8px 16px;"
+        onclick="openRecWriteModal('${escHtml(p.id)}','${escHtml(p.name)}')">
+        ✍️ Recommend
+      </button>`;
   } else if (p.connStatus === 'pending') {
     actionBtns = `
       <button class="btn btn-ghost" style="font-size:.85rem;padding:8px 16px;"
@@ -4893,12 +4927,14 @@ function renderUserProfileModal(p) {
     <div id="uprofile-mutual-${escHtml(p.id)}"></div>
     <div id="uprofile-resume-${escHtml(p.id)}"></div>
     <div id="uprofile-projects-${escHtml(p.id)}"></div>
+    <div id="uprofile-recommendations-${escHtml(p.id)}"></div>
   `;
 
   if (p.skills?.length) loadEndorsements(p.id, canEndorse);
   if (canSeeResume)     loadProfileResume(p.id, p.isSelf);
   if (p.role === 'student') loadProfileProjects(p.id);
   if (!p.isSelf) loadMutualConnections(p.id);
+  loadRecommendations(p.id, p.isSelf);
 }
 
 async function loadMutualConnections(userId) {
@@ -4957,6 +4993,116 @@ function projectCardHtml(proj) {
       ${techs ? `<div class="project-tech-stack">${techs}</div>` : ''}
       ${links ? `<div class="project-links">${links}</div>` : ''}
     </div>`;
+}
+
+// ── Written Recommendations ───────────────────────────────────────────────
+let _recWriteTargetId   = null;
+let _recWriteTargetName = null;
+
+function openRecWriteModal(userId, name) {
+  _recWriteTargetId   = userId;
+  _recWriteTargetName = name;
+  document.getElementById('recWriteSubtitle').textContent = `For ${name}`;
+  document.getElementById('recWriteText').value  = '';
+  document.getElementById('recWriteCount').textContent = '0 / 600';
+  document.getElementById('recWriteError').textContent  = '';
+  document.getElementById('recWriteBtn').disabled = false;
+  openModal('recWriteBackdrop');
+  // Live char counter
+  const ta = document.getElementById('recWriteText');
+  ta.oninput = () => {
+    document.getElementById('recWriteCount').textContent = `${ta.value.length} / 600`;
+  };
+}
+
+async function submitRecommendation() {
+  const text = document.getElementById('recWriteText').value.trim();
+  const errEl = document.getElementById('recWriteError');
+  const btn   = document.getElementById('recWriteBtn');
+  errEl.textContent = '';
+  if (!text) { errEl.textContent = 'Please write something before sending.'; return; }
+  btn.disabled = true;
+  try {
+    await api('POST', '/api/recommendations', { recipientId: _recWriteTargetId, text });
+    closeModal('recWriteBackdrop');
+    showToast(`Recommendation sent to ${_recWriteTargetName}! They'll be notified to approve it.`, 4000);
+  } catch (e) {
+    errEl.textContent = e?.message || 'Could not send recommendation. Please try again.';
+    btn.disabled = false;
+  }
+}
+
+async function loadRecommendations(userId, isSelf) {
+  const container = document.getElementById(`uprofile-recommendations-${userId}`);
+  if (!container) return;
+  try {
+    const recs = await api('GET', `/api/recommendations/${userId}`);
+    let pendingHtml = '';
+    if (isSelf) {
+      try {
+        const pending = await api('GET', '/api/recommendations/pending');
+        if (pending.length) {
+          pendingHtml = `
+            <div class="uprofile-section" style="margin-bottom:4px;">
+              <div class="uprofile-section-title" style="color:var(--amber,#f59e0b);">Pending Recommendations</div>
+              <p style="font-size:.8rem;color:var(--muted);margin:0 0 10px;">Approve or decline recommendations others wrote for you.</p>
+              ${pending.map(r => `
+                <div class="rec-card" style="border-left:3px solid var(--amber,#f59e0b);">
+                  <div class="rec-card-author">${escHtml(r.authorName)}${r.authorTitle ? ` · <span style="color:var(--muted)">${escHtml(r.authorTitle)}</span>` : ''}</div>
+                  <div class="rec-card-text">${escHtml(r.text)}</div>
+                  <div style="display:flex;gap:8px;margin-top:10px;">
+                    <button class="btn btn-grad" style="font-size:.78rem;padding:5px 12px;"
+                      onclick="approveRecommendation('${escHtml(r.id)}')">✓ Approve</button>
+                    <button class="btn btn-ghost" style="font-size:.78rem;padding:5px 12px;color:var(--muted);"
+                      onclick="hideRecommendation('${escHtml(r.id)}')">✕ Decline</button>
+                  </div>
+                </div>`).join('')}
+            </div>`;
+        }
+      } catch { /* no pending */ }
+    }
+    const approvedHtml = recs.length ? `
+      <div class="uprofile-section">
+        <div class="uprofile-section-title">Recommendations</div>
+        ${recs.map(r => `
+          <div class="rec-card">
+            <div class="rec-card-author">${escHtml(r.authorName)}${r.authorTitle ? ` · <span style="color:var(--muted)">${escHtml(r.authorTitle)}</span>` : ''}</div>
+            <div class="rec-card-text">${escHtml(r.text)}</div>
+            ${isSelf ? `<button class="btn btn-ghost" style="font-size:.75rem;padding:4px 10px;margin-top:8px;color:var(--muted);"
+              onclick="hideRecommendation('${escHtml(r.id)}')">Hide</button>` : ''}
+          </div>`).join('')}
+      </div>` : '';
+    container.innerHTML = pendingHtml + approvedHtml;
+  } catch { /* silently skip */ }
+}
+
+async function approveRecommendation(id) {
+  try {
+    await api('PUT', `/api/recommendations/${id}/approve`);
+    showToast('Recommendation approved and published to your profile!', 3500);
+    // Reload the recs section
+    const container = document.querySelector('[id^="uprofile-recommendations-"]');
+    if (container) {
+      const uid = container.id.replace('uprofile-recommendations-', '');
+      loadRecommendations(uid, true);
+    }
+  } catch (e) {
+    showToast(e?.message || 'Could not approve. Please try again.', 3000);
+  }
+}
+
+async function hideRecommendation(id) {
+  try {
+    await api('PUT', `/api/recommendations/${id}/hide`);
+    showToast('Recommendation hidden from your profile.', 2500);
+    const container = document.querySelector('[id^="uprofile-recommendations-"]');
+    if (container) {
+      const uid = container.id.replace('uprofile-recommendations-', '');
+      loadRecommendations(uid, true);
+    }
+  } catch (e) {
+    showToast(e?.message || 'Could not hide. Please try again.', 3000);
+  }
 }
 
 async function loadEndorsements(userId, canEndorse) {
@@ -5647,8 +5793,10 @@ function notifItemHtml(n) {
     job_application:     '📋',
     application_status:  '📬',
     message:             '💬',
-    mention:             '@',
-    comment_reply:       '↩',
+    mention:                  '@',
+    comment_reply:            '↩',
+    recommendation_received:  '✍️',
+    recommendation_approved:  '⭐',
   };
   const labels = {
     connection_request:  `<strong>${escHtml(n.actorName)}</strong> sent you a connection request`,
@@ -5662,8 +5810,10 @@ function notifItemHtml(n) {
     job_application:     `<strong>${escHtml(n.actorName)}</strong> applied to your job posting`,
     application_status:  `<strong>${escHtml(n.actorName)}</strong> updated your application status`,
     message:             `<strong>${escHtml(n.actorName)}</strong> sent you a message`,
-    mention:             `<strong>${escHtml(n.actorName)}</strong> mentioned you in a post`,
-    comment_reply:       `<strong>${escHtml(n.actorName)}</strong> replied to your comment`,
+    mention:                 `<strong>${escHtml(n.actorName)}</strong> mentioned you in a post`,
+    comment_reply:           `<strong>${escHtml(n.actorName)}</strong> replied to your comment`,
+    recommendation_received: `<strong>${escHtml(n.actorName)}</strong> wrote you a recommendation`,
+    recommendation_approved: `<strong>${escHtml(n.actorName)}</strong> approved your recommendation`,
   };
   const icon  = icons[n.type]  || '🔔';
   const label = labels[n.type] || `<strong>${escHtml(n.actorName)}</strong> interacted with you`;
@@ -5712,6 +5862,12 @@ async function notifClick(n) {
       const role = conn?.role || 'student';
       setTimeout(() => openChatWith(n.actorId, name, role), 300);
     }
+  } else if (n.type === 'recommendation_received') {
+    // Open my own profile so I can see the pending recommendation
+    if (_currentUser?.id) openUserProfile(_currentUser.id);
+  } else if (n.type === 'recommendation_approved') {
+    // Open the recipient's profile to see the approved rec
+    if (n.actorId) openUserProfile(n.actorId);
   }
 }
 
