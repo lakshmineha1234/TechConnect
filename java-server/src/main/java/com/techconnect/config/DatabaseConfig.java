@@ -24,7 +24,10 @@ public class DatabaseConfig {
         // Fall back to the current directory if there is no parent.
         Path here   = Paths.get("").toAbsolutePath();
         Path parent = here.getParent() != null ? here.getParent() : here;
-        Path dbPath = parent.resolve("techconnect_java.sqlite").normalize();
+        String envPath = System.getenv("DB_PATH");
+        Path dbPath = (envPath != null && !envPath.isBlank())
+            ? Paths.get(envPath)
+            : parent.resolve("techconnect_java.sqlite").normalize();
 
         SQLiteConfig cfg = new SQLiteConfig();
         cfg.enforceForeignKeys(true);

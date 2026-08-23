@@ -1,0 +1,5 @@
+java-server/target/
+*.sqlite
+*.log
+*.log.err
+.git/

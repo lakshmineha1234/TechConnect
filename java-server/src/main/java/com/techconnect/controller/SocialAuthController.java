@@ -49,7 +49,9 @@ public class SocialAuthController {
     static final String LINKEDIN_CLIENT_SECRET = "";
     static final String GITHUB_CLIENT_ID       = "";
     static final String GITHUB_CLIENT_SECRET   = "";
-    static final String APP_BASE_URL           = "http://localhost:8080";
+    static final String APP_BASE_URL = System.getenv("APP_BASE_URL") != null
+        ? System.getenv("APP_BASE_URL").replaceAll("/+$", "")
+        : "http://localhost:8080";
     // ─────────────────────────────────────────────────────────────────────
 
     private static final String PENDING_KEY = "pending_social_auth";

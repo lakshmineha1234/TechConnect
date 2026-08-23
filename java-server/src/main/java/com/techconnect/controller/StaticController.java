@@ -25,9 +25,14 @@ import java.nio.file.Paths;
 public class StaticController {
 
     /** Resolved once at startup: the TechConnect root directory. */
-    private final Path baseDir = Paths.get("").toAbsolutePath()
-                                       .getParent()
-                                       .normalize();
+    private final Path baseDir = initBaseDir();
+
+    private static Path initBaseDir() {
+        String env = System.getenv("STATIC_DIR");
+        if (env != null && !env.isBlank()) return Paths.get(env).toAbsolutePath().normalize();
+        Path here = Paths.get("").toAbsolutePath();
+        return (here.getParent() != null ? here.getParent() : here).normalize();
+    }
 
     @GetMapping("/**")
     public ResponseEntity<Resource> serve(HttpServletRequest req) {
