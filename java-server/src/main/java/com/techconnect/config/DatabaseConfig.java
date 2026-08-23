@@ -208,6 +208,14 @@ public class DatabaseConfig {
                 )
                 """);
 
+            // Add social provider IDs for social login (idempotent)
+            try { jdbc.execute("ALTER TABLE users ADD COLUMN google_id   TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("ALTER TABLE users ADD COLUMN linkedin_id TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("ALTER TABLE users ADD COLUMN github_id   TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("CREATE INDEX IF NOT EXISTS idx_users_google_id   ON users(google_id)   WHERE google_id   != ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("CREATE INDEX IF NOT EXISTS idx_users_linkedin_id ON users(linkedin_id) WHERE linkedin_id != ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("CREATE INDEX IF NOT EXISTS idx_users_github_id   ON users(github_id)   WHERE github_id   != ''"); } catch (Exception ignored) {}
+
             // Add avatar_mime column to profiles (idempotent — ignore if already exists)
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN avatar_mime TEXT DEFAULT ''"); } catch (Exception ignored) {}
             // Add resume_name column to profiles (idempotent)

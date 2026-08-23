@@ -576,6 +576,28 @@
   .role-card-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .95rem; margin-bottom: 4px; }
   .role-card-desc { font-size: .78rem; color: var(--muted); }
 
+  /* ── Social login ── */
+  .social-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 22px 0 18px; color: var(--muted); font-size: .78rem; user-select: none;
+  }
+  .social-divider::before, .social-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border2);
+  }
+  .social-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-bottom: 4px; }
+  .social-btn {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 9px 6px; border-radius: 10px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: .78rem; font-weight: 500;
+    cursor: pointer; transition: border-color .2s, background .2s; white-space: nowrap;
+  }
+  .social-btn:hover { border-color: rgba(0,200,255,.35); background: rgba(255,255,255,.04); }
+  .social-btn svg { flex-shrink: 0; }
+
+  /* light mode tweaks */
+  [data-theme="light"] .social-btn { background: var(--surface); }
+  [data-theme="light"] .social-btn:hover { background: var(--surface2); }
+
   /* ── Back arrow ── */
   .back-btn {
     display: inline-flex; align-items: center; gap: 6px;
@@ -3120,6 +3142,21 @@
     </div>
     <p class="form-error" id="loginError"></p>
     <button class="btn btn-grad" id="loginBtn" style="width:100%;padding:13px;" onclick="doLogin()">Log In</button>
+    <div class="social-divider"><span>or continue with</span></div>
+    <div class="social-btns">
+      <button class="social-btn" onclick="doGoogleLogin()" title="Sign in with Google">
+        <svg viewBox="0 0 24 24" width="17" height="17"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google
+      </button>
+      <button class="social-btn" onclick="doLinkedInLogin()" title="Sign in with LinkedIn">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        LinkedIn
+      </button>
+      <button class="social-btn" onclick="doGitHubLogin()" title="Sign in with GitHub">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </button>
+    </div>
     <p class="text-center mt-8" style="font-size:.85rem;color:var(--muted);">
       Don't have an account?
       <a href="#" style="color:var(--cyan);text-decoration:none;" onclick="switchToSignup();return false;">Sign Up</a>
@@ -3139,9 +3176,26 @@
     <!-- Step 1: Role -->
     <div id="signupStep1">
       <div class="modal-header">
-        <span class="modal-title">Choose your role</span>
+        <span class="modal-title">Join TechConnect</span>
         <button class="modal-close" onclick="closeModal('signupBackdrop')" aria-label="Close">✕</button>
       </div>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;text-align:center;">Sign up instantly with your existing account</p>
+      <div class="social-btns" style="grid-template-columns:1fr 1fr 1fr;">
+        <button class="social-btn" onclick="doGoogleLogin()" title="Sign up with Google">
+          <svg viewBox="0 0 24 24" width="17" height="17"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Google
+        </button>
+        <button class="social-btn" onclick="doLinkedInLogin()" title="Sign up with LinkedIn">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          LinkedIn
+        </button>
+        <button class="social-btn" onclick="doGitHubLogin()" title="Sign up with GitHub">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </button>
+      </div>
+      <div class="social-divider"><span>or sign up with email</span></div>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;text-align:center;">First, choose how you'll use TechConnect</p>
       <div class="role-cards">
         <div class="role-card" id="roleCardStudent" onclick="selectSignupRole('student')">
           <div class="role-card-icon">🎓</div>
@@ -3154,7 +3208,7 @@
           <div class="role-card-desc">Working in the industry</div>
         </div>
       </div>
-      <button class="btn btn-grad" id="step1Continue" style="width:100%;padding:13px;" disabled onclick="goToSignupStep2()">Continue</button>
+      <button class="btn btn-grad" id="step1Continue" style="width:100%;padding:13px;" disabled onclick="goToSignupStep2()">Continue with Email</button>
       <p class="text-center mt-8" style="font-size:.85rem;color:var(--muted);">
         Already have an account?
         <a href="#" style="color:var(--cyan);text-decoration:none;" onclick="switchToLogin();return false;">Log In</a>
@@ -3197,6 +3251,34 @@
       <p class="form-error" id="signupError"></p>
       <button class="btn btn-grad" id="signupBtn" style="width:100%;padding:13px;" onclick="doSignup()">Create Account</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ SOCIAL ROLE PICKER (new social users) ══ -->
+<div class="modal-backdrop" id="socialRoleBackdrop">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <span class="modal-title">One more step</span>
+    </div>
+    <div style="text-align:center;margin-bottom:6px;">
+      <div id="socialWelcomeName" style="font-size:1rem;font-weight:600;color:var(--text);margin-bottom:4px;"></div>
+      <div id="socialWelcomeEmail" style="font-size:.82rem;color:var(--muted);"></div>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);text-align:center;margin:14px 0 18px;">How will you use TechConnect?</p>
+    <div class="role-cards">
+      <div class="role-card" id="socialRoleStudent" onclick="selectSocialRole('student')">
+        <div class="role-card-icon">🎓</div>
+        <div class="role-card-name">Student</div>
+        <div class="role-card-desc">Learning & growing in tech</div>
+      </div>
+      <div class="role-card" id="socialRolePro" onclick="selectSocialRole('pro')">
+        <div class="role-card-icon">🖥️</div>
+        <div class="role-card-name">IT Professional</div>
+        <div class="role-card-desc">Working in the industry</div>
+      </div>
+    </div>
+    <p class="form-error" id="socialRoleError"></p>
+    <button class="btn btn-grad" id="socialRoleBtn" style="width:100%;padding:13px;" disabled onclick="completeSocialSignup()">Create Account</button>
   </div>
 </div>
 
@@ -3892,6 +3974,34 @@ document.addEventListener('click', e => {
    SESSION RESTORE
 ════════════════════════════════════════ */
 async function initSession() {
+  // Handle social OAuth redirect outcomes
+  const params = new URLSearchParams(window.location.search);
+  const socialParam = params.get('social');
+  const socialError = params.get('social_error');
+
+  if (socialError) {
+    // OAuth failed or was cancelled
+    history.replaceState({}, '', '/');
+    render();
+    openModal('loginBackdrop');
+    showToast(decodeURIComponent(socialError), 6000);
+    return;
+  }
+
+  if (socialParam === 'pending') {
+    // New social user needs to pick a role
+    history.replaceState({}, '', '/');
+    render();
+    await handleSocialPending();
+    return;
+  }
+
+  if (socialParam === 'success') {
+    // Existing social user — session is already set by the server
+    history.replaceState({}, '', '/');
+    // Fall through to normal session restore below
+  }
+
   try {
     const { user } = await api('GET', '/api/auth/me');
     const profile  = await api('GET', '/api/profile');
@@ -4049,8 +4159,172 @@ function resetSignupForm() {
   goToSignupStep1();
 }
 
+// Shared post-login initialization — used by email login, social login, etc.
+async function finishLogin(userObj) {
+  const profile = await api('GET', '/api/profile');
+  currentUser   = { ...userObj, ...profile };
+  connData      = await api('GET', '/api/connections/me');
+  try { const nr = await api('GET', '/api/notifications/unread-count'); notifUnread = nr.count || 0; } catch {}
+  connectWS();
+  startNotifPolling();
+  startChatPolling();
+  initViewObserver();
+  render();
+  doSearch();
+  initFeed();
+  initJobs();
+  initEvents();
+  loadSuggestions();
+  initLiveMembers();
+  loadProfileViewCount();
+}
+
 function switchToSignup() { closeModal('loginBackdrop');  setTimeout(() => openModal('signupBackdrop'), 150); }
 function switchToLogin()   { closeModal('signupBackdrop'); setTimeout(() => openModal('loginBackdrop'),  150); }
+
+/* ════════════════════════════════════════
+   SOCIAL AUTH — Google / LinkedIn / GitHub
+════════════════════════════════════════ */
+
+// Replace '' with your Google OAuth Client ID from console.cloud.google.com
+const GOOGLE_CLIENT_ID = '';
+
+let _gsiReady = false;
+let _pendingSocialCredential = null; // { credential, provider } while awaiting role pick
+
+function loadGSI() {
+  return new Promise((resolve) => {
+    if (_gsiReady) { resolve(); return; }
+    if (document.getElementById('gsi-script')) {
+      const wait = setInterval(() => { if (window.google?.accounts) { _gsiReady = true; clearInterval(wait); resolve(); } }, 100);
+      return;
+    }
+    const s = document.createElement('script');
+    s.id = 'gsi-script';
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true; s.defer = true;
+    s.onload = () => { _gsiReady = true; resolve(); };
+    document.head.appendChild(s);
+  });
+}
+
+async function doGoogleLogin() {
+  if (!GOOGLE_CLIENT_ID) {
+    showToast('Google sign-in requires a Client ID. Open index.html and set GOOGLE_CLIENT_ID (get one free at console.cloud.google.com).', 6000);
+    return;
+  }
+  try {
+    await loadGSI();
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleCredential,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // Fallback: open the popup manually
+        google.accounts.id.renderButton(document.createElement('div'), {});
+        const btn = document.querySelector('[data-client_id]');
+        btn?.click();
+      }
+    });
+  } catch (e) {
+    showToast('Google sign-in failed. Check your internet connection and Client ID.', 4000);
+  }
+}
+
+async function handleGoogleCredential(response) {
+  try {
+    const result = await api('POST', '/api/auth/google', { credential: response.credential });
+    if (result.needsRole) {
+      // New user — show role picker
+      _pendingSocialCredential = { credential: response.credential, provider: 'google' };
+      closeModal('loginBackdrop');
+      closeModal('signupBackdrop');
+      document.getElementById('socialWelcomeName').textContent  = result.firstName + ' ' + result.lastName;
+      document.getElementById('socialWelcomeEmail').textContent = result.email;
+      document.getElementById('socialRoleError').style.display  = 'none';
+      document.getElementById('socialRoleBtn').disabled = true;
+      ['socialRoleStudent','socialRolePro'].forEach(id => document.getElementById(id)?.classList.remove('selected'));
+      openModal('socialRoleBackdrop');
+    } else {
+      // Existing user — logged in
+      closeModal('loginBackdrop');
+      closeModal('signupBackdrop');
+      await finishLogin(result);
+    }
+  } catch (e) {
+    showToast(e.message || 'Google sign-in failed. Please try again.', 4000);
+  }
+}
+
+function doLinkedInLogin() {
+  window.location.href = '/api/auth/linkedin';
+}
+
+function doGitHubLogin() {
+  window.location.href = '/api/auth/github';
+}
+
+// Called on page load when server redirects back with ?social=pending
+// (new user who needs to pick a role after LinkedIn/GitHub OAuth)
+async function handleSocialPending() {
+  try {
+    const data = await api('GET', '/api/auth/social/pending');
+    if (!data.needsRole) return;
+    // Reuse the social role picker modal, but mark it as redirect flow
+    _pendingSocialCredential = { provider: data.provider, isRedirect: true };
+    _socialRolePick = null;
+    document.getElementById('socialWelcomeName').textContent =
+      ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || data.email;
+    document.getElementById('socialWelcomeEmail').textContent = data.email || '';
+    document.getElementById('socialRoleError').style.display  = 'none';
+    document.getElementById('socialRoleBtn').disabled = true;
+    ['socialRoleStudent','socialRolePro'].forEach(id => document.getElementById(id)?.classList.remove('selected'));
+    openModal('socialRoleBackdrop');
+  } catch (e) {
+    showToast('Could not resume social sign-in. Please try again.', 4000);
+  }
+}
+
+let _socialRolePick = null;
+function selectSocialRole(role) {
+  _socialRolePick = role;
+  document.getElementById('socialRoleStudent')?.classList.toggle('selected', role === 'student');
+  document.getElementById('socialRolePro')    ?.classList.toggle('selected', role === 'pro');
+  document.getElementById('socialRoleBtn').disabled = false;
+}
+
+async function completeSocialSignup() {
+  if (!_pendingSocialCredential || !_socialRolePick) return;
+  const errEl = document.getElementById('socialRoleError');
+  errEl.style.display = 'none';
+  const btn = document.getElementById('socialRoleBtn');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try {
+    let result;
+    if (_pendingSocialCredential.isRedirect) {
+      // LinkedIn / GitHub redirect flow — session already holds the profile
+      result = await api('POST', '/api/auth/social/complete', { role: _socialRolePick });
+    } else {
+      // Google GSI client-side flow
+      result = await api('POST', '/api/auth/google', {
+        credential: _pendingSocialCredential.credential,
+        role: _socialRolePick,
+      });
+    }
+    closeModal('socialRoleBackdrop');
+    _pendingSocialCredential = null; _socialRolePick = null;
+    // Clean up URL params from the OAuth redirect without a full reload
+    if (window.location.search) history.replaceState({}, '', '/');
+    await finishLogin(result);
+  } catch (e) {
+    errEl.textContent = e.message || 'Could not create account. Please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Create Account';
+  }
+}
 
 /* ════════════════════════════════════════
    AUTH — LOGOUT
