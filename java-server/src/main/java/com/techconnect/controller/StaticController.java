@@ -45,19 +45,28 @@ public class StaticController {
                 // Security: prevent path traversal outside the base directory
                 if (candidate.getCanonicalPath().startsWith(baseDir.toString())
                         && candidate.isFile()) {
-                    return ResponseEntity.ok()
-                            .contentType(mediaTypeFor(uri))
-                            .body(new FileSystemResource(candidate));
+                    ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
+                            .contentType(mediaTypeFor(uri));
+                    if (uri.endsWith(".html")) {
+                        builder = builder
+                            .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                            .header("Pragma", "no-cache")
+                            .header("Expires", "0");
+                    }
+                    return builder.body(new FileSystemResource(candidate));
                 }
             } catch (IOException ignored) {
                 // Fall through to index.html
             }
         }
 
-        // SPA fallback → index.html
+        // SPA fallback → index.html (no-cache so browsers always get the latest version)
         File index = baseDir.resolve("index.html").toFile();
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_HTML)
+                .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                .header("Pragma", "no-cache")
+                .header("Expires", "0")
                 .body(new FileSystemResource(index));
     }
 

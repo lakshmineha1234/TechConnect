@@ -236,6 +236,15 @@ public class ChatController {
         int rows = jdbc.update(
                 "UPDATE messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ? AND is_read = 0",
                 userId, me);
+
+        // Notify the original sender that their messages were read
+        if (rows > 0) {
+            try {
+                messaging.convertAndSendToUser(userId, "/queue/read-receipt",
+                    Map.of("type", "read_receipt", "readBy", me, "readerId", me));
+            } catch (Exception ignored) {}
+        }
+
         return ResponseEntity.ok(Map.of("marked", rows));
     }
 
@@ -272,6 +281,7 @@ public class ChatController {
         m.put("recipientId", recipientId);
         m.put("content",     content);
         m.put("createdAt",   createdAt);
+        m.put("isRead",      false); // new messages are always unread
         return m;
     }
 

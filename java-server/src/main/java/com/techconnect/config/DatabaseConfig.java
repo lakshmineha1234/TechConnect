@@ -130,6 +130,17 @@ public class DatabaseConfig {
                 """);
 
             jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS post_saves (
+                    id         TEXT PRIMARY KEY,
+                    post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(post_id, user_id)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_post_saves_user ON post_saves(user_id, created_at)");
+
+            jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS jobs (
                     id          TEXT PRIMARY KEY,
                     user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -201,6 +212,85 @@ public class DatabaseConfig {
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN avatar_mime TEXT DEFAULT ''"); } catch (Exception ignored) {}
             // Add resume_name column to profiles (idempotent)
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN resume_name TEXT DEFAULT ''"); } catch (Exception ignored) {}
+            // Add image_url column to posts (idempotent)
+            try { jdbc.execute("ALTER TABLE posts ADD COLUMN image_url TEXT DEFAULT ''"); } catch (Exception ignored) {}
+            // Add status badges columns to profiles (idempotent)
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN open_to_work INTEGER NOT NULL DEFAULT 0"); } catch (Exception ignored) {}
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN is_hiring    INTEGER NOT NULL DEFAULT 0"); } catch (Exception ignored) {}
+            // Add repost support to posts (idempotent)
+            try { jdbc.execute("ALTER TABLE posts ADD COLUMN shared_from_id TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            // Add reaction type to post_likes (idempotent) — existing rows keep 'like' default
+            try { jdbc.execute("ALTER TABLE post_likes ADD COLUMN reaction TEXT NOT NULL DEFAULT 'like'"); } catch (Exception ignored) {}
+            // Add personal note to connection requests (idempotent)
+            try { jdbc.execute("ALTER TABLE connections ADD COLUMN note TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            // Add parent_id to comments for threaded replies (idempotent)
+            try { jdbc.execute("ALTER TABLE post_comments ADD COLUMN parent_id TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            // Add last_seen timestamp to profiles for online presence (idempotent)
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN last_seen TEXT DEFAULT ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("CREATE INDEX IF NOT EXISTS idx_profiles_last_seen ON profiles(last_seen)"); } catch (Exception ignored) {}
+
+            // Post impressions — one row per unique viewer per post
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS post_views (
+                    id         TEXT PRIMARY KEY,
+                    post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                    viewer_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    viewed_at  TEXT DEFAULT (datetime('now')),
+                    UNIQUE(post_id, viewer_id)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_post_views_post ON post_views(post_id)");
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_post_views_viewer ON post_views(viewer_id, viewed_at)");
+
+
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS post_hashtags (
+                    id         TEXT PRIMARY KEY,
+                    post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                    hashtag    TEXT NOT NULL,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(post_id, hashtag)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_hashtags_tag ON post_hashtags(hashtag, created_at)");
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_hashtags_post ON post_hashtags(post_id)");
+
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS poll_options (
+                    id          TEXT PRIMARY KEY,
+                    post_id     TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                    option_text TEXT NOT NULL,
+                    position    INTEGER NOT NULL DEFAULT 0
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_poll_options_post ON poll_options(post_id, position)");
+
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS poll_votes (
+                    id        TEXT PRIMARY KEY,
+                    post_id   TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                    option_id TEXT NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE,
+                    user_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(post_id, user_id)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_poll_votes_post ON poll_votes(post_id)");
+
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS projects (
+                    id          TEXT PRIMARY KEY,
+                    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    title       TEXT NOT NULL,
+                    description TEXT NOT NULL DEFAULT '',
+                    tech_stack  TEXT NOT NULL DEFAULT '',
+                    github_url  TEXT NOT NULL DEFAULT '',
+                    live_url    TEXT NOT NULL DEFAULT '',
+                    display_order INTEGER NOT NULL DEFAULT 0,
+                    created_at  TEXT DEFAULT (datetime('now'))
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_projects_user ON projects(user_id, display_order)");
 
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS post_comments (
@@ -271,6 +361,14 @@ public class DatabaseConfig {
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_pviews_viewed ON profile_views(viewed_id, viewed_at)");
+
+            // Purge any rows that reference deleted users (guards against external deletes
+            // that bypass the server's foreign-key enforcement).
+            jdbc.update("DELETE FROM connections   WHERE requester_id NOT IN (SELECT id FROM users) OR recipient_id  NOT IN (SELECT id FROM users)");
+            jdbc.update("DELETE FROM messages       WHERE sender_id   NOT IN (SELECT id FROM users) OR receiver_id   NOT IN (SELECT id FROM users)");
+            jdbc.update("DELETE FROM profile_views  WHERE viewer_id   NOT IN (SELECT id FROM users) OR viewed_id     NOT IN (SELECT id FROM users)");
+            jdbc.update("DELETE FROM notifications  WHERE user_id     NOT IN (SELECT id FROM users) OR actor_id      NOT IN (SELECT id FROM users)");
+            jdbc.update("DELETE FROM meetings       WHERE requester_id NOT IN (SELECT id FROM users) OR participant_id NOT IN (SELECT id FROM users)");
         };
     }
 }

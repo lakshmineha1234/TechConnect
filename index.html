@@ -32,6 +32,67 @@
     --shadow-lg: 0 16px 56px rgba(0,0,0,.6);
   }
 
+  /* ── Light mode overrides ── */
+  [data-theme="light"] {
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #e8eef6;
+    --border: rgba(0,150,200,.15);
+    --border2: rgba(0,0,0,.1);
+    --text: #0d1b2e;
+    --muted: #5a718a;
+    --shadow: 0 8px 32px rgba(0,0,0,.12);
+    --shadow-lg: 0 16px 56px rgba(0,0,0,.18);
+  }
+  [data-theme="light"] body { background: var(--bg); }
+  [data-theme="light"] nav {
+    background: rgba(240,244,248,.92);
+    border-bottom-color: rgba(0,150,200,.15);
+  }
+  [data-theme="light"] .bg-grid {
+    background-image:
+      linear-gradient(rgba(0,150,200,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,150,200,.05) 1px, transparent 1px);
+  }
+  [data-theme="light"] .bg-blob { opacity: .08; }
+  [data-theme="light"] .particle { background: var(--cyan); }
+  [data-theme="light"] .modal-card,
+  [data-theme="light"] .card { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] input,
+  [data-theme="light"] textarea,
+  [data-theme="light"] select {
+    background: var(--surface2); color: var(--text);
+    border-color: var(--border2);
+  }
+  [data-theme="light"] .feed-composer { background: var(--surface2); }
+  [data-theme="light"] .feed-composer-textarea { background: var(--surface); color: var(--text); }
+  [data-theme="light"] .feed-post { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .notif-panel { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .dropdown { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .chat-panel { background: var(--surface); }
+  [data-theme="light"] .avatar-pill { background: var(--surface2); border-color: var(--border2); }
+  [data-theme="light"] .btn-ghost { border-color: var(--border2); color: var(--text); }
+  [data-theme="light"] .notif-toast { background: var(--surface); }
+  [data-theme="light"] .profile-card { background: var(--surface); }
+  [data-theme="light"] .job-card { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .event-card { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .meeting-card { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .suggestion-card { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .conn-card { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .dash-card { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .live-member-card { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .search-result-card { background: var(--surface); border-color: var(--border2); }
+  [data-theme="light"] .app-toast { background: var(--surface); }
+  [data-theme="light"] .feed-image-btn { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+
+  /* ── Theme toggle button ── */
+  .theme-toggle {
+    background: none; border: 1px solid var(--border2); border-radius: 8px;
+    padding: 6px 10px; cursor: pointer; font-size: 1rem; color: var(--text);
+    transition: border-color .2s, background .2s; line-height: 1;
+  }
+  .theme-toggle:hover { border-color: rgba(0,200,255,.4); background: rgba(0,200,255,.08); }
+
   html { scroll-behavior: smooth; }
 
   body {
@@ -93,6 +154,55 @@
   }
 
   .nav-actions { display: flex; align-items: center; gap: 12px; position: relative; }
+
+  /* ── Global search ── */
+  .nav-search-wrap {
+    position: relative; display: none; /* shown by JS after login */
+  }
+  .nav-search-wrap.visible { display: flex; align-items: center; }
+  .nav-search-input {
+    width: 220px; background: rgba(255,255,255,.06); border: 1px solid var(--border2);
+    border-radius: 22px; color: var(--text); padding: 7px 16px 7px 36px;
+    font-size: .875rem; outline: none; transition: width .25s, border-color .2s, background .2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-search-input::placeholder { color: var(--muted); }
+  .nav-search-input:focus { width: 280px; border-color: rgba(0,200,255,.4); background: rgba(0,200,255,.04); }
+  .nav-search-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: .9rem; pointer-events: none;
+  }
+  /* search results dropdown */
+  .search-dropdown {
+    position: absolute; top: calc(100% + 8px); left: 0; right: 0; min-width: 320px;
+    background: var(--surface2); border: 1px solid var(--border2); border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.35); z-index: 900; overflow: hidden;
+    max-height: 420px; overflow-y: auto;
+  }
+  .search-dropdown-header {
+    padding: 10px 16px 6px; font-size: .72rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border2);
+  }
+  .search-result-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+    cursor: pointer; transition: background .15s;
+  }
+  .search-result-item:hover { background: rgba(255,255,255,.04); }
+  .search-result-info { flex: 1; min-width: 0; }
+  .search-result-name { font-weight: 600; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-result-sub  { font-size: .78rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-result-action { flex-shrink: 0; }
+  .search-no-results { padding: 24px 16px; text-align: center; color: var(--muted); font-size: .88rem; }
+  .search-loading     { padding: 20px 16px; text-align: center; color: var(--muted); font-size: .85rem; }
+  .search-view-all {
+    display: block; padding: 10px 16px; text-align: center; font-size: .83rem;
+    color: var(--cyan); border-top: 1px solid var(--border2); cursor: pointer;
+    transition: background .15s;
+  }
+  .search-view-all:hover { background: rgba(0,200,255,.06); }
+  [data-theme="light"] .nav-search-input { background: rgba(0,0,0,.05); color: var(--text); }
+  [data-theme="light"] .search-dropdown  { background: #fff; }
 
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -235,6 +345,25 @@
   .role-badge.student { background: rgba(0,200,255,.15); color: var(--cyan); }
   .role-badge.pro { background: rgba(124,95,255,.15); color: #a48bff; }
 
+  .badge-otw {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(16,185,129,.15); border: 1px solid rgba(16,185,129,.35);
+    color: #34d399; border-radius: 20px; font-size: .7rem; font-weight: 700;
+    padding: 2px 9px; white-space: nowrap;
+  }
+  .badge-hiring {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(59,130,246,.15); border: 1px solid rgba(59,130,246,.35);
+    color: #60a5fa; border-radius: 20px; font-size: .7rem; font-weight: 700;
+    padding: 2px 9px; white-space: nowrap;
+  }
+  .status-toggle {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0 4px; cursor: pointer;
+  }
+  .status-toggle input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--cyan); cursor: pointer; }
+  .status-toggle-label { font-size: .9rem; color: var(--text); font-weight: 500; }
+
   .chevron { font-size: .6rem; color: var(--muted); transition: transform .2s; margin-left: 2px; }
   .chevron.open { transform: rotate(180deg); }
 
@@ -335,6 +464,48 @@
   .dash-card-label { font-size: .82rem; color: var(--muted); margin-top: 4px; }
 
   .quick-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 40px; }
+
+  /* ── Profile Strength / Completeness ── */
+  .dash-completeness {
+    margin: 20px 0 26px; padding: 16px 18px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 14px; cursor: pointer; transition: border-color .2s;
+  }
+  .dash-completeness:hover { border-color: rgba(0,200,255,.35); }
+  .dash-completeness-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px;
+  }
+  .dash-completeness-title { font-size: .85rem; font-weight: 700; color: var(--text); }
+  .dash-completeness-pct   { font-size: .9rem;  font-weight: 800; color: var(--cyan); }
+  .strength-track {
+    height: 7px; background: var(--border2); border-radius: 4px; overflow: hidden; margin-bottom: 8px;
+  }
+  .strength-fill {
+    height: 100%; border-radius: 4px; background: var(--grad); transition: width .7s ease;
+  }
+  .strength-level { font-size: .75rem; color: var(--muted); }
+  .strength-missing { font-size: .78rem; color: var(--muted); margin-top: 6px; }
+  .strength-missing span { color: var(--cyan); font-weight: 600; }
+
+  /* In profile modal */
+  .profile-strength-wrap {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;
+  }
+  .profile-strength-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+  }
+  .profile-strength-title { font-size: .83rem; font-weight: 700; color: var(--text); }
+  .profile-strength-pct   { font-size: .83rem; font-weight: 800; color: var(--cyan); }
+  .profile-strength-items { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+  .psi {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .78rem; border-radius: 6px; padding: 3px 0;
+  }
+  .psi.done  { color: var(--muted); opacity: .55; }
+  .psi.todo  { color: var(--text); cursor: pointer; }
+  .psi.todo:hover { color: var(--cyan); }
+  .psi-icon  { font-size: .8rem; flex-shrink: 0; width: 16px; text-align: center; }
 
   .logout-section { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .logout-hint { font-size: .8rem; color: var(--muted); }
@@ -769,6 +940,22 @@
   .app-toast.info  { border-color: rgba(0,200,255,.35); }
   .app-toast.success { border-color: rgba(52,211,153,.4); }
   .app-toast.error   { border-color: rgba(255,77,77,.4); }
+
+  /* ── Notification toast (real-time push) ── */
+  .notif-toast {
+    position: fixed; bottom: 72px; right: 20px;
+    background: var(--card); border: 1px solid rgba(0,200,255,.3);
+    border-radius: 14px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    max-width: 320px; z-index: 9998; cursor: pointer;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    opacity: 0; transform: translateX(340px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  .notif-toast.show { opacity: 1; transform: translateX(0); }
+  .notif-toast-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .notif-toast-body { font-size: .82rem; color: var(--text); line-height: 1.4; }
+  .notif-toast-body strong { color: var(--cyan); }
 
   /* ── Live New Members ── */
   .live-members-section {
@@ -1276,7 +1463,12 @@
   }
   .chat-msg-time {
     font-size: .65rem; color: var(--muted); margin-top: 3px; padding: 0 4px;
+    display: flex; align-items: center; gap: 3px;
   }
+  .chat-tick { display: inline-flex; align-items: center; vertical-align: middle; }
+  .tick-svg  { display: block; }
+  .chat-tick.sent   { color: var(--muted); }
+  .chat-tick.read   { color: #53bdeb; }
   .chat-date-sep {
     align-self: center; font-size: .72rem; color: var(--muted);
     background: var(--surface2); border: 1px solid var(--border2);
@@ -1344,6 +1536,19 @@
   }
   .jobs-search-input:focus { border-color: rgba(0,200,255,.4); }
   .jobs-search-input::placeholder { color: var(--muted); }
+  /* ── Jobs For-You tab ── */
+  .jobs-view-tabs {
+    display: flex; gap: 0; margin-bottom: 16px;
+    border-bottom: 2px solid var(--border2);
+  }
+  .jobs-view-tab {
+    padding: 9px 20px; font-size: .88rem; font-weight: 600; cursor: pointer;
+    border: none; background: none; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: color .15s, border-color .15s;
+  }
+  .jobs-view-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
   .job-type-chips {
     display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
   }
@@ -1354,6 +1559,15 @@
   }
   .job-type-chip.active {
     background: rgba(0,200,255,.12); border-color: rgba(0,200,255,.4); color: var(--cyan); font-weight: 600;
+  }
+
+  /* Skill-match badge on recommended jobs */
+  .job-match-badge {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;
+  }
+  .job-match-chip {
+    font-size: .7rem; padding: 2px 9px; border-radius: 20px; font-weight: 600;
+    background: rgba(0,200,255,.12); border: 1px solid rgba(0,200,255,.3); color: var(--cyan);
   }
   .jobs-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px;
@@ -1533,11 +1747,35 @@
   .feed-composer-textarea::placeholder { color: var(--muted); }
   .feed-composer-footer {
     display: flex; align-items: center; justify-content: space-between;
-    margin-top: 12px; padding-left: 52px;
+    margin-top: 12px;
   }
   .feed-char-count { font-size: .78rem; color: var(--muted); }
   .feed-char-count.warn { color: #f59e0b; }
   .feed-char-count.over { color: var(--danger); }
+  .feed-image-btn {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18);
+    border-radius: 8px; padding: 6px 14px; color: var(--text); font-size: .83rem;
+    cursor: pointer; transition: border-color .2s, background .2s, color .2s;
+    display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  }
+  .feed-image-btn:hover { background: rgba(0,200,255,.1); border-color: rgba(0,200,255,.4); color: var(--cyan); }
+  .feed-image-btn.has-image { background: rgba(0,200,255,.1); border-color: rgba(0,200,255,.4); color: var(--cyan); }
+  .feed-image-preview {
+    margin-top: 10px; margin-left: 52px; position: relative; display: none;
+  }
+  .feed-image-preview img {
+    max-width: 100%; max-height: 300px; border-radius: 10px;
+    object-fit: contain; border: 1px solid var(--border2);
+  }
+  .feed-image-remove {
+    position: absolute; top: 6px; right: 6px;
+    background: rgba(0,0,0,.6); border: none; border-radius: 50%;
+    width: 26px; height: 26px; color: #fff; cursor: pointer;
+    font-size: .85rem; display: flex; align-items: center; justify-content: center;
+  }
+  .post-image { width: 100%; max-height: 480px; object-fit: contain;
+    border-radius: 10px; margin: 10px 0; display: block; cursor: pointer; }
+  .post-image:hover { opacity: .93; }
 
   /* Post cards */
   .feed-post {
@@ -1573,27 +1811,426 @@
     font-size: .92rem; color: var(--text); line-height: 1.65;
     white-space: pre-wrap; word-break: break-word; margin-bottom: 16px;
   }
+  .post-hashtag {
+    color: var(--cyan); cursor: pointer; font-weight: 500;
+    text-decoration: none;
+  }
+  .post-hashtag:hover { text-decoration: underline; }
+  .post-mention {
+    color: #a78bfa; font-weight: 600; cursor: pointer;
+  }
+  .post-mention:hover { text-decoration: underline; }
+
+  /* ── @Mention autocomplete dropdown ── */
+  #mentionDropdown {
+    display: none; position: fixed; z-index: 9999;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35);
+    overflow: hidden; min-width: 220px; max-height: 220px; overflow-y: auto;
+  }
+  .mention-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 13px; cursor: pointer; transition: background .1s;
+    border-bottom: 1px solid var(--border2);
+  }
+  .mention-item:last-child { border-bottom: none; }
+  .mention-item:hover, .mention-item.focused { background: rgba(167,139,250,.1); }
+  .mention-name { font-size: .86rem; font-weight: 600; color: var(--text); }
+  .mention-sub  { font-size: .72rem; color: var(--muted); }
+
+  /* ── Trending hashtags strip ── */
+  .trending-strip {
+    display: flex; flex-wrap: wrap; gap: 7px; padding: 12px 0 4px;
+  }
+  .trending-tag {
+    background: rgba(0,200,255,.08); border: 1px solid rgba(0,200,255,.2);
+    color: var(--cyan); border-radius: 20px; font-size: .8rem; font-weight: 500;
+    padding: 4px 12px; cursor: pointer; transition: background .15s;
+  }
+  .trending-tag:hover { background: rgba(0,200,255,.18); }
+  .trending-tag.active { background: var(--cyan); color: #000; border-color: var(--cyan); }
+
+  /* ── Active hashtag filter banner ── */
+  .hashtag-filter-bar {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(0,200,255,.07); border: 1px solid rgba(0,200,255,.2);
+    border-radius: 10px; padding: 8px 14px; margin-bottom: 12px; font-size: .88rem;
+  }
+  .hashtag-filter-bar strong { color: var(--cyan); }
+  .hashtag-filter-clear {
+    margin-left: auto; background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: .85rem; padding: 2px 6px; border-radius: 6px;
+  }
+  .hashtag-filter-clear:hover { color: var(--danger); }
   .feed-post-actions {
     display: flex; align-items: center; gap: 16px;
     padding-top: 12px; border-top: 1px solid var(--border2);
+  }
+  /* ── Reaction button & picker ── */
+  .feed-react-wrap {
+    position: relative; display: inline-flex;
   }
   .feed-like-btn {
     display: flex; align-items: center; gap: 6px;
     background: none; border: none; cursor: pointer;
     color: var(--muted); font-size: .85rem; padding: 4px 8px;
     border-radius: 8px; transition: background .15s, color .15s;
+    white-space: nowrap;
   }
   .feed-like-btn:hover { background: rgba(255,255,255,.05); color: var(--text); }
-  .feed-like-btn.liked { color: var(--danger); }
-  .feed-like-btn.liked:hover { background: rgba(255,77,77,.08); }
+  .feed-like-btn.reacted { color: var(--cyan); }
+  .feed-like-btn.reacted[data-reaction="like"]       { color: #2196f3; }
+  .feed-like-btn.reacted[data-reaction="love"]       { color: #e91e63; }
+  .feed-like-btn.reacted[data-reaction="insightful"] { color: #ff9800; }
+  .feed-like-btn.reacted[data-reaction="celebrate"]  { color: #4caf50; }
+  .feed-like-btn.reacted[data-reaction="support"]    { color: #9c27b0; }
   .feed-like-icon { font-size: 1rem; transition: transform .15s; }
-  .feed-like-btn.liked .feed-like-icon { transform: scale(1.2); }
-  .feed-delete-btn {
-    margin-left: auto; background: none; border: none; cursor: pointer;
-    color: var(--muted); font-size: .8rem; padding: 4px 8px; border-radius: 8px;
+  .feed-like-btn.reacted .feed-like-icon { transform: scale(1.2); }
+  /* Reaction picker popup */
+  .reaction-picker {
+    position: absolute; bottom: calc(100% + 6px); left: 0;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 32px; padding: 6px 10px;
+    display: flex; gap: 4px; z-index: 200;
+    box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    opacity: 0; pointer-events: none;
+    transform: translateY(6px) scale(.92);
+    transition: opacity .15s, transform .15s;
+  }
+  .feed-react-wrap:hover .reaction-picker,
+  .reaction-picker.show { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+  .reaction-emoji {
+    font-size: 1.35rem; cursor: pointer; padding: 3px 4px; border-radius: 50%;
+    transition: transform .1s, background .1s; line-height: 1;
+    position: relative;
+  }
+  .reaction-emoji:hover { transform: scale(1.35) translateY(-3px); background: rgba(255,255,255,.08); }
+  .reaction-emoji .reaction-label {
+    display: none; position: absolute; bottom: calc(100% + 4px); left: 50%;
+    transform: translateX(-50%); background: rgba(0,0,0,.75); color: #fff;
+    font-size: .65rem; padding: 2px 7px; border-radius: 10px; white-space: nowrap;
+    pointer-events: none;
+  }
+  .reaction-emoji:hover .reaction-label { display: block; }
+  /* Reaction summary bubble */
+  .reaction-summary {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: .8rem; color: var(--muted); margin-left: 4px;
+  }
+  .reaction-bubble { font-size: .9rem; line-height: 1; }
+  .feed-repost-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: .85rem; padding: 4px 8px;
+    border-radius: 8px; transition: background .15s, color .15s;
+  }
+  .feed-repost-btn:hover { background: rgba(255,255,255,.05); color: var(--teal); }
+  .feed-repost-btn.reposted { color: var(--teal); }
+
+  .feed-share-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: .85rem; padding: 4px 8px;
+    border-radius: 8px; transition: background .15s, color .15s;
+  }
+  .feed-share-btn:hover { background: rgba(255,255,255,.05); color: #a78bfa; }
+
+  /* ── Chat share embed ── */
+  .chat-share-embed {
+    background: rgba(255,255,255,.09); border-left: 3px solid rgba(167,139,250,.6);
+    border-radius: 0 8px 8px 0; padding: 8px 12px; margin-top: 4px;
+  }
+  .chat-msg.theirs .chat-share-embed {
+    background: rgba(124,95,255,.08); border-left-color: rgba(124,95,255,.4);
+  }
+  .chat-share-icon { font-size: .72rem; opacity: .75; margin-bottom: 3px; }
+  .chat-share-body { font-size: .83rem; line-height: 1.45; }
+  .chat-share-note {
+    margin-top: 7px; padding-top: 7px; font-size: .83rem;
+    border-top: 1px solid rgba(255,255,255,.18);
+  }
+  .chat-msg.theirs .chat-share-note { border-top-color: var(--border2); }
+
+  /* ── Share modal recipient list ── */
+  .share-conn-list { max-height: 210px; overflow-y: auto; border: 1px solid var(--border2); border-radius: 10px; }
+  .share-conn-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+    cursor: pointer; transition: background .12s; border-bottom: 1px solid var(--border2);
+  }
+  .share-conn-item:last-child { border-bottom: none; }
+  .share-conn-item:hover { background: rgba(0,200,255,.06); }
+  .share-conn-item.selected { background: rgba(0,200,255,.13); }
+  .share-conn-name { font-size: .87rem; font-weight: 600; color: var(--text); }
+  .share-conn-sub  { font-size: .73rem; color: var(--muted); }
+
+  /* ── Reactions summary bar (who reacted) ── */
+  .reactions-summary {
+    display: flex; align-items: center; gap: 6px;
+    padding: 2px 0 10px; font-size: .8rem; color: var(--muted);
+    cursor: pointer; user-select: none; width: fit-content;
+  }
+  .reactions-summary:hover .rsumm-label { text-decoration: underline; color: var(--text); }
+  .react-bubble-strip { display: flex; }
+  .react-bubble {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--surface2); border: 1.5px solid var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; margin-left: -5px;
+  }
+  .react-bubble:first-child { margin-left: 0; }
+
+  /* ── Reactions viewer modal ── */
+  .react-viewer-tabs {
+    display: flex; gap: 4px; padding: 0 0 12px; flex-wrap: wrap;
+  }
+  .react-viewer-tab {
+    padding: 5px 12px; border-radius: 20px; font-size: .8rem;
+    border: 1px solid var(--border2); cursor: pointer; background: none;
+    color: var(--muted); transition: background .15s, color .15s;
+  }
+  .react-viewer-tab.active { background: rgba(0,200,255,.12); border-color: var(--cyan); color: var(--cyan); }
+  .react-viewer-list { display: flex; flex-direction: column; gap: 2px; max-height: 340px; overflow-y: auto; }
+  .react-viewer-item {
+    display: flex; align-items: center; gap: 12px; padding: 8px 4px;
+    border-bottom: 1px solid var(--border2); cursor: pointer; border-radius: 8px;
+    transition: background .12s;
+  }
+  .react-viewer-item:last-child { border-bottom: none; }
+  .react-viewer-item:hover { background: rgba(0,200,255,.05); }
+  .react-viewer-emoji { font-size: 1.2rem; flex-shrink: 0; }
+  .react-viewer-info { flex: 1; min-width: 0; }
+  .react-viewer-name { font-size: .88rem; font-weight: 600; color: var(--text); }
+  .react-viewer-role { font-size: .74rem; color: var(--muted); margin-top: 1px; }
+
+  /* ── Embedded original post (inside a repost card) ── */
+  .repost-header {
+    font-size: .78rem; color: var(--muted); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .orig-post-embed {
+    border: 1px solid var(--border2); border-radius: 10px;
+    padding: 12px 14px; margin: 8px 0; background: var(--surface2);
+    cursor: pointer;
+  }
+  .orig-post-embed:hover { border-color: rgba(0,200,255,.25); }
+  .orig-post-author {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .orig-post-name { font-size: .85rem; font-weight: 600; color: var(--text); }
+  .orig-post-time { font-size: .75rem; color: var(--muted); }
+  .orig-post-content { font-size: .88rem; color: var(--text); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  .orig-post-img { max-width: 100%; border-radius: 8px; margin-top: 8px; display: block; }
+
+  .feed-save-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: .85rem; padding: 4px 8px;
+    border-radius: 8px; transition: background .15s, color .15s;
+  }
+  .feed-save-btn:hover { background: rgba(255,255,255,.05); color: var(--text); }
+  .feed-save-btn.saved { color: #f59e0b; }
+  .feed-save-btn.saved:hover { background: rgba(245,158,11,.08); }
+
+  /* ── Post owner ••• menu ── */
+  .post-menu-wrap {
+    position: relative; margin-left: auto; flex-shrink: 0;
+  }
+  .post-menu-btn {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 1.1rem; padding: 4px 8px; border-radius: 8px; line-height: 1;
     transition: background .15s, color .15s;
   }
-  .feed-delete-btn:hover { background: rgba(255,77,77,.1); color: var(--danger); }
+  .post-menu-btn:hover { background: rgba(255,255,255,.07); color: var(--text); }
+  .post-menu-dropdown {
+    display: none; position: absolute; right: 0; top: calc(100% + 4px);
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    min-width: 140px; z-index: 500; overflow: hidden;
+  }
+  .post-menu-dropdown.open { display: block; }
+  .post-menu-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 10px 14px; cursor: pointer; font-size: .86rem;
+    color: var(--text); transition: background .12s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .post-menu-item:hover { background: rgba(255,255,255,.06); }
+  .post-menu-item.danger { color: var(--danger); }
+  .post-menu-item.danger:hover { background: rgba(255,77,77,.08); }
+
+  /* Inline post edit mode */
+  .feed-post-edit-area {
+    margin: 0 0 10px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .feed-post-edit-textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--cyan);
+    border-radius: 10px; padding: 10px 12px; font-size: .9rem; color: var(--text);
+    font-family: inherit; resize: vertical; min-height: 80px; outline: none; box-sizing: border-box;
+  }
+  .feed-post-edit-actions {
+    display: flex; gap: 8px; justify-content: flex-end;
+  }
+
+  /* ── Connection request note ── */
+  .req-note {
+    margin-top: 6px; padding: 8px 10px;
+    background: rgba(0,200,255,.06); border-left: 3px solid rgba(0,200,255,.35);
+    border-radius: 0 6px 6px 0; font-size: .82rem; color: var(--text);
+    font-style: italic; line-height: 1.4;
+  }
+
+  /* ── Impression counter ── */
+  .post-views {
+    margin-left: auto; display: flex; align-items: center; gap: 5px;
+    font-size: .78rem; color: var(--muted); padding: 4px 6px; user-select: none;
+    opacity: 0.7;
+  }
+  .post-views-icon { font-size: .85rem; }
+
+  /* ── Connection degree badges ── */
+  .degree-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 18px; padding: 0 5px; border-radius: 9px;
+    font-size: .62rem; font-weight: 700; line-height: 1; flex-shrink: 0;
+    vertical-align: middle; margin-left: 4px;
+  }
+  .degree-chip.d1 { background: rgba(0,200,255,.15); color: var(--cyan); border: 1px solid rgba(0,200,255,.3); }
+  .degree-chip.d2 { background: rgba(124,95,255,.15); color: var(--purple); border: 1px solid rgba(124,95,255,.3); }
+  .degree-chip.d3 { background: rgba(107,130,168,.1); color: var(--muted); border: 1px solid rgba(107,130,168,.25); }
+
+  /* ── My Stats modal ── */
+  .stats-row {
+    display: flex; align-items: flex-start; gap: 14px; padding: 12px 0;
+    border-bottom: 1px solid var(--border2);
+  }
+  .stats-row:last-child { border-bottom: none; }
+  .stats-content { flex: 1; min-width: 0; }
+  .stats-snippet {
+    font-size: .88rem; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 340px;
+  }
+  .stats-meta { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+  .stats-metric { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .stats-metric strong { color: var(--text); font-size: .9rem; }
+
+  /* ── Leaderboard modal ── */
+  .lb-section { margin-bottom: 24px; }
+  .lb-section-title {
+    font-size: .75rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  }
+  .lb-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 0; border-bottom: 1px solid var(--border2);
+  }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank {
+    width: 22px; text-align: center; font-size: .9rem; font-weight: 800;
+    color: var(--muted); flex-shrink: 0;
+  }
+  .lb-rank.gold   { color: #f59e0b; }
+  .lb-rank.silver { color: #94a3b8; }
+  .lb-rank.bronze { color: #b45309; }
+  .lb-info { flex: 1; min-width: 0; }
+  .lb-name { font-size: .88rem; font-weight: 600; color: var(--text);
+             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  .lb-name:hover { color: var(--cyan); }
+  .lb-sub  { font-size: .75rem; color: var(--muted); margin-top: 1px; }
+  .lb-count {
+    font-size: .95rem; font-weight: 800; color: var(--cyan);
+    flex-shrink: 0; text-align: right; min-width: 36px;
+  }
+  .lb-stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px;
+  }
+  .lb-stat-card {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 12px 14px; text-align: center;
+  }
+  .lb-stat-val  { font-size: 1.3rem; font-weight: 800; color: var(--cyan); }
+  .lb-stat-label { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+  .lb-skill-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 5px 12px; margin: 4px;
+    font-size: .82rem; color: var(--text);
+  }
+  .lb-skill-pill strong { color: var(--cyan); }
+
+  /* ── Poll composer ── */
+  .poll-toggle-btn {
+    background: none; border: 1px solid var(--border2); border-radius: 20px;
+    color: var(--muted); cursor: pointer; padding: 5px 14px; font-size: .82rem;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .poll-toggle-btn:hover { background: rgba(0,200,255,.08); color: var(--cyan); border-color: rgba(0,200,255,.3); }
+  .poll-toggle-btn.active { color: var(--cyan); border-color: var(--cyan); background: rgba(0,200,255,.08); }
+  .poll-options-area {
+    margin: 10px 0 4px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .poll-option-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .poll-option-input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); padding: 8px 12px; font-size: .85rem; outline: none;
+    transition: border-color .15s;
+  }
+  .poll-option-input:focus { border-color: rgba(0,200,255,.4); }
+  .poll-option-input::placeholder { color: var(--muted); }
+  .poll-rm-btn {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 1rem; padding: 4px 6px; border-radius: 6px; line-height: 1;
+    transition: color .15s;
+  }
+  .poll-rm-btn:hover { color: var(--danger); }
+  .poll-add-btn {
+    align-self: flex-start; background: none; border: none; cursor: pointer;
+    color: var(--cyan); font-size: .82rem; padding: 4px 0;
+  }
+  .poll-add-btn:hover { text-decoration: underline; }
+  /* ── Poll display in feed card ── */
+  .poll-block {
+    margin: 10px 0; border: 1px solid var(--border2); border-radius: 12px; overflow: hidden;
+  }
+  .poll-option-row-result {
+    padding: 10px 14px; cursor: pointer; position: relative; overflow: hidden;
+    transition: background .15s;
+  }
+  .poll-option-row-result:hover:not(.voted) { background: rgba(0,200,255,.06); }
+  .poll-bar {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: rgba(0,200,255,.12); transition: width .5s ease; pointer-events: none;
+  }
+  .poll-bar.my-vote { background: rgba(0,200,255,.22); }
+  .poll-option-label {
+    position: relative; z-index: 1; display: flex; justify-content: space-between;
+    align-items: center; font-size: .9rem;
+  }
+  .poll-option-text { font-weight: 500; }
+  .poll-option-pct  { color: var(--muted); font-size: .8rem; }
+  .poll-option-check { color: var(--cyan); font-size: .8rem; margin-left: 6px; }
+  .poll-total {
+    padding: 6px 14px; font-size: .75rem; color: var(--muted);
+    border-top: 1px solid var(--border2);
+  }
+  [data-theme="light"] .poll-option-input { background: var(--surface); color: var(--text); }
+
+  /* ── Feed tabs ── */
+  .feed-tabs {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border2);
+    margin-bottom: 16px;
+  }
+  .feed-tab {
+    background: none; border: none; cursor: pointer;
+    font-size: .88rem; font-weight: 500; padding: 10px 20px;
+    color: var(--muted); border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: color .15s, border-color .15s;
+    font-family: inherit;
+  }
+  .feed-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .feed-tab:hover:not(.active) { color: var(--text); }
 
   /* ── Comments ── */
   .feed-comment-btn {
@@ -1641,6 +2278,47 @@
     font-size: .72rem; padding: 0; transition: color .15s;
   }
   .feed-comment-del:hover { color: var(--danger); }
+
+  /* Reply button in comment meta */
+  .feed-comment-reply-btn {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: .72rem; padding: 0; transition: color .15s; font-weight: 600;
+  }
+  .feed-comment-reply-btn:hover { color: var(--cyan); }
+
+  /* Inline reply form */
+  .feed-reply-form-wrap {
+    margin-top: 6px; margin-left: 40px; display: none;
+  }
+  .feed-reply-form-wrap.open { display: flex; gap: 6px; align-items: flex-start; }
+  .feed-reply-input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 6px 12px; font-size: .83rem; color: var(--text);
+    resize: none; outline: none; transition: border-color .2s; min-height: 32px;
+    font-family: inherit;
+  }
+  .feed-reply-input:focus { border-color: var(--cyan); }
+  .feed-reply-send {
+    background: var(--grad); border: none; border-radius: 50%; width: 30px; height: 30px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* Nested replies thread */
+  .feed-replies-thread {
+    margin-left: 40px; margin-top: 4px; border-left: 2px solid var(--border2);
+    padding-left: 10px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .feed-reply-item { display: flex; gap: 8px; }
+  .feed-reply-avatar {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    background: var(--surface2); display: flex; align-items: center; justify-content: center;
+    font-size: .6rem; font-weight: 700; color: var(--muted); position: relative; overflow: hidden;
+  }
+  .show-replies-btn {
+    background: none; border: none; cursor: pointer; font-size: .75rem;
+    color: var(--cyan); font-weight: 600; padding: 2px 0; margin-left: 40px; display: block;
+  }
 
   .feed-comment-form { display: flex; gap: 8px; align-items: flex-start; margin-top: 4px; }
   .feed-comment-input {
@@ -1709,6 +2387,63 @@
   }
   .uprofile-link:hover { text-decoration: underline; }
 
+  /* ── Mutual connections ── */
+  .mutual-row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 8px; padding: 10px 14px;
+    background: var(--surface2); border-radius: 10px;
+    border: 1px solid var(--border2);
+  }
+  .mutual-label { font-size: .78rem; color: var(--muted); font-weight: 500; }
+  .mutual-avatars { display: flex; }
+  .mutual-av {
+    width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+    border: 2px solid var(--surface); margin-left: -6px; overflow: hidden;
+    background: var(--surface2); display: flex; align-items: center;
+    justify-content: center; font-size: .62rem; font-weight: 700;
+    color: var(--cyan); flex-shrink: 0; position: relative;
+  }
+  .mutual-av:first-child { margin-left: 0; }
+  .mutual-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .mutual-more { font-size: .78rem; color: var(--muted); }
+
+  /* ── Project cards (profile view) ── */
+  .project-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 16px; margin-bottom: 12px;
+    transition: border-color .2s;
+  }
+  .project-card:hover { border-color: rgba(0,200,255,.25); }
+  .project-card-title { font-weight: 600; font-size: .95rem; color: var(--text); margin-bottom: 6px; }
+  .project-card-desc  { font-size: .85rem; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+  .project-tech-stack { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .project-tech-chip  {
+    font-size: .72rem; padding: 3px 9px; border-radius: 20px;
+    background: rgba(0,200,255,.1); color: var(--cyan); border: 1px solid rgba(0,200,255,.2);
+  }
+  .project-links { display: flex; gap: 12px; flex-wrap: wrap; }
+  .project-link  {
+    font-size: .82rem; color: var(--cyan); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .project-link:hover { text-decoration: underline; }
+  /* Edit-mode project item */
+  .project-edit-item {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .project-edit-title { font-size: .88rem; font-weight: 500; color: var(--text); }
+  .project-edit-tech  { font-size: .76rem; color: var(--muted); margin-top: 2px; }
+  .project-edit-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .project-edit-btn {
+    background: none; border: 1px solid var(--border2); border-radius: 6px;
+    padding: 4px 10px; font-size: .78rem; cursor: pointer; color: var(--muted);
+    transition: border-color .2s, color .2s;
+  }
+  .project-edit-btn:hover { border-color: rgba(0,200,255,.4); color: var(--cyan); }
+  .project-edit-btn.del:hover { border-color: var(--danger); color: var(--danger); }
+
   /* ── Responsive ── */
   @media (max-width: 600px) {
     nav { padding: 0 20px; }
@@ -1734,6 +2469,17 @@
 <div class="page">
   <nav>
     <div class="nav-brand">TC</div>
+    <div class="nav-search-wrap" id="navSearchWrap">
+      <span class="nav-search-icon">🔍</span>
+      <input class="nav-search-input" id="navSearchInput" type="text"
+             placeholder="Search people…" maxlength="100"
+             autocomplete="off"
+             oninput="onSearchInput(this.value)"
+             onkeydown="onSearchKeydown(event)"
+             onfocus="onSearchFocus()"
+             onblur="onSearchBlur()">
+      <div class="search-dropdown" id="searchDropdown" style="display:none;"></div>
+    </div>
     <div class="nav-actions" id="navActions"></div>
   </nav>
   <section class="hero" id="hero"></section>
@@ -1746,13 +2492,54 @@
         <div class="feed-composer-avatar" id="feedComposerAvatar"></div>
         <textarea class="feed-composer-textarea" id="feedTextarea"
                   placeholder="Share an update, article, or thought with your network…"
-                  oninput="onFeedInput(this)" maxlength="1000"></textarea>
+                  oninput="onFeedInput(this);onMentionInput(this)" maxlength="1000"></textarea>
+      </div>
+      <div class="feed-image-preview" id="feedImagePreview">
+        <img id="feedImageThumb" src="" alt="preview" />
+        <button class="feed-image-remove" onclick="clearPostImage()" title="Remove image">✕</button>
+      </div>
+      <!-- Poll options area (hidden by default) -->
+      <div id="pollOptionsArea" class="poll-options-area" style="display:none;">
+        <div id="pollOptionsList"></div>
+        <button class="poll-add-btn" id="pollAddBtn" onclick="addPollOption()">+ Add option</button>
       </div>
       <div class="feed-composer-footer">
-        <span class="feed-char-count" id="feedCharCount">0 / 1000</span>
-        <button class="btn btn-grad" style="font-size:.85rem;padding:8px 20px;"
-                onclick="submitPost()">Post</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="feed-image-btn" id="feedImageBtn" onclick="document.getElementById('feedImageInput').click()" title="Attach image">
+            📷 Photo
+          </button>
+          <input type="file" id="feedImageInput" accept="image/jpeg,image/png,image/gif,image/webp"
+                 style="display:none;" onchange="onPostImageSelected(this)">
+          <button class="poll-toggle-btn" id="pollToggleBtn" onclick="togglePollComposer()" title="Add a poll">
+            📊 Poll
+          </button>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="feed-char-count" id="feedCharCount">0 / 1000</span>
+          <button class="btn btn-grad" style="font-size:.85rem;padding:8px 20px;"
+                  onclick="submitPost()">Post</button>
+        </div>
       </div>
+    </div>
+
+    <!-- Trending hashtags -->
+    <div id="trendingStrip" style="display:none;">
+      <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:4px;">🔥 Trending</div>
+      <div class="trending-strip" id="trendingTags"></div>
+    </div>
+
+    <!-- Feed / Network / Top / Saved tabs -->
+    <div class="feed-tabs">
+      <button class="feed-tab active" id="ftab-feed"    onclick="switchFeedTab('feed')">🌐 Feed</button>
+      <button class="feed-tab"        id="ftab-network" onclick="switchFeedTab('network')">👥 Network</button>
+      <button class="feed-tab"        id="ftab-top"     onclick="switchFeedTab('top')">🔥 Top</button>
+      <button class="feed-tab"        id="ftab-saved"   onclick="switchFeedTab('saved')">🔖 Saved</button>
+    </div>
+
+    <!-- Active hashtag filter banner -->
+    <div class="hashtag-filter-bar" id="hashtagFilterBar" style="display:none;">
+      <span>Showing posts tagged <strong id="hashtagFilterLabel"></strong></span>
+      <button class="hashtag-filter-clear" onclick="clearHashtagFilter()">✕ Clear</button>
     </div>
 
     <!-- Posts -->
@@ -1761,6 +2548,9 @@
       <button class="btn btn-outline-grad" style="font-size:.85rem;padding:8px 24px;"
               onclick="loadMorePosts()">Load more</button>
     </div>
+
+    <!-- Saved posts -->
+    <div id="savedPosts" style="display:none;"></div>
   </section>
 
   <!-- ══ JOB BOARD SECTION ══ -->
@@ -1773,18 +2563,27 @@
       <div id="jobPostBtn"></div>
     </div>
     </div>
-    <div class="jobs-search-row">
-      <input type="text" class="jobs-search-input" id="jobSearchInput"
-             placeholder="Search jobs by title, company, skill, or location…"
-             oninput="onJobSearchInput()" />
+    <div class="jobs-view-tabs">
+      <button class="jobs-view-tab active" id="jtab-all"    onclick="switchJobsView('all')">🌐 All Jobs</button>
+      <button class="jobs-view-tab"        id="jtab-foryou" onclick="switchJobsView('foryou')">⭐ For You</button>
     </div>
-    <div class="job-type-chips">
-      <button class="job-type-chip active" data-jtype="all"        onclick="setJobFilter('all')">All</button>
-      <button class="job-type-chip"        data-jtype="full-time"  onclick="setJobFilter('full-time')">Full-time</button>
-      <button class="job-type-chip"        data-jtype="part-time"  onclick="setJobFilter('part-time')">Part-time</button>
-      <button class="job-type-chip"        data-jtype="internship" onclick="setJobFilter('internship')">Internship</button>
-      <button class="job-type-chip"        data-jtype="freelance"  onclick="setJobFilter('freelance')">Freelance</button>
-      <button class="job-type-chip"        data-jtype="remote"     onclick="setJobFilter('remote')">Remote</button>
+    <div id="jobs-all-view">
+      <div class="jobs-search-row">
+        <input type="text" class="jobs-search-input" id="jobSearchInput"
+               placeholder="Search jobs by title, company, skill, or location…"
+               oninput="onJobSearchInput()" />
+      </div>
+      <div class="job-type-chips">
+        <button class="job-type-chip active" data-jtype="all"        onclick="setJobFilter('all')">All</button>
+        <button class="job-type-chip"        data-jtype="full-time"  onclick="setJobFilter('full-time')">Full-time</button>
+        <button class="job-type-chip"        data-jtype="part-time"  onclick="setJobFilter('part-time')">Part-time</button>
+        <button class="job-type-chip"        data-jtype="internship" onclick="setJobFilter('internship')">Internship</button>
+        <button class="job-type-chip"        data-jtype="freelance"  onclick="setJobFilter('freelance')">Freelance</button>
+        <button class="job-type-chip"        data-jtype="remote"     onclick="setJobFilter('remote')">Remote</button>
+      </div>
+    </div>
+    <div id="jobs-foryou-view" style="display:none;">
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Jobs matching your profile skills</p>
     </div>
     <div class="jobs-grid" id="jobsGrid"></div>
     <div class="feed-load-more" id="jobsLoadMore" style="display:none;">
@@ -1801,7 +2600,144 @@
     </div>
   </div>
 
+  <!-- ══ CONNECT NOTE MODAL ══ -->
+  <div class="modal-backdrop" id="connectNoteBackdrop" onclick="if(event.target===this)closeModal('connectNoteBackdrop')">
+    <div class="modal" style="max-width:440px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('connectNoteBackdrop')">✕</button>
+      <h2 class="modal-title">🔗 Connect</h2>
+      <p id="connectNoteTarget" style="font-size:.9rem;color:var(--muted);margin-bottom:12px;"></p>
+      <label style="font-size:.82rem;color:var(--muted);font-weight:600;letter-spacing:.04em;">
+        ADD A NOTE <span style="font-weight:400;">(optional, max 300 chars)</span>
+      </label>
+      <textarea id="connectNoteText" class="field-input" rows="4"
+                maxlength="300" placeholder="Hi, I'd love to connect…"
+                oninput="document.getElementById('connectNoteCount').textContent=this.value.length+'/300'"
+                style="width:100%;resize:vertical;margin-top:6px;"></textarea>
+      <div style="text-align:right;font-size:.72rem;color:var(--muted);margin-top:2px;" id="connectNoteCount">0/300</div>
+      <p class="error-msg" id="connectNoteError" style="display:none;"></p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-ghost" onclick="closeModal('connectNoteBackdrop')">Cancel</button>
+        <button class="btn btn-grad" id="connectNoteSubmit" onclick="submitConnectNote()">Send Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LEADERBOARD MODAL ══ -->
+  <div class="modal-backdrop" id="leaderboardBackdrop" onclick="if(event.target===this)closeModal('leaderboardBackdrop')">
+    <div class="modal" style="max-width:580px;width:95%;max-height:85vh;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('leaderboardBackdrop')">✕</button>
+      <h2 class="modal-title">🏆 Community Leaderboard</h2>
+      <div id="leaderboardContent" style="overflow-y:auto;flex:1;padding-right:4px;">
+        <div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MY STATS MODAL ══ -->
+  <div class="modal-backdrop" id="myStatsBackdrop" onclick="if(event.target===this)closeModal('myStatsBackdrop')">
+    <div class="modal" style="max-width:560px;width:95%;max-height:80vh;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('myStatsBackdrop')">✕</button>
+      <h2 class="modal-title">📊 Post Analytics</h2>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Impressions on your posts (unique viewers, excluding yourself)</p>
+      <div id="myStatsContent" style="overflow-y:auto;flex:1;">
+        <div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SEARCH MODAL (full results) ══ -->
+  <div class="modal-backdrop" id="searchModalBackdrop" onclick="if(event.target===this)closeSearchModal()" style="display:none;">
+    <div class="modal" style="max-width:640px;width:95%;max-height:80vh;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeSearchModal()">✕</button>
+      <h2 class="modal-title" id="searchModalTitle">Search People</h2>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <input class="field-input" id="searchModalInput" type="text" placeholder="Search by name, skills, title…"
+               maxlength="100" style="flex:1;min-width:160px;"
+               oninput="runModalSearch()" autocomplete="off">
+        <select class="field-input" id="searchModalRole" style="width:auto;"
+                onchange="runModalSearch()">
+          <option value="">All roles</option>
+          <option value="student">Students</option>
+          <option value="pro">IT Professionals</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+        <input class="field-input" id="searchModalLocation" type="text" placeholder="📍 Location"
+               maxlength="80" style="flex:1;min-width:120px;font-size:.83rem;"
+               oninput="runModalSearch()" autocomplete="off">
+        <input class="field-input" id="searchModalSkill" type="text" placeholder="🛠 Skill (exact)"
+               maxlength="60" style="flex:1;min-width:120px;font-size:.83rem;"
+               oninput="runModalSearch()" autocomplete="off">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="searchModalOtw" onchange="runModalSearch()" style="accent-color:var(--cyan);">
+          🟢 Open to Work
+        </label>
+      </div>
+      </div>
+      <div id="searchModalResults" style="overflow-y:auto;flex:1;"></div>
+      <div id="searchModalMore" style="display:none;text-align:center;padding:12px;">
+        <button class="btn btn-ghost" style="font-size:.85rem;" onclick="loadMoreSearchResults()">Load more</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- @Mention autocomplete dropdown (global singleton) -->
+  <div id="mentionDropdown"></div>
+
   <!-- Apply to Job Modal -->
+  <!-- ══ REPOST MODAL ══ -->
+  <!-- ══ SHARE POST MODAL ══ -->
+  <div class="modal-backdrop" id="sharePostBackdrop" onclick="if(event.target===this)closeModal('sharePostBackdrop')">
+    <div class="modal" style="max-width:460px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('sharePostBackdrop')">✕</button>
+      <h2 class="modal-title">📤 Share Post</h2>
+      <p class="error-msg" id="sharePostError" style="display:none;"></p>
+      <div id="sharePostPreviewBox" style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.85rem;line-height:1.5;color:var(--text);"></div>
+      <div class="field">
+        <label class="field-label">Send to</label>
+        <input type="text" class="field-input" id="shareConnSearch" placeholder="Search connections…" oninput="filterShareConnList()" style="margin-bottom:8px;">
+        <div class="share-conn-list" id="shareConnList"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">Add a note <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+        <textarea class="field-input" id="shareNote" rows="2" maxlength="300" placeholder="Write something…"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closeModal('sharePostBackdrop')">Cancel</button>
+        <button class="btn btn-grad" id="shareSubmitBtn" onclick="submitPostShare()">📤 Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REACTIONS VIEWER MODAL ══ -->
+  <div class="modal-backdrop" id="reactionsViewerBackdrop" onclick="if(event.target===this)closeModal('reactionsViewerBackdrop')">
+    <div class="modal" style="max-width:400px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('reactionsViewerBackdrop')">✕</button>
+      <h2 class="modal-title">Reactions</h2>
+      <div class="react-viewer-tabs" id="reactViewerTabs"></div>
+      <div class="react-viewer-list" id="reactViewerList"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="repostBackdrop" onclick="if(event.target===this)closeModal('repostBackdrop')">
+    <div class="modal" style="max-width:520px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('repostBackdrop')">✕</button>
+      <h2 class="modal-title">↩ Repost</h2>
+      <p class="error-msg" id="repostError" style="display:none;"></p>
+      <div class="field" style="margin-bottom:12px;">
+        <textarea id="repostComment" class="field-input" rows="3"
+          placeholder="Add a comment… (optional)" maxlength="500"
+          oninput="document.getElementById('repostCharCount').textContent=this.value.length+'/500'"></textarea>
+        <div style="text-align:right;font-size:.75rem;color:var(--muted);margin-top:4px;" id="repostCharCount">0/500</div>
+      </div>
+      <div id="repostOrigPreview" style="margin-bottom:16px;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closeModal('repostBackdrop')">Cancel</button>
+        <button class="btn btn-grad" id="repostSubmitBtn" onclick="submitRepost()">↩ Repost</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="applyJobBackdrop" onclick="if(event.target===this)closeModal('applyJobBackdrop')">
     <div class="modal" style="max-width:500px;" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal('applyJobBackdrop')">✕</button>
@@ -2301,6 +3237,8 @@
       </div>
     </div>
 
+    <div id="profileStrengthBar"></div>
+
     <div class="section-heading">Personal Info</div>
     <div class="field-row">
       <div class="field"><label>First Name</label><input type="text" id="pfFirstName" placeholder="Alex" /></div>
@@ -2345,6 +3283,31 @@
       </div>
     </div>
 
+    <!-- Projects — students only (shown/hidden by JS) -->
+    <div id="pfProjectsSection" class="hidden">
+      <div class="section-heading" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Projects</span>
+        <button class="btn btn-outline-grad" style="font-size:.78rem;padding:5px 14px;" onclick="openProjectForm()">+ Add Project</button>
+      </div>
+      <div id="pfProjectsList"></div>
+      <!-- Inline add/edit form (hidden by default) -->
+      <div id="pfProjectForm" class="hidden" style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px;margin-bottom:12px;">
+        <input type="hidden" id="pfProjectId">
+        <div class="field"><label>Project Title *</label><input type="text" id="pfProjectTitle" placeholder="e.g. Smart Campus App" maxlength="120"></div>
+        <div class="field"><label>Description</label><textarea id="pfProjectDesc" placeholder="What does this project do? What problem does it solve?" rows="3" maxlength="1000"></textarea></div>
+        <div class="field"><label>Tech Stack</label><input type="text" id="pfProjectTech" placeholder="React, Node.js, MongoDB (comma-separated)" maxlength="300"></div>
+        <div class="field-row">
+          <div class="field"><label>GitHub URL</label><input type="url" id="pfProjectGithub" placeholder="https://github.com/…"></div>
+          <div class="field"><label>Live Demo URL</label><input type="url" id="pfProjectLive" placeholder="https://…"></div>
+        </div>
+        <p class="form-error" id="pfProjectError"></p>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-grad" style="flex:1;padding:10px;" onclick="saveProject()">Save Project</button>
+          <button class="btn btn-ghost" style="padding:10px 16px;" onclick="closeProjectForm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Resume upload — students only (shown/hidden by JS) -->
     <div id="pfResumeSection" class="hidden">
       <div class="section-heading">Resume / CV</div>
@@ -2358,6 +3321,19 @@
         <div id="resumeUploadStatus" style="font-size:.75rem;color:var(--muted);"></div>
         <span class="resume-hint">PDF only · max 5 MB</span>
       </div>
+    </div>
+
+    <!-- Status badge toggle — role-specific, shown by JS -->
+    <div id="pfStatusSection">
+      <div class="section-heading">Status</div>
+      <label class="status-toggle" id="pfOtwRow">
+        <input type="checkbox" id="pfOpenToWork">
+        <span class="status-toggle-label">🟢 Open to Work — let IT professionals know you're looking for opportunities</span>
+      </label>
+      <label class="status-toggle" id="pfHiringRow" style="display:none;">
+        <input type="checkbox" id="pfIsHiring">
+        <span class="status-toggle-label">🔵 Actively Hiring — show companies and students you're recruiting</span>
+      </label>
     </div>
 
     <div class="section-heading">Skills</div>
@@ -2383,6 +3359,25 @@
 /* ════════════════════════════════════════
    STATE
 ════════════════════════════════════════ */
+// ── Theme ─────────────────────────────────────────────────────────────────────
+(function initTheme() {
+  const saved = localStorage.getItem('tc-theme');
+  if (saved === 'light') document.documentElement.dataset.theme = 'light';
+})();
+
+function toggleTheme() {
+  const isLight = document.documentElement.dataset.theme === 'light';
+  if (isLight) {
+    delete document.documentElement.dataset.theme;
+    localStorage.setItem('tc-theme', 'dark');
+  } else {
+    document.documentElement.dataset.theme = 'light';
+    localStorage.setItem('tc-theme', 'light');
+  }
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.textContent = document.documentElement.dataset.theme === 'light' ? '🌙' : '☀️';
+}
+
 let currentUser        = null;  // populated from API
 let pendingSkills      = [];    // local copy while profile modal is open
 let signupSelectedRole = null;
@@ -2440,6 +3435,13 @@ function initials(name) {
   return parts.length >= 2
     ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
     : name.slice(0,2).toUpperCase();
+}
+
+function degreeLabel(d) {
+  if (d === 1) return `<span class="degree-chip d1" title="1st-degree — you're directly connected">1st</span>`;
+  if (d === 2) return `<span class="degree-chip d2" title="2nd-degree — connected through a mutual">2nd</span>`;
+  if (d === 3) return `<span class="degree-chip d3" title="3rd-degree or further">3rd+</span>`;
+  return '';
 }
 
 /**
@@ -2596,6 +3598,104 @@ async function loadProfileResume(userId, isSelf) {
   } catch { /* no resume — show nothing */ }
 }
 
+/* ════════════════════════════════════════
+   PROJECTS
+════════════════════════════════════════ */
+let myProjectsCache = [];
+
+async function loadMyProjects() {
+  if (!currentUser) return;
+  try {
+    myProjectsCache = await api('GET', `/api/projects/${currentUser.id}`);
+  } catch { myProjectsCache = []; }
+  renderMyProjects();
+}
+
+function renderMyProjects() {
+  const list = document.getElementById('pfProjectsList');
+  if (!list) return;
+  if (!myProjectsCache.length) {
+    list.innerHTML = `<div style="font-size:.83rem;color:var(--muted);padding:8px 0;">No projects yet — add your first one!</div>`;
+    return;
+  }
+  list.innerHTML = myProjectsCache.map(p => `
+    <div class="project-edit-item">
+      <div style="min-width:0;">
+        <div class="project-edit-title">${escHtml(p.title)}</div>
+        ${p.techStack ? `<div class="project-edit-tech">${escHtml(p.techStack)}</div>` : ''}
+      </div>
+      <div class="project-edit-actions">
+        <button class="project-edit-btn" onclick="openProjectForm('${escHtml(p.id)}')">Edit</button>
+        <button class="project-edit-btn del" onclick="deleteProject('${escHtml(p.id)}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function openProjectForm(projectId) {
+  const form = document.getElementById('pfProjectForm');
+  document.getElementById('pfProjectError').textContent = '';
+  if (projectId) {
+    const proj = myProjectsCache.find(p => p.id === projectId);
+    if (!proj) return;
+    document.getElementById('pfProjectId').value     = proj.id;
+    document.getElementById('pfProjectTitle').value  = proj.title;
+    document.getElementById('pfProjectDesc').value   = proj.description;
+    document.getElementById('pfProjectTech').value   = proj.techStack;
+    document.getElementById('pfProjectGithub').value = proj.githubUrl;
+    document.getElementById('pfProjectLive').value   = proj.liveUrl;
+  } else {
+    document.getElementById('pfProjectId').value     = '';
+    document.getElementById('pfProjectTitle').value  = '';
+    document.getElementById('pfProjectDesc').value   = '';
+    document.getElementById('pfProjectTech').value   = '';
+    document.getElementById('pfProjectGithub').value = '';
+    document.getElementById('pfProjectLive').value   = '';
+  }
+  form.classList.remove('hidden');
+  document.getElementById('pfProjectTitle').focus();
+}
+
+function closeProjectForm() {
+  document.getElementById('pfProjectForm').classList.add('hidden');
+}
+
+async function saveProject() {
+  const errEl = document.getElementById('pfProjectError');
+  errEl.textContent = '';
+  const id    = document.getElementById('pfProjectId').value;
+  const title = document.getElementById('pfProjectTitle').value.trim();
+  if (!title) { errEl.textContent = 'Title is required.'; return; }
+
+  const payload = {
+    title,
+    description: document.getElementById('pfProjectDesc').value.trim(),
+    techStack:   document.getElementById('pfProjectTech').value.trim(),
+    githubUrl:   document.getElementById('pfProjectGithub').value.trim(),
+    liveUrl:     document.getElementById('pfProjectLive').value.trim(),
+  };
+
+  try {
+    if (id) {
+      const updated = await api('PUT', `/api/projects/${id}`, payload);
+      myProjectsCache = myProjectsCache.map(p => p.id === id ? updated : p);
+    } else {
+      const created = await api('POST', '/api/projects', payload);
+      myProjectsCache.push(created);
+    }
+    closeProjectForm();
+    renderMyProjects();
+  } catch (e) { errEl.textContent = e.message || 'Could not save project.'; }
+}
+
+async function deleteProject(projectId) {
+  if (!confirm('Delete this project?')) return;
+  try {
+    await api('DELETE', `/api/projects/${projectId}`);
+    myProjectsCache = myProjectsCache.filter(p => p.id !== projectId);
+    renderMyProjects();
+  } catch (e) { alert(e.message || 'Could not delete project.'); }
+}
+
 function renderNav() {
   const nav = document.getElementById('navActions');
   if (!currentUser) {
@@ -2611,6 +3711,7 @@ function renderNav() {
     const unreadMsgs   = chatUnread > 0 ? `<span class="chat-badge">${chatUnread}</span>` : '';
     const notifBadge   = notifUnread > 0 ? `<span class="notif-badge">${notifUnread > 99 ? '99+' : notifUnread}</span>` : '';
     nav.innerHTML = `
+      <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle light/dark mode">${document.documentElement.dataset.theme === 'light' ? '🌙' : '☀️'}</button>
       <button class="chat-btn" onclick="openChat()" title="Messages">
         💬${unreadMsgs}
       </button>
@@ -2639,6 +3740,8 @@ function renderNav() {
       <div class="dropdown" id="navDropdown">
         <div class="dd-item" onclick="openProfile()"><span class="dd-icon">👤</span> My Profile</div>
         <div class="dd-item" onclick="openRequestsModal();closeDropdown();"><span class="dd-icon">🔗</span> Connections</div>
+        <div class="dd-item" onclick="openMyStats();closeDropdown();"><span class="dd-icon">📊</span> Post Analytics</div>
+        <div class="dd-item" onclick="openLeaderboard();closeDropdown();"><span class="dd-icon">🏆</span> Leaderboard</div>
         <div class="dd-divider"></div>
         <div class="dd-item danger" onclick="openModal('logoutBackdrop');closeDropdown();">
           <span class="dd-icon">🚪</span> Log Out
@@ -2646,6 +3749,9 @@ function renderNav() {
       </div>
     `;
     dropdownOpen = false;
+    // Show search bar when logged in
+    const sw = document.getElementById('navSearchWrap');
+    if (sw) sw.classList.add('visible');
   }
 }
 
@@ -2676,11 +3782,10 @@ function renderHero() {
           <div class="dash-card-val">${connData ? connData.count : 0}</div>
           <div class="dash-card-label">Connections</div>
         </div>
-        <div class="dash-card" onclick="document.getElementById('jobsSection').scrollIntoView({behavior:'smooth'});"
-             style="cursor:pointer;" title="View job board">
-          <div class="dash-card-icon">💼</div>
+        <div class="dash-card" id="dashJobsCard" style="cursor:pointer;" title="View job board">
+          <div class="dash-card-icon" id="dashJobsIcon">💼</div>
           <div class="dash-card-val" id="dashResourcesVal">0</div>
-          <div class="dash-card-label">Jobs Posted</div>
+          <div class="dash-card-label" id="dashJobsLabel">Jobs Posted</div>
         </div>
         <div class="dash-card" onclick="document.getElementById('feedSection').scrollIntoView({behavior:'smooth'});"
              style="cursor:pointer;" title="View your feed">
@@ -2701,6 +3806,15 @@ function renderHero() {
           <div class="dash-card-label">Profile Views</div>
         </div>
       </div>
+      ${(()=>{ const cp = calcProfileCompleteness(currentUser); return `
+      <div class="dash-completeness" onclick="openProfile()" title="Click to complete your profile">
+        <div class="dash-completeness-header">
+          <span class="dash-completeness-title">Profile Strength — ${cp.level}</span>
+          <span class="dash-completeness-pct">${cp.pct}%</span>
+        </div>
+        <div class="strength-track"><div class="strength-fill" style="width:${cp.pct}%"></div></div>
+        ${cp.missing.length ? `<div class="strength-missing">${cp.missing.slice(0,3).map(m=>`<span>+ ${m}</span>`).join('')}</div>` : `<div class="strength-missing" style="color:var(--cyan)">✓ Profile looks great!</div>`}
+      </div>`; })()}
       <div class="quick-actions">
         <button class="btn btn-grad" style="font-size:.95rem;padding:12px 26px;" onclick="document.getElementById('searchSection').scrollIntoView({behavior:'smooth'})">Explore Network</button>
         <button class="btn btn-outline-grad" style="font-size:.95rem;padding:12px 26px;" onclick="document.getElementById('jobsSection').scrollIntoView({behavior:'smooth'})">Browse Jobs</button>
@@ -2792,6 +3906,7 @@ async function initSession() {
     connectWS();
     startNotifPolling();
     startChatPolling();
+    initViewObserver();
   }
   render();
   if (currentUser) { doSearch(); initFeed(); initJobs(); initEvents(); loadSuggestions(); initLiveMembers(); loadProfileViewCount(); }
@@ -2822,6 +3937,7 @@ async function doLogin() {
     connectWS();
     startNotifPolling();
     startChatPolling();
+    initViewObserver();
     closeModal('loginBackdrop');
     resetLoginForm();
     render();
@@ -2904,6 +4020,7 @@ async function doSignup() {
     connectWS();
     startNotifPolling();
     startChatPolling();
+    initViewObserver();
     closeModal('signupBackdrop');
     resetSignupForm();
     render();
@@ -2956,6 +4073,66 @@ async function doLogout() {
 }
 
 /* ════════════════════════════════════════
+   PROFILE COMPLETENESS
+════════════════════════════════════════ */
+function calcProfileCompleteness(u) {
+  if (!u) return { pct: 0, level: 'Beginner', missing: [], done: 0, total: 0 };
+
+  const checks = [
+    { label: 'Add a bio',          done: !!(u.bio      && u.bio.trim().length > 10) },
+    { label: 'Add your location',  done: !!(u.location && u.location.trim()) },
+    { label: 'Link your LinkedIn', done: !!(u.linkedin && u.linkedin.trim()) },
+    { label: 'Link your GitHub',   done: !!(u.github   && u.github.trim()) },
+    { label: 'Add 3+ skills',      done:  (u.skills    || []).length >= 3 },
+    { label: 'Upload a photo',     done: !!(u.avatarMime && u.avatarMime.trim()) },
+  ];
+
+  if (u.role === 'student') {
+    checks.push({ label: 'Add your institution', done: !!(u.institution && u.institution.trim()) });
+    checks.push({ label: 'Add your degree',      done: !!(u.degree      && u.degree.trim()) });
+  } else {
+    checks.push({ label: 'Add your company',   done: !!(u.company   && u.company.trim()) });
+    checks.push({ label: 'Add your job title', done: !!(u.jobTitle  && u.jobTitle.trim()) });
+  }
+
+  const done  = checks.filter(c => c.done).length;
+  const total = checks.length;
+  const pct   = Math.round((done / total) * 100);
+  const level = pct >= 90 ? 'Expert' : pct >= 70 ? 'Strong' : pct >= 40 ? 'Intermediate' : 'Beginner';
+  const missing = checks.filter(c => !c.done).map(c => c.label);
+  return { pct, level, missing, done, total };
+}
+
+function renderProfileStrength(u) {
+  const cp = calcProfileCompleteness(u);
+  const items = [
+    { label: 'Photo',       done: !!(u.avatarMime && u.avatarMime.trim()) },
+    { label: 'Bio',         done: !!(u.bio        && u.bio.trim().length > 10) },
+    { label: 'Location',    done: !!(u.location   && u.location.trim()) },
+    { label: 'Skills (3+)', done: (u.skills || []).length >= 3 },
+    { label: 'LinkedIn',    done: !!(u.linkedin   && u.linkedin.trim()) },
+    { label: 'GitHub',      done: !!(u.github     && u.github.trim()) },
+    u.role === 'student'
+      ? { label: 'Institution', done: !!(u.institution && u.institution.trim()) }
+      : { label: 'Company',     done: !!(u.company     && u.company.trim()) },
+    u.role === 'student'
+      ? { label: 'Degree',    done: !!(u.degree    && u.degree.trim()) }
+      : { label: 'Job Title', done: !!(u.jobTitle  && u.jobTitle.trim()) },
+  ];
+  return `
+    <div class="profile-strength-wrap">
+      <div class="profile-strength-header">
+        <span class="profile-strength-title">Profile Strength</span>
+        <span class="profile-strength-pct">${cp.pct}% · ${cp.level}</span>
+      </div>
+      <div class="strength-track"><div class="strength-fill" style="width:${cp.pct}%"></div></div>
+      <div class="profile-strength-items">
+        ${items.map(it => `<span class="psi ${it.done ? 'done' : 'todo'}"><span class="psi-icon">${it.done ? '✓' : '○'}</span>${it.label}</span>`).join('')}
+      </div>
+    </div>`;
+}
+
+/* ════════════════════════════════════════
    PROFILE MODAL
 ════════════════════════════════════════ */
 async function openProfile() {
@@ -2990,6 +4167,14 @@ async function openProfile() {
   document.getElementById('pfAcadSection').classList.toggle('hidden', !isStudent);
   document.getElementById('pfProfSection').classList.toggle('hidden',  isStudent);
   document.getElementById('pfResumeSection').classList.toggle('hidden', !isStudent);
+  document.getElementById('pfProjectsSection').classList.toggle('hidden', !isStudent);
+  if (isStudent) loadMyProjects();
+
+  // Status toggles — students see "Open to Work", pros see "Hiring"
+  document.getElementById('pfOtwRow')   .style.display = isStudent ? '' : 'none';
+  document.getElementById('pfHiringRow').style.display = isStudent ? 'none' : '';
+  document.getElementById('pfOpenToWork').checked = !!u.openToWork;
+  document.getElementById('pfIsHiring')  .checked = !!u.isHiring;
 
   if (isStudent) {
     document.getElementById('pfInstitution').value = u.institution || '';
@@ -3008,6 +4193,7 @@ async function openProfile() {
 
   pendingSkills = [...(u.skills || [])];
   renderSkillTags();
+  document.getElementById('profileStrengthBar').innerHTML = renderProfileStrength(u);
   clearError(document.getElementById('profileError'));
   document.getElementById('saveConfirm').classList.remove('show');
   openModal('profileBackdrop');
@@ -3060,6 +4246,8 @@ async function saveProfile() {
     linkedin:    document.getElementById('pfLinkedIn').value.trim(),
     github:      document.getElementById('pfGitHub').value.trim(),
     skills:      pendingSkills,
+    openToWork:  document.getElementById('pfOpenToWork').checked,
+    isHiring:    document.getElementById('pfIsHiring').checked,
     institution: currentUser.role === 'student' ? document.getElementById('pfInstitution').value.trim() : undefined,
     degree:      currentUser.role === 'student' ? document.getElementById('pfDegree').value.trim()      : undefined,
     year:        currentUser.role === 'student' ? document.getElementById('pfYear').value                : undefined,
@@ -3075,8 +4263,10 @@ async function saveProfile() {
 
     // update local cache
     Object.assign(currentUser, payload, {
-      name:   [fn, ln].filter(Boolean).join(' ') || currentUser.name,
-      skills: pendingSkills,
+      name:      [fn, ln].filter(Boolean).join(' ') || currentUser.name,
+      skills:    pendingSkills,
+      openToWork: document.getElementById('pfOpenToWork').checked,
+      isHiring:   document.getElementById('pfIsHiring').checked,
     });
     currentUser.firstName = fn;
     currentUser.lastName  = ln;
@@ -3147,7 +4337,11 @@ function suggestionCardHtml(s, compact = false) {
       <div class="suggestion-avatar" onclick="openUserProfile('${escHtml(s.id)}')" title="View profile">
         ${ini}<img src="/api/profile/avatar/${encodeURIComponent(s.id)}" onerror="this.remove();" alt="">
       </div>
-      <div class="suggestion-name" onclick="openUserProfile('${escHtml(s.id)}')">${escHtml(s.name)}</div>
+      <div class="suggestion-name" onclick="openUserProfile('${escHtml(s.id)}')">${escHtml(s.name)}${degreeLabel(s.mutualCount > 0 ? 2 : 3)}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:2px;">
+        ${s.openToWork ? `<span class="badge-otw" style="font-size:.65rem;">🟢 Open to Work</span>` : ''}
+        ${s.isHiring   ? `<span class="badge-hiring" style="font-size:.65rem;">🔵 Hiring</span>` : ''}
+      </div>
       <div class="suggestion-meta">${escHtml(meta)}</div>
       ${mutualHtml}
       <button class="suggestion-connect" id="sconn-${escHtml(s.id)}"
@@ -3155,23 +4349,10 @@ function suggestionCardHtml(s, compact = false) {
     </div>`;
 }
 
-async function suggestionConnect(userId) {
-  const btn = document.getElementById(`sconn-${userId}`);
-  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-  try {
-    await api('POST', '/api/connections/request', { targetUserId: userId });
-    // Update both suggestion cards (in scroll strip and dashboard)
-    document.querySelectorAll(`#sconn-${userId}`).forEach(b => {
-      b.textContent = '⏳ Sent';
-      b.classList.add('sent');
-      b.disabled = true;
-    });
-    // Refresh connData so getConnState works correctly
-    connData = await api('GET', '/api/connections/me');
-  } catch (e) {
-    if (btn) { btn.disabled = false; btn.textContent = '+ Connect'; }
-    alert(e.message || 'Could not send request.');
-  }
+function suggestionConnect(userId) {
+  const card = document.getElementById(`scard-${userId}`);
+  const name = card?.querySelector('.suggestion-name')?.textContent?.trim() || '';
+  openConnectNoteModal(userId, name);
 }
 
 function setFilter(role) {
@@ -3292,7 +4473,7 @@ function renderProfileCard(p) {
       <div class="profile-card-header" onclick="openUserProfile('${escHtml(p.id)}')" title="View profile">
         ${avatarHtml(p.id, p.name, 'profile-card-avatar', '')}
         <div class="profile-card-info">
-          <div class="profile-card-name">${escHtml(p.name)}</div>
+          <div class="profile-card-name">${escHtml(p.name)}${p.connDegree ? degreeLabel(p.connDegree) : ''}</div>
           <div class="profile-card-org">${escHtml(org || roleLabel)}</div>
         </div>
         <span class="role-badge ${roleClass}" style="flex-shrink:0;">${roleLabel}</span>
@@ -3361,7 +4542,7 @@ function renderUserProfileModal(p) {
   } else {
     actionBtns = `
       <button class="btn btn-grad" style="font-size:.85rem;padding:8px 16px;"
-        onclick="sendRequest('${escHtml(p.id)}');closeModal('userProfileBackdrop')">
+        onclick="closeModal('userProfileBackdrop');openConnectNoteModal('${escHtml(p.id)}','${escHtml(p.name)}')">
         + Connect
       </button>`;
   }
@@ -3410,12 +4591,17 @@ function renderUserProfileModal(p) {
     <div class="uprofile-hero">
       <div class="uprofile-avatar">${escHtml(ini)}<img src="/api/profile/avatar/${encodeURIComponent(p.id)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.remove();" alt=""></div>
       <div style="flex:1;min-width:0;">
-        <div class="uprofile-name" style="display:flex;align-items:center;gap:8px;">
+        <div class="uprofile-name" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           ${escHtml(p.name)}
+          ${!p.isSelf && p.connDegree ? degreeLabel(p.connDegree) : ''}
           <span class="online-badge" id="profile-online-badge" data-uid="${escHtml(p.id)}"
                 style="display:${onlineUsers.has(p.id) ? 'inline-flex' : 'none'}">Online</span>
         </div>
-        <span class="role-badge ${roleClass}">${roleLabel}</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;">
+          <span class="role-badge ${roleClass}">${roleLabel}</span>
+          ${p.openToWork ? `<span class="badge-otw">🟢 Open to Work</span>` : ''}
+          ${p.isHiring   ? `<span class="badge-hiring">🔵 Hiring</span>` : ''}
+        </div>
         ${p.location ? `<div style="font-size:.82rem;color:var(--muted);margin-top:6px;">📍 ${escHtml(p.location)}</div>` : ''}
         <div class="uprofile-actions">${actionBtns}</div>
       </div>
@@ -3424,11 +4610,73 @@ function renderUserProfileModal(p) {
     ${detailSection}
     ${skillsHtml}
     ${linksHtml}
+    <div id="uprofile-mutual-${escHtml(p.id)}"></div>
     <div id="uprofile-resume-${escHtml(p.id)}"></div>
+    <div id="uprofile-projects-${escHtml(p.id)}"></div>
   `;
 
   if (p.skills?.length) loadEndorsements(p.id, canEndorse);
   if (canSeeResume)     loadProfileResume(p.id, p.isSelf);
+  if (p.role === 'student') loadProfileProjects(p.id);
+  if (!p.isSelf) loadMutualConnections(p.id);
+}
+
+async function loadMutualConnections(userId) {
+  try {
+    const mutual = await api('GET', `/api/users/${userId}/mutual`);
+    const container = document.getElementById(`uprofile-mutual-${userId}`);
+    if (!container || !mutual.length) return;
+
+    const shown = mutual.slice(0, 5);
+    const extra = mutual.length - shown.length;
+
+    const avatarsHtml = shown.map(m => {
+      const ini = initials(m.name);
+      return `<div class="mutual-av" title="${escHtml(m.name)}" onclick="openUserProfile('${escHtml(m.id)}')">
+        ${ini}<img src="/api/profile/avatar/${encodeURIComponent(m.id)}" onerror="this.remove();" alt="">
+      </div>`;
+    }).join('');
+
+    const names = shown.slice(0, 3).map(m => escHtml(m.name.split(' ')[0])).join(', ');
+    const label = extra > 0 ? `${names} and ${extra} other${extra > 1 ? 's' : ''}` : names;
+
+    container.innerHTML = `
+      <div class="mutual-row">
+        <div class="mutual-avatars">${avatarsHtml}</div>
+        <span class="mutual-label">👥 ${mutual.length} mutual connection${mutual.length > 1 ? 's' : ''}: ${label}</span>
+      </div>`;
+  } catch { /* silently skip */ }
+}
+
+async function loadProfileProjects(userId) {
+  try {
+    const projects = await api('GET', `/api/projects/${userId}`);
+    const container = document.getElementById(`uprofile-projects-${userId}`);
+    if (!container || !projects.length) return;
+    container.innerHTML = `
+      <div class="uprofile-section">
+        <div class="uprofile-section-title">Projects</div>
+        ${projects.map(proj => projectCardHtml(proj)).join('')}
+      </div>`;
+  } catch { /* silently skip */ }
+}
+
+function projectCardHtml(proj) {
+  const techs = proj.techStack
+    ? proj.techStack.split(',').map(t => t.trim()).filter(Boolean)
+        .map(t => `<span class="project-tech-chip">${escHtml(t)}</span>`).join('')
+    : '';
+  const links = [
+    proj.githubUrl ? `<a class="project-link" href="${escHtml(proj.githubUrl)}" target="_blank" rel="noopener">🐙 GitHub</a>` : '',
+    proj.liveUrl   ? `<a class="project-link" href="${escHtml(proj.liveUrl)}"   target="_blank" rel="noopener">🔗 Live Demo</a>` : '',
+  ].filter(Boolean).join('');
+  return `
+    <div class="project-card">
+      <div class="project-card-title">${escHtml(proj.title)}</div>
+      ${proj.description ? `<div class="project-card-desc">${escHtml(proj.description)}</div>` : ''}
+      ${techs ? `<div class="project-tech-stack">${techs}</div>` : ''}
+      ${links ? `<div class="project-links">${links}</div>` : ''}
+    </div>`;
 }
 
 async function loadEndorsements(userId, canEndorse) {
@@ -3505,6 +4753,14 @@ function connectWS() {
         } catch (e) { /* ignore malformed frame */ }
       });
 
+      // Subscribe to read receipts — fires when the other person opens our messages
+      stompClient.subscribe('/user/queue/read-receipt', frame => {
+        try {
+          const { readBy } = JSON.parse(frame.body);
+          if (readBy) applyReadReceipt(readBy);
+        } catch (e) {}
+      });
+
       // Subscribe to real-time online status updates
       stompClient.subscribe('/topic/online-status', frame => {
         try {
@@ -3520,6 +4776,23 @@ function connectWS() {
         try {
           const { senderId, senderName } = JSON.parse(frame.body);
           if (senderId === activeChatUserId) showTypingIndicator(senderName);
+        } catch(e) {}
+      });
+
+      // Real-time notification push
+      stompClient.subscribe('/user/queue/notifications', frame => {
+        try {
+          const n = JSON.parse(frame.body);
+          notifUnread++;
+          updateNotifBadge();
+          showNotifToast(n);
+          // If panel is open, prepend the new item live
+          const list = document.getElementById('notifList');
+          if (notifPanelOpen && list) {
+            const empty = list.querySelector('.notif-empty');
+            if (empty) empty.remove();
+            list.insertAdjacentHTML('afterbegin', notifItemHtml(n));
+          }
         } catch(e) {}
       });
 
@@ -3674,12 +4947,14 @@ function renderMessages(messages) {
     const mine    = m.mine;
     const timeStr = formatChatTime(m.createdAt);
     const dateStr = formatChatDate(m.createdAt);
+    const isRead  = m.isRead === true || m.isRead === 1;
     let dateSep   = '';
     if (dateStr !== lastDate) { dateSep = `<div class="chat-date-sep">${dateStr}</div>`; lastDate = dateStr; }
+    const tick = mine ? `<span class="chat-tick ${isRead ? 'read' : 'sent'}" id="tick-${escHtml(m.id)}">${isRead ? TICK_READ : TICK_SENT}</span>` : '';
     return `${dateSep}
-      <div class="chat-msg ${mine ? 'mine' : 'theirs'}">
-        <div class="chat-bubble">${escHtml(m.content)}</div>
-        <div class="chat-msg-time">${timeStr}</div>
+      <div class="chat-msg ${mine ? 'mine' : 'theirs'}" data-msg-id="${escHtml(m.id)}">
+        <div class="chat-bubble">${renderChatContent(m.content)}</div>
+        <div class="chat-msg-time">${timeStr}${tick}</div>
       </div>`;
   }).join('');
 }
@@ -3687,14 +4962,24 @@ function renderMessages(messages) {
 function appendChatMessage(msg, mine) {
   const el = document.getElementById('chatMessages');
   if (!el) return;
-  // Remove "no messages" placeholder if present
   if (el.querySelector('div[style]')) el.innerHTML = '';
   const timeStr = formatChatTime(msg.createdAt);
+  // New messages are always unread (✓ sent, upgrades to ✓✓ on receipt)
+  const tick = mine ? `<span class="chat-tick sent" id="tick-${escHtml(msg.id)}">${TICK_SENT}</span>` : '';
   el.insertAdjacentHTML('beforeend', `
-    <div class="chat-msg ${mine ? 'mine' : 'theirs'}">
-      <div class="chat-bubble">${escHtml(msg.content)}</div>
-      <div class="chat-msg-time">${timeStr}</div>
+    <div class="chat-msg ${mine ? 'mine' : 'theirs'}" data-msg-id="${escHtml(msg.id)}">
+      <div class="chat-bubble">${renderChatContent(msg.content)}</div>
+      <div class="chat-msg-time">${timeStr}${tick}</div>
     </div>`);
+}
+
+function applyReadReceipt(readerId) {
+  // Upgrade all ✓ ticks in the current chat to ✓✓ if the reader is the active partner
+  if (readerId !== activeChatUserId) return;
+  document.querySelectorAll('.chat-tick.sent').forEach(el => {
+    el.innerHTML = TICK_READ;
+    el.classList.replace('sent', 'read');
+  });
 }
 
 function scrollChatToBottom() {
@@ -3827,13 +5112,46 @@ async function refreshConns() {
   if (dashVal && connData) dashVal.textContent = connData.count;
 }
 
-async function sendRequest(targetId) {
+let connectNoteTargetId   = null;
+let connectNoteTargetName = '';
+
+function openConnectNoteModal(targetId, targetName) {
   if (!currentUser) { openModal('loginBackdrop'); return; }
+  connectNoteTargetId   = targetId;
+  connectNoteTargetName = targetName || 'this person';
+  document.getElementById('connectNoteText').value  = '';
+  document.getElementById('connectNoteCount').textContent = '0/300';
+  document.getElementById('connectNoteTarget').textContent =
+    `Connecting with ${connectNoteTargetName}`;
+  document.getElementById('connectNoteError').style.display = 'none';
+  document.getElementById('connectNoteSubmit').disabled = false;
+  openModal('connectNoteBackdrop');
+}
+
+async function submitConnectNote() {
+  if (!connectNoteTargetId) return;
+  const note = (document.getElementById('connectNoteText').value || '').trim();
+  const btn  = document.getElementById('connectNoteSubmit');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const errEl = document.getElementById('connectNoteError');
+  errEl.style.display = 'none';
   try {
-    await api('POST', '/api/connections/request', { targetUserId: targetId });
+    await api('POST', '/api/connections/request', { targetUserId: connectNoteTargetId, note });
     await refreshConns();
-    rerenderCard(targetId);
-  } catch (e) { alert(e.message); }
+    rerenderCard(connectNoteTargetId);
+    closeModal('connectNoteBackdrop');
+    // Also update suggestion card button if present
+    const sBtn = document.getElementById(`sconn-${connectNoteTargetId}`);
+    if (sBtn) { sBtn.disabled = true; sBtn.textContent = '⏳ Pending'; }
+  } catch (e) {
+    errEl.textContent = e.message || 'Failed to send request.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Send Request';
+  }
+}
+
+async function sendRequest(targetId, targetName) {
+  openConnectNoteModal(targetId, targetName);
 }
 
 async function acceptRequest(connId, userId) {
@@ -3954,6 +5272,9 @@ function renderReqList() {
       actions = `<button class="btn-cancel-req" onclick="cancelRequest('${c.connId}','${c.userId}')">Remove</button>`;
     }
 
+    const noteHtml = (activeReqTab === 'in' && c.note)
+      ? `<div class="req-note">"${escHtml(c.note)}"</div>` : '';
+
     return `
       <div class="req-card">
         <div onclick="openUserProfile('${escHtml(c.userId)}')" style="cursor:pointer;">
@@ -3964,8 +5285,11 @@ function renderReqList() {
                onmouseenter="this.style.color='var(--cyan)'" onmouseleave="this.style.color=''">${escHtml(c.name)}</div>
           <div class="req-card-meta">
             <span class="role-badge ${roleClass}" style="display:inline-flex;">${roleLabel}</span>
+            ${c.openToWork ? `<span class="badge-otw" style="font-size:.65rem;">🟢 Open to Work</span>` : ''}
+            ${c.isHiring   ? `<span class="badge-hiring" style="font-size:.65rem;">🔵 Hiring</span>` : ''}
             &nbsp;${escHtml(meta)}
           </div>
+          ${noteHtml}
         </div>
         <div class="req-card-actions">${actions}</div>
       </div>`;
@@ -4036,14 +5360,30 @@ function notifItemHtml(n) {
     connection_accepted: '✅',
     post_like:           '❤️',
     post_comment:        '💬',
+    meeting_request:     '📅',
+    meeting_accepted:    '✅',
+    meeting_declined:    '❌',
+    skill_endorsement:   '👍',
+    job_application:     '📋',
+    application_status:  '📬',
     message:             '💬',
+    mention:             '@',
+    comment_reply:       '↩',
   };
   const labels = {
     connection_request:  `<strong>${escHtml(n.actorName)}</strong> sent you a connection request`,
     connection_accepted: `<strong>${escHtml(n.actorName)}</strong> accepted your connection request`,
     post_like:           `<strong>${escHtml(n.actorName)}</strong> liked your post`,
     post_comment:        `<strong>${escHtml(n.actorName)}</strong> commented on your post`,
+    meeting_request:     `<strong>${escHtml(n.actorName)}</strong> wants to schedule a meeting with you`,
+    meeting_accepted:    `<strong>${escHtml(n.actorName)}</strong> accepted your meeting request`,
+    meeting_declined:    `<strong>${escHtml(n.actorName)}</strong> declined your meeting request`,
+    skill_endorsement:   `<strong>${escHtml(n.actorName)}</strong> endorsed your skill`,
+    job_application:     `<strong>${escHtml(n.actorName)}</strong> applied to your job posting`,
+    application_status:  `<strong>${escHtml(n.actorName)}</strong> updated your application status`,
     message:             `<strong>${escHtml(n.actorName)}</strong> sent you a message`,
+    mention:             `<strong>${escHtml(n.actorName)}</strong> mentioned you in a post`,
+    comment_reply:       `<strong>${escHtml(n.actorName)}</strong> replied to your comment`,
   };
   const icon  = icons[n.type]  || '🔔';
   const label = labels[n.type] || `<strong>${escHtml(n.actorName)}</strong> interacted with you`;
@@ -4074,6 +5414,15 @@ async function notifClick(n) {
     openRequestsModal(); switchReqTab('conn');
   } else if (n.type === 'post_like' || n.type === 'post_comment') {
     document.getElementById('feedSection')?.scrollIntoView({ behavior: 'smooth' });
+  } else if (n.type === 'meeting_request' || n.type === 'meeting_accepted' || n.type === 'meeting_declined') {
+    setEventWhen('meetings');
+    document.getElementById('eventsSection')?.scrollIntoView({ behavior: 'smooth' });
+  } else if (n.type === 'skill_endorsement') {
+    if (n.actorId) openUserProfile(n.actorId);
+  } else if (n.type === 'job_application') {
+    document.getElementById('jobsSection')?.scrollIntoView({ behavior: 'smooth' });
+  } else if (n.type === 'application_status') {
+    if (typeof openMyApplications === 'function') openMyApplications();
   } else if (n.type === 'message') {
     openChat();
     if (n.actorId) {
@@ -4110,6 +5459,48 @@ function startNotifPolling() {
 function stopNotifPolling() {
   if (notifPollTimer) { clearInterval(notifPollTimer); notifPollTimer = null; }
   notifUnread = 0;
+}
+
+function showNotifToast(n) {
+  const icons = {
+    connection_request:  '🔗', connection_accepted: '✅',
+    post_like:           '❤️', post_comment:        '💬',
+    meeting_request:     '📅', meeting_accepted:    '✅', meeting_declined: '❌',
+    skill_endorsement:   '👍', job_application:     '📋', application_status: '📬',
+    message:             '💬', mention:             '@',
+    comment_reply:       '↩',
+  };
+  const labels = {
+    connection_request:  `sent you a connection request`,
+    connection_accepted: `accepted your connection request`,
+    post_like:           `liked your post`,
+    post_comment:        `commented on your post`,
+    meeting_request:     `wants to schedule a meeting with you`,
+    meeting_accepted:    `accepted your meeting request`,
+    meeting_declined:    `declined your meeting request`,
+    skill_endorsement:   `endorsed your skill`,
+    job_application:     `applied to your job posting`,
+    application_status:  `updated your application status`,
+    message:             `sent you a message`,
+    mention:             `mentioned you in a post`,
+    comment_reply:       `replied to your comment`,
+  };
+  const icon  = icons[n.type]  || '🔔';
+  const label = labels[n.type] || 'interacted with you';
+  const toast = document.createElement('div');
+  toast.className = 'notif-toast';
+  toast.innerHTML = `<span class="notif-toast-icon">${icon}</span>
+    <div class="notif-toast-body">
+      <strong>${escHtml(n.actorName || 'Someone')}</strong> ${escHtml(label)}
+    </div>`;
+  toast.onclick = () => { toast.remove(); notifClick(n); };
+  document.body.appendChild(toast);
+  // Animate in
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 4000);
 }
 
 let chatPollTimer = null;
@@ -4245,6 +5636,7 @@ function jobCardHtml(j) {
       </div>
       <div class="job-card-desc">${escHtml(j.description)}</div>
       ${skillsHtml ? `<div class="job-card-skills">${skillsHtml}</div>` : ''}
+      ${j.matchedSkills?.length ? `<div class="job-match-badge">${j.matchedSkills.map(s=>`<span class="job-match-chip">✓ ${escHtml(s)}</span>`).join('')}</div>` : ''}
       <div class="job-card-footer">
         <span class="job-card-poster">Posted by ${escHtml(j.posterName)}</span>
         <div class="job-card-actions">
@@ -4357,6 +5749,37 @@ function setJobFilter(type) {
   loadMoreJobs();
 }
 
+async function switchJobsView(view) {
+  document.getElementById('jtab-all').classList.toggle('active', view === 'all');
+  document.getElementById('jtab-foryou').classList.toggle('active', view === 'foryou');
+  document.getElementById('jobs-all-view').style.display   = view === 'all'    ? '' : 'none';
+  document.getElementById('jobs-foryou-view').style.display = view === 'foryou' ? '' : 'none';
+  document.getElementById('jobsLoadMore').style.display = 'none';
+
+  const grid = document.getElementById('jobsGrid');
+
+  if (view === 'all') {
+    grid.innerHTML = '';
+    jobOffset = 0;
+    loadMoreJobs();
+    return;
+  }
+
+  // For You view
+  grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">Finding jobs for you…</div>';
+  try {
+    const jobs = await api('GET', '/api/jobs/recommended');
+    grid.innerHTML = '';
+    if (!jobs.length) {
+      grid.innerHTML = `<div class="jobs-empty">No matches yet.<br>Add skills to your profile to get personalised recommendations!</div>`;
+      return;
+    }
+    jobs.forEach(j => grid.insertAdjacentHTML('beforeend', jobCardHtml(j)));
+  } catch {
+    grid.innerHTML = '<div class="jobs-empty">Could not load recommendations.</div>';
+  }
+}
+
 function onJobSearchInput() {
   clearTimeout(jobSearchDebounce);
   jobSearchDebounce = setTimeout(() => { jobOffset = 0; loadMoreJobs(); }, 350);
@@ -4413,11 +5836,37 @@ async function submitJob() {
 }
 
 async function refreshJobStats() {
-  try {
-    const s = await api('GET', '/api/jobs/stats');
-    const el = document.getElementById('dashResourcesVal');
-    if (el) el.textContent = s.total || 0;
-  } catch {}
+  const card  = document.getElementById('dashJobsCard');
+  const icon  = document.getElementById('dashJobsIcon');
+  const label = document.getElementById('dashJobsLabel');
+  const val   = document.getElementById('dashResourcesVal');
+  if (!val) return;
+
+  if (currentUser?.role === 'student') {
+    // Students: show applications count
+    if (icon)  icon.textContent  = '📋';
+    if (label) label.textContent = 'Applications';
+    if (card) {
+      card.onclick = () => openMyApplications();
+      card.title   = 'View my applications';
+    }
+    try {
+      const s = await api('GET', '/api/applications/stats');
+      val.textContent = s.applied || 0;
+    } catch {}
+  } else {
+    // Pros: show jobs posted count
+    if (icon)  icon.textContent  = '💼';
+    if (label) label.textContent = 'Jobs Posted';
+    if (card) {
+      card.onclick = () => document.getElementById('jobsSection')?.scrollIntoView({ behavior: 'smooth' });
+      card.title   = 'View job board';
+    }
+    try {
+      const s = await api('GET', '/api/jobs/stats');
+      val.textContent = s.total || 0;
+    } catch {}
+  }
 }
 
 /* ════════════════════════════════════════
@@ -4650,12 +6099,15 @@ let feedActivity = 0;   // count for dashboard badge
 
 async function initFeed() {
   feedOffset = 0;
+  activeHashtag = null;
   document.getElementById('feedPosts').innerHTML = '';
   document.getElementById('feedLoadMore').style.display = 'none';
+  document.getElementById('hashtagFilterBar').style.display = 'none';
   // Set composer avatar
   const av = document.getElementById('feedComposerAvatar');
   if (av && currentUser) refreshAvatarEl(av, currentUser.id, currentUser.name, true);
   await loadMorePosts();
+  loadTrendingTags();
   // Fetch activity count for dashboard
   try {
     const r = await api('GET', '/api/posts/activity');
@@ -4682,6 +6134,110 @@ async function loadMorePosts() {
   } finally { feedLoading = false; }
 }
 
+/* ── Poll composer ──────────────────────────────────────────────────────── */
+let pollOptionCount = 0;
+
+function initPollOptions() {
+  pollOptionCount = 0;
+  const list = document.getElementById('pollOptionsList');
+  if (!list) return;
+  list.innerHTML = '';
+  addPollOption(); addPollOption(); // start with 2
+}
+
+function togglePollComposer() {
+  const area = document.getElementById('pollOptionsArea');
+  const btn  = document.getElementById('pollToggleBtn');
+  if (!area) return;
+  const showing = area.style.display !== 'none';
+  if (showing) {
+    area.style.display = 'none';
+    btn.classList.remove('active');
+    initPollOptions();
+    document.getElementById('feedImageBtn').style.display = '';
+  } else {
+    area.style.display = 'flex';
+    btn.classList.add('active');
+    initPollOptions();
+    // hide image button — polls and images don't mix
+    document.getElementById('feedImageBtn').style.display = 'none';
+  }
+}
+
+function addPollOption() {
+  const list = document.getElementById('pollOptionsList');
+  const addBtn = document.getElementById('pollAddBtn');
+  if (!list) return;
+  pollOptionCount++;
+  const row = document.createElement('div');
+  row.className = 'poll-option-row';
+  row.id = `popt-row-${pollOptionCount}`;
+  const idx = pollOptionCount;
+  row.innerHTML = `
+    <input class="poll-option-input" type="text" maxlength="100"
+           placeholder="Option ${idx}" id="popt-${idx}">
+    <button class="poll-rm-btn" onclick="removePollOption(${idx})" title="Remove">✕</button>`;
+  list.appendChild(row);
+  const inputs = list.querySelectorAll('.poll-option-input');
+  // hide remove buttons when only 2 options
+  list.querySelectorAll('.poll-rm-btn').forEach(b => b.style.display = inputs.length <= 2 ? 'none' : '');
+  // hide add button when 4 options reached
+  if (addBtn) addBtn.style.display = inputs.length >= 4 ? 'none' : '';
+  document.getElementById(`popt-${idx}`)?.focus();
+}
+
+function removePollOption(idx) {
+  const row = document.getElementById(`popt-row-${idx}`);
+  if (row) row.remove();
+  const list = document.getElementById('pollOptionsList');
+  const addBtn = document.getElementById('pollAddBtn');
+  if (!list) return;
+  const inputs = list.querySelectorAll('.poll-option-input');
+  list.querySelectorAll('.poll-rm-btn').forEach(b => b.style.display = inputs.length <= 2 ? 'none' : '');
+  if (addBtn) addBtn.style.display = inputs.length >= 4 ? 'none' : '';
+}
+
+/* ── Poll display & voting ──────────────────────────────────────────────── */
+async function loadPollData(postId) {
+  try {
+    const data = await api('GET', `/api/posts/${postId}/poll`);
+    renderPollBlock(postId, data);
+  } catch {}
+}
+
+function renderPollBlock(postId, data) {
+  const el = document.getElementById(`poll-${postId}`);
+  if (!el) return;
+  if (!data.hasPoll) { el.style.display = 'none'; return; }
+
+  const voted = !!data.myVote;
+  const total = data.totalVotes || 0;
+
+  const optionsHtml = data.options.map(opt => {
+    const pct = voted ? opt.pct : 0;
+    const isMine = opt.isMyVote;
+    return `
+      <div class="poll-option-row-result ${voted ? 'voted' : ''}"
+           onclick="${voted ? '' : `castVote('${escHtml(postId)}','${escHtml(opt.id)}')`}">
+        <div class="poll-bar ${isMine ? 'my-vote' : ''}" style="width:${pct}%"></div>
+        <div class="poll-option-label">
+          <span class="poll-option-text">${escHtml(opt.text)}${isMine ? '<span class="poll-option-check"> ✓</span>' : ''}</span>
+          ${voted ? `<span class="poll-option-pct">${pct}%</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = optionsHtml + `
+    <div class="poll-total">${total} vote${total !== 1 ? 's' : ''}${voted ? '' : ' · Click to vote'}</div>`;
+}
+
+async function castVote(postId, optionId) {
+  try {
+    const data = await api('POST', `/api/posts/${postId}/poll/vote`, { optionId });
+    renderPollBlock(postId, data);
+  } catch (e) { alert(e.message || 'Could not submit vote.'); }
+}
+
 function renderFeedPosts(posts, replace = false) {
   const container = document.getElementById('feedPosts');
   if (replace) container.innerHTML = '';
@@ -4694,7 +6250,11 @@ function renderFeedPosts(posts, replace = false) {
     return;
   }
 
-  posts.forEach(p => container.insertAdjacentHTML('beforeend', renderPostCard(p)));
+  posts.forEach(p => {
+    container.insertAdjacentHTML('beforeend', renderPostCard(p));
+    if (p.hasPoll) loadPollData(p.id);
+  });
+  observePostCards();
 }
 
 function renderPostCard(p) {
@@ -4703,12 +6263,24 @@ function renderPostCard(p) {
   const timeStr   = formatPostTime(p.createdAt);
   const liked     = p.likedByMe;
   const cc        = p.commentCount || 0;
-  const deleteBtn = p.isMine
-    ? `<button class="feed-delete-btn" onclick="deletePost('${escHtml(p.id)}')" title="Delete post">🗑 Delete</button>`
-    : '';
+  const saved     = p.savedByMe;
+
+  const origEmbed = p.sharedFromId ? `
+    <div class="orig-post-embed" onclick="openUserProfile('${escHtml(p.origUserId)}')">
+      <div class="orig-post-author">
+        ${avatarHtml(p.origUserId || '', p.origAuthorName || '', '', 'width:28px;height:28px;font-size:.6rem;flex-shrink:0;')}
+        <div>
+          <div class="orig-post-name">${escHtml(p.origAuthorName || 'Unknown')}</div>
+          <div class="orig-post-time">${escHtml(formatPostTime(p.origCreatedAt || ''))}</div>
+        </div>
+      </div>
+      <div class="orig-post-content">${escHtml(p.origContent || '')}</div>
+      ${p.origImageUrl ? `<img class="orig-post-img" src="${escHtml(p.origImageUrl)}" alt="">` : ''}
+    </div>` : '';
 
   return `
-    <div class="feed-post" id="fpost-${escHtml(p.id)}">
+    <div class="feed-post" id="fpost-${escHtml(p.id)}" data-post-id="${escHtml(p.id)}"${p.isMine ? ' data-mine="1"' : ''}>
+      ${p.sharedFromId ? `<div class="repost-header">↩ <strong>${escHtml(p.name || 'Unknown')}</strong> reposted</div>` : ''}
       <div class="feed-post-header">
         ${avatarHtml(p.userId, p.name, 'feed-post-avatar', '', p.userId === currentUser?.id).replace('class="avatar-circle', `onclick="openUserProfile('${escHtml(p.userId)}')" class="avatar-circle`)}
         <div class="feed-post-meta">
@@ -4718,21 +6290,56 @@ function renderPostCard(p) {
             <span>·</span><span>${escHtml(timeStr)}</span>
           </div>
         </div>
+        ${p.isMine ? `
+        <div class="post-menu-wrap" id="pmenu-wrap-${escHtml(p.id)}">
+          <button class="post-menu-btn" onclick="togglePostMenu('${escHtml(p.id)}')" title="More options">•••</button>
+          <div class="post-menu-dropdown" id="pmenu-${escHtml(p.id)}">
+            ${!p.sharedFromId ? `<button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');startEditPost('${escHtml(p.id)}')">✏️ Edit post</button>` : ''}
+            <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');deletePost('${escHtml(p.id)}')">🗑️ Delete post</button>
+          </div>
+        </div>` : ''}
       </div>
-      <div class="feed-post-content">${escHtml(p.content)}</div>
+      ${p.content ? `<div class="feed-post-content" id="fpost-content-${escHtml(p.id)}" data-raw="${escHtml(p.content)}">${renderPostContent(p.content)}</div>` : ''}
+      ${origEmbed}
+      ${!p.sharedFromId && p.imageUrl ? `<img class="post-image" src="${escHtml(p.imageUrl)}" alt="post image" onclick="openImageViewer('${escHtml(p.imageUrl)}')" loading="lazy">` : ''}
+      ${p.hasPoll ? `<div class="poll-block" id="poll-${escHtml(p.id)}"><div style="padding:12px 14px 4px;font-size:.8rem;color:var(--muted);">📊 Loading poll…</div></div>` : ''}
+      <div class="reactions-summary" id="rsumm-${escHtml(p.id)}" style="display:${(p.likeCount||0)>0?'flex':'none'}" onclick="openReactionsViewer('${escHtml(p.id)}')">
+        <div class="react-bubble-strip" id="rbubbles-${escHtml(p.id)}">
+          ${(p.likeCount||0)>0 ? `<div class="react-bubble">${reactionEmoji(p.myReaction||'like')}</div>` : ''}
+        </div>
+        <span class="rsumm-label" id="rsumm-label-${escHtml(p.id)}">${buildReactionSummaryLabel(p)}</span>
+      </div>
       <div class="feed-post-actions">
-        <button class="feed-like-btn ${liked ? 'liked' : ''}" id="flike-${escHtml(p.id)}"
-                onclick="toggleLike('${escHtml(p.id)}')">
-          <span class="feed-like-icon">${liked ? '❤️' : '🤍'}</span>
-          <span id="flike-count-${escHtml(p.id)}">${p.likeCount}</span>
-          <span>${p.likeCount === 1 ? 'Like' : 'Likes'}</span>
-        </button>
+        <div class="feed-react-wrap" id="freact-wrap-${escHtml(p.id)}">
+          ${renderReactBtn(p)}
+          <div class="reaction-picker" id="rpicker-${escHtml(p.id)}">
+            ${['like','love','insightful','celebrate','support'].map(r => `
+            <span class="reaction-emoji" onclick="sendReaction('${escHtml(p.id)}','${r}')" title="${r}">
+              ${reactionEmoji(r)}<span class="reaction-label">${r.charAt(0).toUpperCase()+r.slice(1)}</span>
+            </span>`).join('')}
+          </div>
+        </div>
         <button class="feed-comment-btn" id="fcmt-btn-${escHtml(p.id)}"
                 onclick="toggleComments('${escHtml(p.id)}')">
           💬 <span id="fcmt-count-${escHtml(p.id)}">${cc}</span>
           <span>${cc === 1 ? 'Comment' : 'Comments'}</span>
         </button>
-        ${deleteBtn}
+        ${!p.sharedFromId ? `
+        <button class="feed-repost-btn" onclick="openRepostModal('${escHtml(p.id)}')" title="Repost">
+          ↩ <span>Repost</span>
+        </button>` : ''}
+        <button class="feed-share-btn" onclick="openSharePostModal('${escHtml(p.id)}')" title="Share to chat">
+          📤 <span>Share</span>
+        </button>
+        <button class="feed-save-btn ${saved ? 'saved' : ''}" id="fsave-${escHtml(p.id)}"
+                onclick="toggleBookmark('${escHtml(p.id)}')" title="${saved ? 'Remove bookmark' : 'Save post'}">
+          🔖 <span>${saved ? 'Saved' : 'Save'}</span>
+        </button>
+        ${p.isMine && p.viewCount != null ? `
+        <span class="post-views" title="Impressions — unique people who saw this post">
+          <span class="post-views-icon">👁</span>
+          <span id="fviews-${escHtml(p.id)}">${p.viewCount}</span>
+        </span>` : ''}
       </div>
       <div class="feed-comments" id="fcmt-${escHtml(p.id)}">
         <div class="feed-comment-list" id="fcmt-list-${escHtml(p.id)}"></div>
@@ -4740,11 +6347,49 @@ function renderPostCard(p) {
           ${avatarHtml(currentUser.id, currentUser.name, 'feed-comment-avatar', '', true)}
           <textarea class="feed-comment-input" id="fcmt-input-${escHtml(p.id)}"
                     placeholder="Write a comment…" rows="1"
+                    oninput="onMentionInput(this)"
                     onkeydown="commentKeydown(event,'${escHtml(p.id)}')"></textarea>
           <button class="feed-comment-send" onclick="submitComment('${escHtml(p.id)}')" title="Send">➤</button>
         </div>
       </div>
     </div>`;
+}
+
+let pendingPostImage = null; // File selected by user before posting
+
+function onPostImageSelected(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  pendingPostImage = file;
+  const preview = document.getElementById('feedImagePreview');
+  const thumb   = document.getElementById('feedImageThumb');
+  const btn     = document.getElementById('feedImageBtn');
+  thumb.src = URL.createObjectURL(file);
+  preview.style.display = 'block';
+  btn.classList.add('has-image');
+}
+
+function clearPostImage() {
+  pendingPostImage = null;
+  const preview = document.getElementById('feedImagePreview');
+  const thumb   = document.getElementById('feedImageThumb');
+  const btn     = document.getElementById('feedImageBtn');
+  const input   = document.getElementById('feedImageInput');
+  thumb.src = '';
+  preview.style.display = 'none';
+  btn.classList.remove('has-image');
+  if (input) input.value = '';
+}
+
+function openImageViewer(url) {
+  const bd = document.createElement('div');
+  bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+  bd.onclick = () => bd.remove();
+  const img = document.createElement('img');
+  img.src = url;
+  img.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:10px;object-fit:contain;';
+  bd.appendChild(img);
+  document.body.appendChild(bd);
 }
 
 async function submitPost() {
@@ -4753,8 +6398,34 @@ async function submitPost() {
   if (!content) return;
   if (content.length > 1000) { alert('Post is too long (max 1000 characters).'); return; }
 
+  // Collect poll options if poll is active
+  let pollOptions = null;
+  const pollArea = document.getElementById('pollOptionsArea');
+  if (pollArea && pollArea.style.display !== 'none') {
+    const inputs = pollArea.querySelectorAll('.poll-option-input');
+    pollOptions = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
+    if (pollOptions.length < 2) { alert('Add at least 2 poll options.'); return; }
+  }
+
   try {
-    const post = await api('POST', '/api/posts', { content });
+    const body = { content };
+    if (pollOptions) body.pollOptions = pollOptions;
+    const post = await api('POST', '/api/posts', body);
+
+    // Upload image if one was selected
+    if (pendingPostImage) {
+      try {
+        const form = new FormData();
+        form.append('file', pendingPostImage);
+        const imgResp = await fetch(`/api/posts/${post.id}/image`, { method: 'POST', body: form });
+        if (imgResp.ok) {
+          const imgData = await imgResp.json();
+          post.imageUrl = imgData.imageUrl || '';
+        }
+      } catch (_) {}
+      clearPostImage();
+    }
+
     // Enrich with current user data and prepend to feed
     post.name    = currentUser.name || (currentUser.firstName + ' ' + currentUser.lastName).trim();
     post.role    = currentUser.role;
@@ -4769,9 +6440,20 @@ async function submitPost() {
     if (empty) empty.remove();
 
     container.insertAdjacentHTML('afterbegin', renderPostCard(post));
+    if (post.hasPoll) loadPollData(post.id);
+    observePostCards();
     textarea.value = '';
     document.getElementById('feedCharCount').textContent = '0 / 1000';
     document.getElementById('feedCharCount').className = 'feed-char-count';
+    // Reset poll composer
+    if (pollOptions) {
+      const pa = document.getElementById('pollOptionsArea');
+      if (pa) pa.style.display = 'none';
+      const btn = document.getElementById('pollToggleBtn');
+      if (btn) btn.classList.remove('active');
+      initPollOptions();
+      document.getElementById('feedImageBtn').style.display = '';
+    }
     feedOffset++;
 
     // Update activity count
@@ -4781,24 +6463,565 @@ async function submitPost() {
   } catch (e) { alert(e.message || 'Failed to post.'); }
 }
 
-async function toggleLike(postId) {
-  const btn       = document.getElementById(`flike-${postId}`);
-  const countEl   = document.getElementById(`flike-count-${postId}`);
-  if (!btn || !countEl) return;
+/* ── Hashtag rendering & filtering ─────────────────────────────────────── */
+let activeHashtag = null;
 
-  const wasLiked  = btn.classList.contains('liked');
+function renderPostContent(content) {
+  return content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/#([a-zA-Z][a-zA-Z0-9_]{0,49})/g,
+      '<a class="post-hashtag" onclick="filterByHashtag(\'$1\')">#$1</a>')
+    .replace(/@([A-Za-z][A-Za-z ]{1,48}[A-Za-z]|[A-Za-z]{2,})/g,
+      '<span class="post-mention" onclick="openMentionProfile(\'$1\')">@$1</span>');
+}
+
+// ── @Mention autocomplete ─────────────────────────────────────────────────────
+
+let _mentionEl = null; // the textarea that triggered the dropdown
+
+function getMentionMatch(el) {
+  const val = el.value;
+  const pos = el.selectionStart;
+  const before = val.slice(0, pos);
+  const m = before.match(/@([A-Za-z][A-Za-z ]*)$/);
+  return m ? m[1] : null;
+}
+
+function onMentionInput(el) {
+  const query = getMentionMatch(el);
+  if (!query) { hideMentionDropdown(); return; }
+  const conns = (connData && connData.accepted) ? connData.accepted : [];
+  const q = query.toLowerCase();
+  const matches = conns.filter(c => c.name.toLowerCase().startsWith(q)).slice(0, 6);
+  if (!matches.length) { hideMentionDropdown(); return; }
+  _mentionEl = el;
+  showMentionDropdown(el, matches, query);
+}
+
+function showMentionDropdown(el, suggestions, query) {
+  const dd = document.getElementById('mentionDropdown');
+  const rect = el.getBoundingClientRect();
+  dd.style.left   = rect.left + 'px';
+  dd.style.top    = (rect.bottom + 4) + 'px';
+  dd.style.display = 'block';
+  dd.innerHTML = suggestions.map((c, i) => `
+    <div class="mention-item${i===0?' focused':''}" onmousedown="event.preventDefault();applyMentionSuggestion('${escHtml(c.name)}')">
+      <div>
+        <div class="mention-name">${escHtml(c.name)}</div>
+        <div class="mention-sub">${escHtml(c.role || '')}</div>
+      </div>
+    </div>`).join('');
+}
+
+function hideMentionDropdown() {
+  const dd = document.getElementById('mentionDropdown');
+  if (dd) { dd.style.display = 'none'; dd.innerHTML = ''; }
+  _mentionEl = null;
+}
+
+function applyMentionSuggestion(name) {
+  if (!_mentionEl) return;
+  const el  = _mentionEl;
+  const val = el.value;
+  const pos = el.selectionStart;
+  const before = val.slice(0, pos);
+  const after  = val.slice(pos);
+  const replaced = before.replace(/@([A-Za-z][A-Za-z ]*)$/, '@' + name + ' ');
+  el.value = replaced + after;
+  el.selectionStart = el.selectionEnd = replaced.length;
+  el.focus();
+  hideMentionDropdown();
+  if (typeof onFeedInput === 'function' && el.id === 'feedTextarea') onFeedInput(el);
+}
+
+function openMentionProfile(name) {
+  const conns = (connData && connData.accepted) ? connData.accepted : [];
+  const match = conns.find(c => c.name.toLowerCase() === name.toLowerCase());
+  if (match) openUserProfile(match.userId);
+}
+
+document.addEventListener('click', e => {
+  const dd = document.getElementById('mentionDropdown');
+  if (dd && dd.style.display !== 'none' && !dd.contains(e.target)) hideMentionDropdown();
+});
+
+async function loadTrendingTags() {
   try {
-    const r = await api('POST', `/api/posts/${postId}/like`);
-    btn.classList.toggle('liked', r.liked);
-    btn.querySelector('.feed-like-icon').textContent = r.liked ? '❤️' : '🤍';
-    countEl.textContent = r.likeCount;
-    // Update label
-    const label = btn.querySelector('span:last-child');
-    if (label) label.textContent = r.likeCount === 1 ? 'Like' : 'Likes';
+    const tags = await api('GET', '/api/posts/trending-tags');
+    const strip = document.getElementById('trendingTags');
+    const wrap  = document.getElementById('trendingStrip');
+    if (!tags.length) { wrap.style.display = 'none'; return; }
+    strip.innerHTML = tags.map(t =>
+      `<span class="trending-tag${activeHashtag === t.tag ? ' active' : ''}"
+             onclick="filterByHashtag('${escHtml(t.tag)}')">#${escHtml(t.tag)}
+       <span style="opacity:.6;font-size:.72rem;">${t.count}</span></span>`
+    ).join('');
+    wrap.style.display = '';
+  } catch { document.getElementById('trendingStrip').style.display = 'none'; }
+}
+
+async function filterByHashtag(tag) {
+  activeHashtag = tag.toLowerCase().replace(/^#/, '');
+  switchFeedTab('feed');
+
+  // Show filter banner
+  document.getElementById('hashtagFilterBar').style.display = 'flex';
+  document.getElementById('hashtagFilterLabel').textContent = '#' + activeHashtag;
+
+  // Highlight active trending chip
+  document.querySelectorAll('.trending-tag').forEach(el => {
+    el.classList.toggle('active', el.textContent.trim().startsWith('#' + activeHashtag));
+  });
+
+  const container = document.getElementById('feedPosts');
+  container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);">Loading #${escHtml(activeHashtag)}…</div>`;
+  document.getElementById('feedLoadMore').style.display = 'none';
+
+  try {
+    const posts = await api('GET', `/api/posts/tag/${encodeURIComponent(activeHashtag)}`);
+    container.innerHTML = '';
+    if (!posts.length) {
+      container.innerHTML = `<div class="feed-empty">No posts tagged #${escHtml(activeHashtag)} yet.</div>`;
+      return;
+    }
+    posts.forEach(p => {
+      container.insertAdjacentHTML('beforeend', renderPostCard(p));
+      if (p.hasPoll) loadPollData(p.id);
+    });
+    observePostCards();
   } catch {
-    // Revert on failure
-    btn.classList.toggle('liked', wasLiked);
+    container.innerHTML = `<div class="feed-empty">Could not load posts for #${escHtml(activeHashtag)}.</div>`;
   }
+}
+
+function clearHashtagFilter() {
+  activeHashtag = null;
+  document.getElementById('hashtagFilterBar').style.display = 'none';
+  document.querySelectorAll('.trending-tag').forEach(el => el.classList.remove('active'));
+  feedOffset = 0;
+  document.getElementById('feedPosts').innerHTML = '';
+  loadFeed();
+}
+
+/* ── Feed tab switching ─────────────────────────────────────────────────── */
+let activeFeedTab = 'feed';
+
+function switchFeedTab(tab) {
+  const prevTab = activeFeedTab;
+  activeFeedTab = tab;
+  ['feed','network','top','saved'].forEach(t => {
+    document.getElementById(`ftab-${t}`)?.classList.toggle('active', t === tab);
+  });
+
+  const feedComposer = document.getElementById('feedComposer');
+  const feedPostsEl  = document.getElementById('feedPosts');
+  const feedLoadMore = document.getElementById('feedLoadMore');
+  const savedPostsEl = document.getElementById('savedPosts');
+
+  if (tab === 'feed') {
+    feedComposer.style.display = '';
+    feedPostsEl .style.display = '';
+    savedPostsEl.style.display = 'none';
+    // Reload if we were on a different sub-feed (network/top) that wrote into feedPosts
+    if (prevTab === 'network' || prevTab === 'top') {
+      feedOffset = 0;
+      feedPostsEl.innerHTML = '';
+      feedLoadMore.style.display = 'none';
+      loadFeed();
+    } else {
+      feedLoadMore.style.display = feedOffset > 0 ? '' : 'none';
+    }
+  } else if (tab === 'network' || tab === 'top') {
+    feedComposer.style.display = 'none';
+    savedPostsEl.style.display = 'none';
+    feedPostsEl.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>`;
+    feedPostsEl.style.display = '';
+    feedLoadMore.style.display = 'none';
+    loadAltFeed(tab);
+  } else {
+    feedComposer.style.display = 'none';
+    feedPostsEl .style.display = 'none';
+    feedLoadMore.style.display = 'none';
+    savedPostsEl.style.display = '';
+    loadSavedPosts();
+  }
+}
+
+async function loadAltFeed(tab) {
+  const container  = document.getElementById('feedPosts');
+  const loadMore   = document.getElementById('feedLoadMore');
+  const endpoint   = tab === 'network' ? '/api/posts/network' : '/api/posts/top';
+  const emptyMsg   = tab === 'network'
+    ? 'No posts from your connections yet — connect with more people!'
+    : 'No top posts in the last 7 days yet. Be the first to post!';
+  let offset = 0;
+
+  container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>';
+  loadMore.style.display = 'none';
+
+  const fetchPage = async () => {
+    const posts = await api('GET', `${endpoint}?offset=${offset}`);
+    if (offset === 0) container.innerHTML = '';
+    if (!posts.length && offset === 0) {
+      container.innerHTML = `<div class="feed-empty">${emptyMsg}</div>`;
+      return;
+    }
+    posts.forEach(p => {
+      container.insertAdjacentHTML('beforeend', renderPostCard(p));
+      if (p.hasPoll) loadPollData(p.id);
+    });
+    observePostCards();
+    offset += posts.length;
+    loadMore.style.display = posts.length === 20 ? '' : 'none';
+    loadMore.onclick = () => fetchPage();
+  };
+
+  try { await fetchPage(); }
+  catch { container.innerHTML = '<div class="feed-empty">Could not load posts.</div>'; }
+}
+
+async function loadSavedPosts() {
+  const container = document.getElementById('savedPosts');
+  container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">Loading saved posts…</div>';
+  try {
+    const posts = await api('GET', '/api/posts/saved');
+    if (!posts.length) {
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">No saved posts yet.<br>Hit 🔖 on any post to save it here.</div>';
+      return;
+    }
+    container.innerHTML = '';
+    posts.forEach(p => {
+      container.insertAdjacentHTML('beforeend', renderPostCard(p));
+      if (p.hasPoll) loadPollData(p.id);
+    });
+    observePostCards();
+  } catch {
+    container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">Could not load saved posts.</div>';
+  }
+}
+
+/* ── Share Post to Chat ──────────────────────────────────────────────────── */
+let sharePostId   = null;
+let sharePostMeta = '';
+let shareRecipId  = null;
+
+function renderChatContent(content) {
+  if (content && content.startsWith('[share:')) {
+    const lines   = content.split('\n');
+    const rest    = lines.slice(1).join('\n').trim();
+    const parts   = rest.split('\n\n');
+    const preview = parts[0] || '';
+    const note    = parts.slice(1).join('\n\n');
+    return `<div class="chat-share-embed">
+      <div class="chat-share-icon">📤 Shared a post</div>
+      <div class="chat-share-body">${escHtml(preview)}</div>
+      ${note ? `<div class="chat-share-note">${escHtml(note)}</div>` : ''}
+    </div>`;
+  }
+  return escHtml(content).replace(/\n/g, '<br>');
+}
+
+function openSharePostModal(postId) {
+  if (!currentUser) { openModal('loginBackdrop'); return; }
+  if (!connData?.accepted?.length) { alert('You have no connections to share with yet.'); return; }
+
+  sharePostId  = postId;
+  shareRecipId = null;
+
+  const card    = document.getElementById(`fpost-${postId}`);
+  const author  = card?.querySelector('.feed-post-name')?.textContent?.trim() || '';
+  const snippet = (card?.querySelector('.feed-post-content')?.textContent?.trim() || '').slice(0, 120);
+  sharePostMeta = `${author}: "${snippet}${snippet.length >= 120 ? '…' : ''}"`;
+
+  const box = document.getElementById('sharePostPreviewBox');
+  if (box) box.innerHTML = `<strong>${escHtml(author)}</strong><br><span style="color:var(--muted);">${escHtml(snippet)}${snippet.length >= 120 ? '…' : ''}</span>`;
+
+  document.getElementById('shareConnSearch').value = '';
+  document.getElementById('shareNote').value = '';
+  document.getElementById('sharePostError').style.display = 'none';
+  const btn = document.getElementById('shareSubmitBtn');
+  btn.disabled = false; btn.textContent = '📤 Send';
+
+  renderShareConnList(connData.accepted);
+  openModal('sharePostBackdrop');
+}
+
+function renderShareConnList(conns) {
+  const list = document.getElementById('shareConnList');
+  if (!list) return;
+  if (!conns.length) {
+    list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--muted);font-size:.85rem;">No connections found</div>';
+    return;
+  }
+  list.innerHTML = conns.map(c => `
+    <div class="share-conn-item${shareRecipId === c.userId ? ' selected' : ''}"
+         id="sconn-item-${escHtml(c.userId)}"
+         onclick="selectShareRecip('${escHtml(c.userId)}')">
+      ${avatarHtml(c.userId, c.name, '', 'width:32px;height:32px;font-size:.65rem;flex-shrink:0;')}
+      <div>
+        <div class="share-conn-name">${escHtml(c.name)}</div>
+        <div class="share-conn-sub">${c.role === 'pro' ? 'IT Professional' : 'Student'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function filterShareConnList() {
+  if (!connData?.accepted) return;
+  const q = document.getElementById('shareConnSearch').value.trim().toLowerCase();
+  renderShareConnList(q ? connData.accepted.filter(c => c.name.toLowerCase().includes(q)) : connData.accepted);
+}
+
+function selectShareRecip(userId) {
+  shareRecipId = userId;
+  document.querySelectorAll('.share-conn-item').forEach(el =>
+    el.classList.toggle('selected', el.id === `sconn-item-${userId}`));
+}
+
+async function submitPostShare() {
+  const errEl = document.getElementById('sharePostError');
+  errEl.style.display = 'none';
+  if (!shareRecipId) {
+    errEl.textContent = 'Please select a connection to share with.';
+    errEl.style.display = 'block'; return;
+  }
+  const note    = document.getElementById('shareNote').value.trim();
+  const btn     = document.getElementById('shareSubmitBtn');
+  const content = `[share:${sharePostId}]\n${sharePostMeta}${note ? '\n\n' + note : ''}`;
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    await api('POST', '/api/chat/send', { recipientId: shareRecipId, content });
+    closeModal('sharePostBackdrop');
+    const recip = connData.accepted.find(c => c.userId === shareRecipId);
+    if (recip) openChatWith(recip.userId, recip.name, recip.role);
+  } catch(e) {
+    errEl.textContent = e.message || 'Could not send.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = '📤 Send';
+  }
+}
+
+/* ── Repost ──────────────────────────────────────────────────────────────── */
+let repostTargetId = null;
+
+function openRepostModal(postId) {
+  repostTargetId = postId;
+  document.getElementById('repostComment').value = '';
+  document.getElementById('repostCharCount').textContent = '0/500';
+  document.getElementById('repostError').style.display = 'none';
+
+  // Find the original post data from the DOM card to show a preview
+  const card = document.getElementById(`fpost-${postId}`);
+  const preview = document.getElementById('repostOrigPreview');
+  if (card && preview) {
+    const nameEl    = card.querySelector('.feed-post-name');
+    const contentEl = card.querySelector('.feed-post-content');
+    const name    = nameEl    ? nameEl.textContent.trim()    : '';
+    const content = contentEl ? contentEl.textContent.trim() : '';
+    preview.innerHTML = `
+      <div class="orig-post-embed" style="cursor:default;">
+        <div class="orig-post-name" style="margin-bottom:4px;">${escHtml(name)}</div>
+        <div class="orig-post-content">${escHtml(content.slice(0, 200))}${content.length > 200 ? '…' : ''}</div>
+      </div>`;
+  }
+  openModal('repostBackdrop');
+  document.getElementById('repostComment').focus();
+}
+
+async function submitRepost() {
+  if (!repostTargetId) return;
+  const btn     = document.getElementById('repostSubmitBtn');
+  const errEl   = document.getElementById('repostError');
+  const comment = document.getElementById('repostComment').value.trim();
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Reposting…';
+  try {
+    await api('POST', `/api/posts/${repostTargetId}/repost`, { content: comment });
+    closeModal('repostBackdrop');
+    repostTargetId = null;
+    // Reload feed to show the new repost at top
+    feedOffset = 0;
+    document.getElementById('feedPosts').innerHTML = '';
+    await loadFeed();
+  } catch (e) {
+    errEl.textContent = e.message || 'Could not repost.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '↩ Repost';
+  }
+}
+
+async function toggleBookmark(postId) {
+  const btn = document.getElementById(`fsave-${postId}`);
+  if (!btn) return;
+  btn.disabled = true;
+  try {
+    const r = await api('POST', `/api/posts/${postId}/bookmark`);
+    btn.classList.toggle('saved', r.saved);
+    btn.title = r.saved ? 'Remove bookmark' : 'Save post';
+    const label = btn.querySelector('span');
+    if (label) label.textContent = r.saved ? 'Saved' : 'Save';
+    // If we're in saved tab and un-saved, fade out the card
+    if (!r.saved && activeFeedTab === 'saved') {
+      const card = document.getElementById(`fpost-${postId}`);
+      if (card) {
+        card.style.transition = 'opacity .2s, transform .2s';
+        card.style.opacity = '0'; card.style.transform = 'scale(.97)';
+        setTimeout(() => card.remove(), 200);
+      }
+    }
+  } catch (e) { alert(e.message || 'Could not update bookmark.'); }
+  finally { btn.disabled = false; }
+}
+
+/* ── Reactions ─────────────────────────────────────────────────────────── */
+const TICK_SENT = `<svg class="tick-svg" viewBox="0 0 13 9" width="13" height="9" fill="none"><path d="M1.5 4.5L4.5 7.5L11.5 1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const TICK_READ = `<svg class="tick-svg" viewBox="0 0 16 9" width="16" height="9" fill="none"><path d="M1 4.5L4 7.5L12 1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" clip-path="inset(0 58% 0 0)"/><path d="M5.5 4.5L8.5 7.5L15 1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+const REACTION_MAP = {
+  like:        { emoji: '👍', label: 'Like',        color: '#2196f3' },
+  love:        { emoji: '❤️', label: 'Love',        color: '#e91e63' },
+  insightful:  { emoji: '💡', label: 'Insightful',  color: '#ff9800' },
+  celebrate:   { emoji: '🎉', label: 'Celebrate',   color: '#4caf50' },
+  support:     { emoji: '👏', label: 'Support',      color: '#9c27b0' },
+};
+
+function reactionEmoji(type) { return REACTION_MAP[type]?.emoji || '👍'; }
+function reactionLabel(type) { return REACTION_MAP[type]?.label || 'Like'; }
+function reactionColor(type) { return REACTION_MAP[type]?.color || 'var(--muted)'; }
+
+function renderReactBtn(p) {
+  const mr    = p.myReaction || '';
+  const count = p.likeCount  || 0;
+  const icon  = mr ? reactionEmoji(mr) : '👍';
+  const label = mr ? reactionLabel(mr) : 'Like';
+  const cls   = mr ? 'feed-like-btn reacted' : 'feed-like-btn';
+  return `
+    <button class="${cls}" id="flike-${escHtml(p.id)}"
+            data-reaction="${escHtml(mr)}"
+            onclick="toggleLike('${escHtml(p.id)}')"
+            style="${mr ? `color:${reactionColor(mr)}` : ''}">
+      <span class="feed-like-icon">${icon}</span>
+      <span id="flike-count-${escHtml(p.id)}">${count}</span>
+      <span id="flike-label-${escHtml(p.id)}">${label}</span>
+    </button>`;
+}
+
+function buildReactionSummaryLabel(p) {
+  const count = p.likeCount || 0;
+  if (!count) return '';
+  if (p.myReaction) {
+    return count === 1 ? 'You reacted' : `You and ${count - 1} other${count - 1 !== 1 ? 's' : ''}`;
+  }
+  return `${count} reaction${count !== 1 ? 's' : ''}`;
+}
+
+function updateReactionSummary(postId, r) {
+  const bar    = document.getElementById(`rsumm-${postId}`);
+  const label  = document.getElementById(`rsumm-label-${postId}`);
+  const bubbles = document.getElementById(`rbubbles-${postId}`);
+  if (!bar) return;
+  const count = r.likeCount || 0;
+  bar.style.display = count > 0 ? 'flex' : 'none';
+  if (label) label.textContent = buildReactionSummaryLabel({ likeCount: count, myReaction: r.myReaction });
+  if (bubbles && r.reactionCounts) {
+    bubbles.innerHTML = Object.keys(r.reactionCounts).slice(0, 3)
+      .map(k => `<div class="react-bubble">${reactionEmoji(k)}</div>`).join('');
+  }
+}
+
+function applyReactionToBtn(postId, r) {
+  const btn    = document.getElementById(`flike-${postId}`);
+  const countEl = document.getElementById(`flike-count-${postId}`);
+  const labelEl = document.getElementById(`flike-label-${postId}`);
+  if (!btn) return;
+  const mr = r.myReaction || '';
+  btn.className = mr ? 'feed-like-btn reacted' : 'feed-like-btn';
+  btn.dataset.reaction = mr;
+  btn.style.color = mr ? reactionColor(mr) : '';
+  btn.querySelector('.feed-like-icon').textContent = mr ? reactionEmoji(mr) : '👍';
+  if (countEl) countEl.textContent = r.likeCount;
+  if (labelEl) labelEl.textContent = mr ? reactionLabel(mr) : 'Like';
+  updateReactionSummary(postId, r);
+}
+
+/* ── Reactions viewer ("who reacted") ───────────────────────── */
+let reactViewerAll    = [];
+let reactViewerFilter = 'all';
+
+async function openReactionsViewer(postId) {
+  try {
+    reactViewerAll    = await api('GET', `/api/posts/${postId}/reactions`);
+    reactViewerFilter = 'all';
+    renderReactionsViewer();
+    openModal('reactionsViewerBackdrop');
+  } catch(e) { alert(e.message || 'Could not load reactions.'); }
+}
+
+function setReactViewerTab(type) {
+  reactViewerFilter = type;
+  renderReactionsViewer();
+}
+
+function renderReactionsViewer() {
+  const tabsEl = document.getElementById('reactViewerTabs');
+  const listEl = document.getElementById('reactViewerList');
+  if (!tabsEl || !listEl) return;
+
+  // Count per reaction type
+  const counts = {};
+  reactViewerAll.forEach(u => { counts[u.reaction] = (counts[u.reaction] || 0) + 1; });
+
+  // Tabs: All + one per reaction type present
+  const tabs = [{ key: 'all', label: `All ${reactViewerAll.length}` }];
+  Object.keys(counts).forEach(k => tabs.push({ key: k, label: `${reactionEmoji(k)} ${counts[k]}` }));
+
+  tabsEl.innerHTML = tabs.map(t => `
+    <button class="react-viewer-tab${reactViewerFilter === t.key ? ' active' : ''}"
+            onclick="setReactViewerTab('${t.key}')">${t.label}</button>`).join('');
+
+  // Filter list
+  const filtered = reactViewerFilter === 'all'
+    ? reactViewerAll
+    : reactViewerAll.filter(u => u.reaction === reactViewerFilter);
+
+  if (!filtered.length) {
+    listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);">No reactions</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(u => {
+    const roleLabel = u.role === 'pro' ? 'IT Professional' : 'Student';
+    const roleClass = u.role === 'pro' ? 'pro' : 'student';
+    return `
+      <div class="react-viewer-item" onclick="closeModal('reactionsViewerBackdrop');openUserProfile('${escHtml(u.id)}')">
+        ${avatarHtml(u.id, u.name, '', 'width:38px;height:38px;font-size:.72rem;flex-shrink:0;')}
+        <div class="react-viewer-info">
+          <div class="react-viewer-name">${escHtml(u.name)}</div>
+          <div class="react-viewer-role"><span class="role-badge ${roleClass}" style="font-size:.65rem;">${roleLabel}</span></div>
+        </div>
+        <div class="react-viewer-emoji">${reactionEmoji(u.reaction)}</div>
+      </div>`;
+  }).join('');
+}
+
+async function sendReaction(postId, reaction) {
+  // Hide picker
+  const picker = document.getElementById(`rpicker-${postId}`);
+  if (picker) picker.classList.remove('show');
+  try {
+    const r = await api('POST', `/api/posts/${postId}/like`, { reaction });
+    applyReactionToBtn(postId, r);
+  } catch {}
+}
+
+async function toggleLike(postId) {
+  // Quick-click: use existing reaction or default 'like'
+  const btn = document.getElementById(`flike-${postId}`);
+  const current = btn?.dataset?.reaction || '';
+  const reaction = current || 'like';
+  try {
+    const r = await api('POST', `/api/posts/${postId}/like`, { reaction });
+    applyReactionToBtn(postId, r);
+  } catch {}
 }
 
 async function deletePost(postId) {
@@ -4814,6 +7037,79 @@ async function deletePost(postId) {
     const actEl = document.getElementById('dashActivityVal');
     if (actEl) actEl.textContent = feedActivity;
   } catch (e) { alert(e.message || 'Failed to delete post.'); }
+}
+
+function togglePostMenu(postId) {
+  const dd = document.getElementById(`pmenu-${postId}`);
+  if (!dd) return;
+  const isOpen = dd.classList.contains('open');
+  document.querySelectorAll('.post-menu-dropdown.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) dd.classList.add('open');
+}
+
+function closePostMenu(postId) {
+  document.getElementById(`pmenu-${postId}`)?.classList.remove('open');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.post-menu-wrap')) {
+    document.querySelectorAll('.post-menu-dropdown.open').forEach(el => el.classList.remove('open'));
+  }
+});
+
+function startEditPost(postId) {
+  const contentEl = document.getElementById(`fpost-content-${postId}`);
+  if (!contentEl) return;
+  const currentText = contentEl.dataset.raw || contentEl.innerText;
+  contentEl.style.display = 'none';
+
+  const editArea = document.createElement('div');
+  editArea.className = 'feed-post-edit-area';
+  editArea.id = `fpost-edit-${postId}`;
+  editArea.innerHTML = `
+    <textarea class="feed-post-edit-textarea" id="fpost-edit-ta-${postId}" maxlength="1000">${escHtml(currentText)}</textarea>
+    <div class="feed-post-edit-actions">
+      <span style="font-size:.75rem;color:var(--muted);" id="fpost-edit-count-${postId}">${currentText.length} / 1000</span>
+      <button class="btn btn-ghost" style="font-size:.82rem;padding:5px 14px;" onclick="cancelEditPost('${postId}')">Cancel</button>
+      <button class="btn btn-grad"  style="font-size:.82rem;padding:5px 14px;" onclick="saveEditPost('${postId}')">Save</button>
+    </div>`;
+  contentEl.insertAdjacentElement('afterend', editArea);
+
+  const ta = document.getElementById(`fpost-edit-ta-${postId}`);
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = ta.value.length;
+  ta.addEventListener('input', () => {
+    document.getElementById(`fpost-edit-count-${postId}`).textContent = `${ta.value.length} / 1000`;
+  });
+}
+
+function cancelEditPost(postId) {
+  document.getElementById(`fpost-edit-${postId}`)?.remove();
+  const contentEl = document.getElementById(`fpost-content-${postId}`);
+  if (contentEl) contentEl.style.display = '';
+}
+
+async function saveEditPost(postId) {
+  const ta = document.getElementById(`fpost-edit-ta-${postId}`);
+  const content = (ta?.value || '').trim();
+  if (!content) { alert('Post cannot be empty.'); return; }
+
+  const saveBtn = ta?.closest('.feed-post-edit-area')?.querySelector('.btn-grad');
+  if (saveBtn) saveBtn.disabled = true;
+  try {
+    const data = await api('PUT', `/api/posts/${postId}`, { content });
+    // Update the rendered content
+    const contentEl = document.getElementById(`fpost-content-${postId}`);
+    if (contentEl) {
+      contentEl.dataset.raw = content;
+      contentEl.innerHTML = renderPostContent(content);
+      contentEl.style.display = '';
+    }
+    document.getElementById(`fpost-edit-${postId}`)?.remove();
+  } catch (e) {
+    if (saveBtn) saveBtn.disabled = false;
+    alert(e.message || 'Could not save post.');
+  }
 }
 
 function onFeedInput(el) {
@@ -5010,15 +7306,27 @@ function renderComments(postId, comments) {
     list.innerHTML = '<div style="color:var(--muted);font-size:.82rem;padding:2px 0;">No comments yet. Be the first!</div>';
     return;
   }
-  list.innerHTML = comments.map(c => commentHtml(postId, c)).join('');
+  // Separate top-level from replies
+  const top     = comments.filter(c => !c.parentId);
+  const byParent = {};
+  comments.filter(c => c.parentId).forEach(c => {
+    (byParent[c.parentId] = byParent[c.parentId] || []).push(c);
+  });
+  list.innerHTML = top.map(c => commentHtml(postId, c, byParent[c.id] || [])).join('');
 }
 
-function commentHtml(postId, c) {
-  const isOwn = c.isMine;
+function commentHtml(postId, c, replies = []) {
+  const isOwn  = c.isMine;
   const delBtn = isOwn
     ? `<button class="feed-comment-del" onclick="deleteComment('${escHtml(postId)}','${escHtml(c.id)}')">Delete</button>`
     : '';
   const ini = initials(c.name);
+
+  const repliesHtml = replies.length ? `
+    <div class="feed-replies-thread" id="fcmt-replies-${escHtml(c.id)}">
+      ${replies.map(r => replyHtml(postId, r)).join('')}
+    </div>` : `<div class="feed-replies-thread" id="fcmt-replies-${escHtml(c.id)}" style="display:none;"></div>`;
+
   return `
     <div class="feed-comment-item" id="fcmt-item-${escHtml(c.id)}">
       <div class="feed-comment-avatar">${ini}<img src="/api/profile/avatar/${encodeURIComponent(c.userId)}" onerror="this.remove();" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
@@ -5029,10 +7337,78 @@ function commentHtml(postId, c) {
         </div>
         <div class="feed-comment-meta">
           <span>${formatPostTime(c.createdAt)}</span>
+          <button class="feed-comment-reply-btn" onclick="toggleReplyForm('${escHtml(postId)}','${escHtml(c.id)}','${escHtml(c.name)}')">Reply</button>
+          ${delBtn}
+        </div>
+      </div>
+    </div>
+    <div class="feed-reply-form-wrap" id="fcmt-reply-form-${escHtml(c.id)}">
+      <div class="feed-reply-avatar">${ini}<img src="/api/profile/avatar/${encodeURIComponent(currentUser?.id||'')}" onerror="this.remove();" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+      <textarea class="feed-reply-input" id="fcmt-reply-input-${escHtml(c.id)}"
+                placeholder="Reply to ${escHtml(c.name)}…" rows="1"
+                oninput="onMentionInput(this)"
+                onkeydown="replyKeydown(event,'${escHtml(postId)}','${escHtml(c.id)}')"></textarea>
+      <button class="feed-reply-send" onclick="submitReply('${escHtml(postId)}','${escHtml(c.id)}')">➤</button>
+    </div>
+    ${repliesHtml}`;
+}
+
+function replyHtml(postId, r) {
+  const ini    = initials(r.name);
+  const delBtn = r.isMine
+    ? `<button class="feed-comment-del" onclick="deleteComment('${escHtml(postId)}','${escHtml(r.id)}')">Delete</button>`
+    : '';
+  return `
+    <div class="feed-reply-item" id="fcmt-item-${escHtml(r.id)}">
+      <div class="feed-reply-avatar">${ini}<img src="/api/profile/avatar/${encodeURIComponent(r.userId)}" onerror="this.remove();" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+      <div class="feed-comment-body">
+        <div class="feed-comment-bubble">
+          <div class="feed-comment-name" onclick="openUserProfile('${escHtml(r.userId)}')">${escHtml(r.name)}</div>
+          <div class="feed-comment-text">${escHtml(r.content)}</div>
+        </div>
+        <div class="feed-comment-meta">
+          <span>${formatPostTime(r.createdAt)}</span>
           ${delBtn}
         </div>
       </div>
     </div>`;
+}
+
+function toggleReplyForm(postId, commentId, authorName) {
+  const wrap = document.getElementById(`fcmt-reply-form-${commentId}`);
+  if (!wrap) return;
+  const isOpen = wrap.classList.contains('open');
+  // Close all other reply forms for this post
+  document.querySelectorAll('.feed-reply-form-wrap.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) {
+    wrap.classList.add('open');
+    const inp = document.getElementById(`fcmt-reply-input-${commentId}`);
+    if (inp) { inp.focus(); }
+  }
+}
+
+function replyKeydown(e, postId, commentId) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitReply(postId, commentId); }
+}
+
+async function submitReply(postId, parentId) {
+  const inp = document.getElementById(`fcmt-reply-input-${parentId}`);
+  const content = (inp?.value || '').trim();
+  if (!content) return;
+  try {
+    const data = await api('POST', `/api/posts/${postId}/comments`, { content, parentId });
+    inp.value = '';
+    document.getElementById(`fcmt-reply-form-${parentId}`)?.classList.remove('open');
+    // Append reply into the replies thread
+    const thread = document.getElementById(`fcmt-replies-${parentId}`);
+    if (thread) {
+      thread.style.display = '';
+      thread.insertAdjacentHTML('beforeend', replyHtml(postId, data));
+    }
+    // Update comment count badge
+    const countEl = document.getElementById(`fcmt-count-${postId}`);
+    if (countEl) countEl.textContent = data.commentCount;
+  } catch (e) { alert(e.message || 'Could not post reply.'); }
 }
 
 async function submitComment(postId) {
@@ -5573,6 +7949,296 @@ function showToast(msg, type = 'info') {
   el.className = `app-toast ${type} show`;
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+/* ════════════════════════════════════════
+   POST IMPRESSIONS
+════════════════════════════════════════ */
+let viewObserver = null;
+const viewedPostIds = new Set(); // already-queued posts in this session
+
+function initViewObserver() {
+  if (viewObserver) viewObserver.disconnect();
+  viewObserver = new IntersectionObserver((entries) => {
+    const toRecord = [];
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const postId = entry.target.dataset.postId;
+      if (!postId || viewedPostIds.has(postId)) continue;
+      viewedPostIds.add(postId);
+      toRecord.push(postId);
+      viewObserver.unobserve(entry.target); // only count once
+    }
+    if (toRecord.length) recordPostViews(toRecord);
+  }, { threshold: 0.5 }); // 50% visible counts as a view
+}
+
+function observePostCards() {
+  if (!viewObserver) initViewObserver();
+  document.querySelectorAll('.feed-post[data-post-id]').forEach(el => {
+    if (!viewedPostIds.has(el.dataset.postId)) viewObserver.observe(el);
+  });
+}
+
+async function recordPostViews(postIds) {
+  try { await api('POST', '/api/posts/views', { postIds }); } catch {}
+}
+
+// ── Leaderboard modal ────────────────────────────────────────────────────
+async function openLeaderboard() {
+  openModal('leaderboardBackdrop');
+  const el = document.getElementById('leaderboardContent');
+  el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>';
+  try {
+    const d = await api('GET', '/api/leaderboard');
+    const rankClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const rankIcon  = i => ['🥇','🥈','🥉'][i] ?? (i + 1);
+    const roleLabel = r => r === 'pro' ? 'IT Professional' : 'Student';
+
+    const userRow = (item, i) => `
+      <div class="lb-row">
+        <span class="lb-rank ${rankClass(i)}">${rankIcon(i)}</span>
+        ${avatarHtml(item.id, item.name, '', 'width:32px;height:32px;font-size:.65rem;flex-shrink:0;')}
+        <div class="lb-info">
+          <div class="lb-name" onclick="closeModal('leaderboardBackdrop');openUserProfile('${escHtml(item.id)}')">${escHtml(item.name)}</div>
+          <div class="lb-sub">${roleLabel(item.role)}</div>
+        </div>
+        <span class="lb-count">${item.count}</span>
+      </div>`;
+
+    const s = d.stats;
+    el.innerHTML = `
+      <div class="lb-stat-grid">
+        <div class="lb-stat-card"><div class="lb-stat-val">${s.totalUsers}</div><div class="lb-stat-label">Members</div></div>
+        <div class="lb-stat-card"><div class="lb-stat-val">${s.totalPosts}</div><div class="lb-stat-label">Posts</div></div>
+        <div class="lb-stat-card"><div class="lb-stat-val">${s.totalConnections}</div><div class="lb-stat-label">Connections</div></div>
+        <div class="lb-stat-card"><div class="lb-stat-val">${s.totalEndorsements}</div><div class="lb-stat-label">Endorsements</div></div>
+      </div>
+
+      <div class="lb-section">
+        <div class="lb-section-title">🔗 Most Connected</div>
+        ${d.topConnected.length ? d.topConnected.map(userRow).join('') : '<div style="color:var(--muted);font-size:.85rem;padding:8px 0;">No data yet</div>'}
+      </div>
+
+      <div class="lb-section">
+        <div class="lb-section-title">✍️ Top Posters</div>
+        ${d.topPosters.length ? d.topPosters.map(userRow).join('') : '<div style="color:var(--muted);font-size:.85rem;padding:8px 0;">No data yet</div>'}
+      </div>
+
+      <div class="lb-section">
+        <div class="lb-section-title">👍 Most Endorsed Skills</div>
+        ${d.topSkills.length
+          ? d.topSkills.map((sk, i) => `<span class="lb-skill-pill">${rankIcon(i)} ${escHtml(sk.skill)} <strong>${sk.count}</strong></span>`).join('')
+          : '<div style="color:var(--muted);font-size:.85rem;padding:8px 0;">No endorsements yet</div>'}
+      </div>`;
+  } catch {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--danger);">Could not load leaderboard.</div>';
+  }
+}
+
+// ── My Stats modal ───────────────────────────────────────────────────────
+async function openMyStats() {
+  openModal('myStatsBackdrop');
+  const el = document.getElementById('myStatsContent');
+  el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>';
+  try {
+    const stats = await api('GET', '/api/posts/my-stats');
+    if (!stats.length) {
+      el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">No posts yet. Share something to see analytics!</div>';
+      return;
+    }
+    el.innerHTML = stats.map(s => {
+      const snippet = (s.content || '').slice(0, 80) + (s.content?.length > 80 ? '…' : '');
+      const date    = formatPostTime(s.createdAt);
+      return `
+        <div class="stats-row">
+          <div class="stats-content">
+            <div class="stats-snippet">${escHtml(snippet || '(no text)')}</div>
+            <div class="stats-meta">
+              <span class="stats-metric">👁 <strong>${s.views}</strong> views</span>
+              <span class="stats-metric">⚡ <strong>${s.reactions}</strong> reactions</span>
+              <span class="stats-metric">💬 <strong>${s.comments}</strong> comments</span>
+              <span class="stats-metric" style="margin-left:auto;">${escHtml(date)}</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--danger);">Could not load analytics.</div>';
+  }
+}
+
+/* ════════════════════════════════════════
+   GLOBAL SEARCH
+════════════════════════════════════════ */
+let searchDebounceTimer = null;
+let searchModalOffset   = 0;
+let searchModalLoading  = false;
+
+// ── Navbar inline search ──────────────────────────────────────────────────
+function onSearchInput(val) {
+  clearTimeout(searchDebounceTimer);
+  const dd = document.getElementById('searchDropdown');
+  if (!val.trim()) { if (dd) dd.style.display = 'none'; return; }
+  if (dd) { dd.style.display = 'block'; dd.innerHTML = '<div class="search-loading">Searching…</div>'; }
+  searchDebounceTimer = setTimeout(() => runDropdownSearch(val.trim()), 280);
+}
+
+function onSearchFocus() {
+  const val = (document.getElementById('navSearchInput')?.value || '').trim();
+  if (val) onSearchInput(val);
+}
+
+function onSearchBlur() {
+  // Delay so clicks on results fire first
+  setTimeout(() => {
+    const dd = document.getElementById('searchDropdown');
+    if (dd) dd.style.display = 'none';
+  }, 200);
+}
+
+function onSearchKeydown(e) {
+  if (e.key === 'Enter') {
+    const val = (document.getElementById('navSearchInput')?.value || '').trim();
+    if (val) openSearchModal(val);
+  }
+  if (e.key === 'Escape') {
+    const dd = document.getElementById('searchDropdown');
+    if (dd) dd.style.display = 'none';
+    document.getElementById('navSearchInput')?.blur();
+  }
+}
+
+async function runDropdownSearch(q) {
+  const dd = document.getElementById('searchDropdown');
+  if (!dd) return;
+  try {
+    const data = await api('GET', `/api/search/users?q=${encodeURIComponent(q)}&offset=0`);
+    const results = data.results || [];
+    if (!results.length) {
+      dd.innerHTML = `<div class="search-no-results">No results for "<strong>${escHtml(q)}</strong>"</div>`;
+      return;
+    }
+    const items = results.slice(0, 5).map(u => renderSearchResultItem(u, true)).join('');
+    const more  = data.total > 5
+      ? `<div class="search-view-all" onclick="openSearchModal('${escHtml(q)}')">View all ${data.total} results →</div>`
+      : '';
+    dd.innerHTML = `<div class="search-dropdown-header">People</div>${items}${more}`;
+  } catch {
+    dd.innerHTML = '<div class="search-no-results">Search unavailable.</div>';
+  }
+}
+
+function renderSearchResultItem(u, inDropdown) {
+  const sub = [u.jobTitle || u.institution, u.location].filter(Boolean).join(' · ');
+  const badgeHtml = u.openToWork
+    ? '<span class="badge-otw" style="font-size:.65rem;padding:1px 6px;">Open to Work</span>'
+    : u.isHiring
+    ? '<span class="badge-hiring" style="font-size:.65rem;padding:1px 6px;">Hiring</span>'
+    : '';
+  const connHtml = renderSearchConnBtn(u);
+  return `
+    <div class="search-result-item" onclick="openUserProfile('${escHtml(u.id)}');${inDropdown ? "document.getElementById('searchDropdown').style.display='none';" : ''}">
+      ${avatarHtml(u.id, u.name, '', 'width:40px;height:40px;font-size:.85rem;flex-shrink:0;')}
+      <div class="search-result-info">
+        <div class="search-result-name">${escHtml(u.name)}${u.connDegree ? degreeLabel(u.connDegree) : ''} ${badgeHtml}</div>
+        <div class="search-result-sub">${escHtml(sub || (u.role === 'pro' ? 'IT Professional' : 'Student'))}</div>
+      </div>
+      <div class="search-result-action" onclick="event.stopPropagation()">${connHtml}</div>
+    </div>`;
+}
+
+function renderSearchConnBtn(u) {
+  if (u.connStatus === 'accepted') return '<span style="font-size:.75rem;color:var(--muted);">Connected</span>';
+  if (u.connStatus === 'pending' && u.connInitiatedByMe) return '<span style="font-size:.75rem;color:var(--muted);">Pending</span>';
+  if (u.connStatus === 'pending') return `<button class="btn btn-grad" style="font-size:.72rem;padding:5px 12px;" onclick="acceptSearchConn('${escHtml(u.id)}',this)">Accept</button>`;
+  return `<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px;" onclick="sendSearchConn('${escHtml(u.id)}',this)">Connect</button>`;
+}
+
+async function sendSearchConn(userId, btn) {
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    await api('POST', '/api/connections/request', { recipientId: userId });
+    btn.textContent = 'Pending'; btn.className = '';
+    btn.style.cssText = 'font-size:.75rem;color:var(--muted);background:none;border:none;cursor:default;';
+    // Refresh connection data
+    if (typeof loadConnections === 'function') loadConnections();
+  } catch (e) { btn.disabled = false; btn.textContent = 'Connect'; alert(e.message || 'Failed.'); }
+}
+
+async function acceptSearchConn(userId, btn) {
+  btn.disabled = true;
+  try {
+    // Find the connection id from connData
+    const pending = connData?.pendingIn?.find(c => c.requesterId === userId);
+    if (pending) {
+      await api('PATCH', `/api/connections/${pending.id}`, { status: 'accepted' });
+      btn.textContent = 'Connected'; btn.className = '';
+      btn.style.cssText = 'font-size:.75rem;color:var(--muted);background:none;border:none;cursor:default;';
+      if (typeof loadConnections === 'function') loadConnections();
+    }
+  } catch (e) { btn.disabled = false; alert(e.message || 'Failed.'); }
+}
+
+// ── Full search modal ─────────────────────────────────────────────────────
+function openSearchModal(q) {
+  document.getElementById('searchDropdown').style.display = 'none';
+  if (q) document.getElementById('searchModalInput').value = q;
+  document.getElementById('searchModalRole').value = '';
+  document.getElementById('searchModalLocation').value = '';
+  document.getElementById('searchModalSkill').value = '';
+  document.getElementById('searchModalOtw').checked = false;
+  document.getElementById('searchModalBackdrop').style.display = 'flex';
+  searchModalOffset = 0;
+  runModalSearch();
+}
+
+function buildSearchModalUrl(offset) {
+  const q        = encodeURIComponent(document.getElementById('searchModalInput')?.value?.trim() || '');
+  const role     = encodeURIComponent(document.getElementById('searchModalRole')?.value || '');
+  const location = encodeURIComponent(document.getElementById('searchModalLocation')?.value?.trim() || '');
+  const skill    = encodeURIComponent(document.getElementById('searchModalSkill')?.value?.trim() || '');
+  const otw      = document.getElementById('searchModalOtw')?.checked ? 'true' : 'false';
+  return `/api/search/users?q=${q}&role=${role}&location=${location}&skill=${skill}&openToWork=${otw}&offset=${offset}`;
+}
+
+function closeSearchModal() {
+  document.getElementById('searchModalBackdrop').style.display = 'none';
+}
+
+async function runModalSearch() {
+  if (searchModalLoading) return;
+  searchModalLoading = true;
+  searchModalOffset  = 0;
+  const q  = (document.getElementById('searchModalInput')?.value || '').trim();
+  const el = document.getElementById('searchModalResults');
+  el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">Searching…</div>';
+  document.getElementById('searchModalMore').style.display = 'none';
+  document.getElementById('searchModalTitle').textContent = q ? `Results for "${q}"` : 'Browse People';
+  try {
+    const data = await api('GET', buildSearchModalUrl(0));
+    searchModalOffset = (data.results || []).length;
+    if (!data.results.length) {
+      el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">No results found.</div>';
+    } else {
+      el.innerHTML = data.results.map(u => renderSearchResultItem(u, false)).join('');
+    }
+    document.getElementById('searchModalMore').style.display = data.hasMore ? 'block' : 'none';
+  } catch {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--danger);">Search failed.</div>';
+  } finally { searchModalLoading = false; }
+}
+
+async function loadMoreSearchResults() {
+  if (searchModalLoading) return;
+  searchModalLoading = true;
+  try {
+    const data = await api('GET', buildSearchModalUrl(searchModalOffset));
+    const el   = document.getElementById('searchModalResults');
+    data.results.forEach(u => el.insertAdjacentHTML('beforeend', renderSearchResultItem(u, false)));
+    searchModalOffset += data.results.length;
+    document.getElementById('searchModalMore').style.display = data.hasMore ? 'block' : 'none';
+  } catch {} finally { searchModalLoading = false; }
 }
 
 /* ════════════════════════════════════════

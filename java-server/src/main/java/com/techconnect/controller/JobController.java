@@ -125,6 +125,56 @@ public class JobController {
         return ResponseEntity.ok(toJobList(rows, uid));
     }
 
+    // ── Recommended jobs (must come before /{id}) ────────────────────────────
+    @GetMapping("/api/jobs/recommended")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> recommended(HttpSession session) {
+        String uid = (String) session.getAttribute("userId");
+        if (uid == null) return ResponseEntity.status(401).build();
+
+        // Fetch current user's skills
+        List<String> skills = jdbc.queryForList(
+                "SELECT skill_name FROM skills WHERE user_id = ?", String.class, uid);
+
+        if (skills.isEmpty()) return ResponseEntity.ok(List.of());
+
+        // Build OR clauses: j.skills LIKE '%skill%' for each skill
+        StringBuilder sb = new StringBuilder();
+        List<Object> params = new ArrayList<>();
+        params.add(uid); params.add(uid); // saved_by_me, applied_by_me
+        params.add(uid); // exclude own postings
+
+        for (int i = 0; i < skills.size(); i++) {
+            if (i > 0) sb.append(" OR ");
+            sb.append("LOWER(j.skills) LIKE ?");
+            params.add("%" + skills.get(i).toLowerCase() + "%");
+        }
+        params.add(15); // LIMIT
+
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT j.id, j.user_id, j.title, j.company, j.location, j.type," +
+                "       j.description, j.skills, j.salary, j.created_at," +
+                "       u.first_name, u.last_name," +
+                "       (SELECT COUNT(*) FROM job_saves       s WHERE s.job_id = j.id AND s.user_id = ?) AS saved_by_me," +
+                "       (SELECT COUNT(*) FROM job_applications a WHERE a.job_id = j.id AND a.applicant_id = ?) AS applied_by_me," +
+                "       (SELECT COUNT(*) FROM job_applications a WHERE a.job_id = j.id) AS applicant_count" +
+                " FROM jobs j JOIN users u ON u.id = j.user_id" +
+                " WHERE j.user_id != ? AND (" + sb + ")" +
+                " ORDER BY j.created_at DESC LIMIT ?",
+                params.toArray());
+
+        // Annotate each job with which user skills matched
+        List<Map<String, Object>> result = toJobList(rows, uid);
+        for (Map<String, Object> job : result) {
+            String jobSkills = ((String) job.get("skills")).toLowerCase();
+            List<String> matched = skills.stream()
+                    .filter(sk -> jobSkills.contains(sk.toLowerCase()))
+                    .toList();
+            job.put("matchedSkills", matched);
+        }
+        return ResponseEntity.ok(result);
+    }
+
     // ── Stats for dashboard Resources card (must come before /{id}) ───────────
     @GetMapping("/api/jobs/stats")
     @ResponseBody

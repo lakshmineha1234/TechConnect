@@ -71,7 +71,7 @@ public class SuggestionController {
         String ph = String.join(",", Collections.nCopies(excluded.size(), "?"));
         List<Map<String, Object>> candidates = jdbc.queryForList(
                 "SELECT u.id, u.first_name, u.last_name, u.role, " +
-                "p.bio, p.location, p.company, p.institution " +
+                "p.bio, p.location, p.company, p.institution, p.open_to_work, p.is_hiring " +
                 "FROM users u LEFT JOIN profiles p ON p.user_id = u.id " +
                 "WHERE u.id NOT IN (" + ph + ")",
                 excluded.toArray());
@@ -139,6 +139,8 @@ public class SuggestionController {
             r.put("mutualCount", mutual);
             r.put("sharedSkills",shared);
             r.put("score",       score);
+            r.put("openToWork",  toBool(c.get("open_to_work")));
+            r.put("isHiring",    toBool(c.get("is_hiring")));
             return r;
         })
         .sorted(Comparator.comparingInt((Map<String,Object> m) -> -(int) m.get("score"))
@@ -152,6 +154,12 @@ public class SuggestionController {
     // ── helpers ───────────────────────────────────────────────────────────────
     private static String s(Map<String, Object> m, String k) {
         Object v = m.get(k); return v == null ? "" : v.toString();
+    }
+    private static boolean toBool(Object v) {
+        if (v == null) return false;
+        if (v instanceof Boolean b) return b;
+        if (v instanceof Number  n) return n.intValue() != 0;
+        return "1".equals(v.toString()) || "true".equalsIgnoreCase(v.toString());
     }
 
     @SafeVarargs

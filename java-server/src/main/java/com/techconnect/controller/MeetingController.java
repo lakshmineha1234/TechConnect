@@ -1,5 +1,6 @@
 package com.techconnect.controller;
 
+import com.techconnect.service.NotificationService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -12,9 +13,11 @@ import java.util.*;
 public class MeetingController {
 
     private final JdbcTemplate jdbc;
+    private final NotificationService notifSvc;
 
-    public MeetingController(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    public MeetingController(JdbcTemplate jdbc, NotificationService notifSvc) {
+        this.jdbc     = jdbc;
+        this.notifSvc = notifSvc;
     }
 
     // POST /api/meetings — student schedules a meeting with an IT professional
@@ -50,6 +53,8 @@ public class MeetingController {
                 scheduled_time, duration_mins, meeting_link, notes, status)
             VALUES (?,?,?,?,?,?,?,?,'pending')
             """, id, requesterId, participantId, title, scheduledTime, duration, link, notes);
+
+        notifSvc.create(participantId, "meeting_request", requesterId, id);
 
         return ResponseEntity.status(201).body(buildMeeting(id, requesterId));
     }
@@ -121,6 +126,12 @@ public class MeetingController {
         }
 
         jdbc.update("UPDATE meetings SET status = ? WHERE id = ?", status, id);
+
+        if ("accepted".equals(status))
+            notifSvc.create(requesterId, "meeting_accepted", userId, id);
+        else if ("declined".equals(status))
+            notifSvc.create(requesterId, "meeting_declined", userId, id);
+
         return ResponseEntity.ok(buildMeeting(id, userId));
     }
 

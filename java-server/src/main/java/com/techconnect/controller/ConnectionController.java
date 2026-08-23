@@ -67,10 +67,14 @@ public class ConnectionController {
             jdbc.update("DELETE FROM connections WHERE id = ?", existing.get(0).get("id"));
         }
 
+        String note = str(body, "note");
+        if (note == null) note = "";
+        if (note.length() > 300) note = note.substring(0, 300);
+
         String id = UUID.randomUUID().toString();
         jdbc.update(
-                "INSERT INTO connections (id, requester_id, recipient_id, status) VALUES (?,?,?,'pending')",
-                id, me, target);
+                "INSERT INTO connections (id, requester_id, recipient_id, status, note) VALUES (?,?,?,'pending',?)",
+                id, me, target, note);
 
         // Notify the recipient that they received a connection request
         notifSvc.create(target, "connection_request", me, id);
@@ -155,9 +159,10 @@ public class ConnectionController {
         // All connections involving me
         List<Map<String, Object>> rows = jdbc.queryForList(
                 """
-                SELECT c.id, c.requester_id, c.recipient_id, c.status, c.created_at,
+                SELECT c.id, c.requester_id, c.recipient_id, c.status, c.created_at, c.note,
                        u.first_name, u.last_name, u.role,
-                       p.bio, p.company, p.institution, p.location
+                       p.bio, p.company, p.institution, p.location,
+                       p.open_to_work, p.is_hiring
                 FROM connections c
                 JOIN users u ON u.id = CASE
                     WHEN c.requester_id = ? THEN c.recipient_id
@@ -217,12 +222,19 @@ public class ConnectionController {
             entry.put("location",    s(r, "location"));
             entry.put("skills",      skillsMap.getOrDefault(otherId, List.of()));
             entry.put("createdAt",   r.get("created_at"));
+            entry.put("openToWork",  toBool(r.get("open_to_work")));
+            entry.put("isHiring",    toBool(r.get("is_hiring")));
+            entry.put("requesterId", requesterId);
 
             if ("accepted".equals(status)) {
                 accepted.add(entry);
             } else if ("pending".equals(status)) {
-                if (me.equals(requesterId)) pendingSent.add(entry);
-                else                        pendingIn.add(entry);
+                if (me.equals(requesterId)) {
+                    pendingSent.add(entry);
+                } else {
+                    entry.put("note", s(r, "note")); // only show note to recipient
+                    pendingIn.add(entry);
+                }
             }
         }
 
@@ -240,6 +252,12 @@ public class ConnectionController {
     }
     private static String s(Map<String, Object> m, String k) {
         Object v = m.get(k); return v == null ? "" : v.toString();
+    }
+    private static boolean toBool(Object v) {
+        if (v == null) return false;
+        if (v instanceof Boolean b) return b;
+        if (v instanceof Number  n) return n.intValue() != 0;
+        return "1".equals(v.toString()) || "true".equalsIgnoreCase(v.toString());
     }
     private static ResponseEntity<Map<String, Object>> err(String msg) {
         return ResponseEntity.badRequest().body(Map.of("error", msg));

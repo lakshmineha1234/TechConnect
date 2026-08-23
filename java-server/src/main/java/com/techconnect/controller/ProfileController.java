@@ -62,6 +62,8 @@ public class ProfileController {
         result.put("linkedin",    str(p, "linkedin"));
         result.put("github",      str(p, "github"));
         result.put("skills",      skills);
+        result.put("openToWork",  toBoolean(p.get("open_to_work")));
+        result.put("isHiring",    toBoolean(p.get("is_hiring")));
 
         return ResponseEntity.ok(result);
     }
@@ -90,12 +92,16 @@ public class ProfileController {
         jdbc.update("UPDATE users SET first_name=?, last_name=?, email=? WHERE id=?",
                 fn, ln, email, uid);
 
+        int openToWork = boolParam(body, "openToWork");
+        int isHiring   = boolParam(body, "isHiring");
+
         jdbc.update("""
                 UPDATE profiles
                 SET phone=?, location=?, bio=?,
                     institution=?, degree=?, year=?,
                     company=?, job_title=?, experience=?,
                     linkedin=?, github=?,
+                    open_to_work=?, is_hiring=?,
                     updated_at=datetime('now')
                 WHERE user_id=?
                 """,
@@ -105,6 +111,7 @@ public class ProfileController {
                 clean(body, "company"),     clean(body, "jobTitle"),
                 clean(body, "experience"),  clean(body, "linkedin"),
                 clean(body, "github"),
+                openToWork, isHiring,
                 uid);
 
         // Replace skills list if provided
@@ -120,5 +127,20 @@ public class ProfileController {
         }
 
         return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    private static boolean toBoolean(Object v) {
+        if (v == null) return false;
+        if (v instanceof Boolean b) return b;
+        if (v instanceof Number n)  return n.intValue() != 0;
+        return "1".equals(v.toString()) || "true".equalsIgnoreCase(v.toString());
+    }
+
+    private static int boolParam(Map<String, Object> body, String key) {
+        Object v = body.get(key);
+        if (v == null) return 0;
+        if (v instanceof Boolean b) return b ? 1 : 0;
+        if (v instanceof Number n)  return n.intValue() != 0 ? 1 : 0;
+        return ("true".equalsIgnoreCase(v.toString()) || "1".equals(v.toString())) ? 1 : 0;
     }
 }
