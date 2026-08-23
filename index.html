@@ -2463,6 +2463,20 @@
   .rec-card:hover { border-color: rgba(0,200,255,.2); }
   .rec-card-author { font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 8px; }
   .rec-card-text   { font-size: .88rem; color: var(--muted); line-height: 1.7; white-space: pre-wrap; }
+  /* ── Certification cards ── */
+  .cert-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .cert-card:hover { border-color: rgba(0,200,255,.2); }
+  .cert-card-icon  { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .cert-card-body  { min-width: 0; flex: 1; }
+  .cert-card-name  { font-weight: 600; font-size: .92rem; color: var(--text); }
+  .cert-card-issuer{ font-size: .82rem; color: var(--muted); margin-top: 2px; }
+  .cert-card-dates { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+  .cert-card-link  { font-size: .78rem; color: var(--cyan); text-decoration: none; margin-top: 6px; display: inline-block; }
+  .cert-card-link:hover { text-decoration: underline; }
   /* Edit-mode project item */
   .project-edit-item {
     background: var(--surface); border: 1px solid var(--border2);
@@ -3426,6 +3440,31 @@
       </div>
     </div>
 
+    <!-- Certifications -->
+    <div id="pfCertsSection">
+      <div class="section-heading" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Certifications</span>
+        <button class="btn btn-outline-grad" style="font-size:.78rem;padding:5px 14px;" onclick="openCertForm()">+ Add Certification</button>
+      </div>
+      <div id="pfCertsList"></div>
+      <!-- Inline add/edit form -->
+      <div id="pfCertForm" class="hidden" style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px;margin-bottom:12px;">
+        <input type="hidden" id="pfCertId">
+        <div class="field"><label>Certification Name *</label><input type="text" id="pfCertName" placeholder="e.g. AWS Certified Solutions Architect" maxlength="120"></div>
+        <div class="field"><label>Issuing Organization</label><input type="text" id="pfCertIssuer" placeholder="e.g. Amazon Web Services" maxlength="120"></div>
+        <div class="field-row">
+          <div class="field"><label>Issue Date</label><input type="month" id="pfCertIssueDate"></div>
+          <div class="field"><label>Expiry Date <span style="color:var(--muted);font-weight:400;">(optional)</span></label><input type="month" id="pfCertExpiryDate"></div>
+        </div>
+        <div class="field"><label>Credential URL <span style="color:var(--muted);font-weight:400;">(optional)</span></label><input type="url" id="pfCertUrl" placeholder="https://…"></div>
+        <p class="form-error" id="pfCertError"></p>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-grad" style="flex:1;padding:10px;" onclick="saveCertification()">Save Certification</button>
+          <button class="btn btn-ghost" style="padding:10px 16px;" onclick="closeCertForm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Resume upload — students only (shown/hidden by JS) -->
     <div id="pfResumeSection" class="hidden">
       <div class="section-heading">Resume / CV</div>
@@ -3812,6 +3851,138 @@ async function deleteProject(projectId) {
     myProjectsCache = myProjectsCache.filter(p => p.id !== projectId);
     renderMyProjects();
   } catch (e) { alert(e.message || 'Could not delete project.'); }
+}
+
+/* ════════════════════════════════════════
+   CERTIFICATIONS
+════════════════════════════════════════ */
+let myCertsCache = [];
+
+async function loadMyCerts() {
+  if (!currentUser) return;
+  try { myCertsCache = await api('GET', `/api/certifications/${currentUser.id}`); }
+  catch { myCertsCache = []; }
+  renderMyCerts();
+}
+
+function renderMyCerts() {
+  const list = document.getElementById('pfCertsList');
+  if (!list) return;
+  if (!myCertsCache.length) {
+    list.innerHTML = `<div style="font-size:.83rem;color:var(--muted);padding:8px 0;">No certifications yet — add your first one!</div>`;
+    return;
+  }
+  list.innerHTML = myCertsCache.map(c => `
+    <div class="project-edit-item">
+      <div style="min-width:0;">
+        <div class="project-edit-title">🏅 ${escHtml(c.name)}</div>
+        ${c.issuer    ? `<div class="project-edit-tech">${escHtml(c.issuer)}</div>` : ''}
+        ${c.issueDate ? `<div style="font-size:.75rem;color:var(--muted);margin-top:2px;">${fmtMonthDate(c.issueDate)}${c.expiryDate ? ` – ${fmtMonthDate(c.expiryDate)}` : ''}</div>` : ''}
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn btn-ghost" style="font-size:.75rem;padding:4px 10px;" onclick="openCertForm('${escHtml(c.id)}')">Edit</button>
+        <button class="btn btn-ghost" style="font-size:.75rem;padding:4px 10px;color:#ef4444;border-color:rgba(239,68,68,.3);" onclick="deleteCertification('${escHtml(c.id)}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function fmtMonthDate(yyyyMM) {
+  if (!yyyyMM) return '';
+  const [y, m] = yyyyMM.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[(parseInt(m,10)||1)-1]} ${y}`;
+}
+
+function openCertForm(certId) {
+  const form = document.getElementById('pfCertForm');
+  document.getElementById('pfCertError').textContent = '';
+  if (certId) {
+    const c = myCertsCache.find(x => x.id === certId);
+    if (!c) return;
+    document.getElementById('pfCertId').value         = c.id;
+    document.getElementById('pfCertName').value       = c.name;
+    document.getElementById('pfCertIssuer').value     = c.issuer;
+    document.getElementById('pfCertIssueDate').value  = c.issueDate;
+    document.getElementById('pfCertExpiryDate').value = c.expiryDate;
+    document.getElementById('pfCertUrl').value        = c.credentialUrl;
+  } else {
+    document.getElementById('pfCertId').value         = '';
+    document.getElementById('pfCertName').value       = '';
+    document.getElementById('pfCertIssuer').value     = '';
+    document.getElementById('pfCertIssueDate').value  = '';
+    document.getElementById('pfCertExpiryDate').value = '';
+    document.getElementById('pfCertUrl').value        = '';
+  }
+  form.classList.remove('hidden');
+  document.getElementById('pfCertName').focus();
+}
+
+function closeCertForm() {
+  document.getElementById('pfCertForm').classList.add('hidden');
+}
+
+async function saveCertification() {
+  const errEl = document.getElementById('pfCertError');
+  errEl.textContent = '';
+  const id   = document.getElementById('pfCertId').value;
+  const name = document.getElementById('pfCertName').value.trim();
+  if (!name) { errEl.textContent = 'Certification name is required.'; return; }
+  const payload = {
+    name,
+    issuer:        document.getElementById('pfCertIssuer').value.trim(),
+    issueDate:     document.getElementById('pfCertIssueDate').value,
+    expiryDate:    document.getElementById('pfCertExpiryDate').value,
+    credentialUrl: document.getElementById('pfCertUrl').value.trim(),
+  };
+  try {
+    if (id) {
+      await api('PUT', `/api/certifications/${id}`, payload);
+      const idx = myCertsCache.findIndex(c => c.id === id);
+      if (idx >= 0) myCertsCache[idx] = { id, ...payload };
+    } else {
+      const res = await api('POST', '/api/certifications', payload);
+      myCertsCache.push({ id: res.id, ...payload });
+    }
+    closeCertForm();
+    renderMyCerts();
+  } catch (e) { errEl.textContent = e.message || 'Could not save certification.'; }
+}
+
+async function deleteCertification(certId) {
+  if (!confirm('Delete this certification?')) return;
+  try {
+    await api('DELETE', `/api/certifications/${certId}`);
+    myCertsCache = myCertsCache.filter(c => c.id !== certId);
+    renderMyCerts();
+  } catch (e) { alert(e.message || 'Could not delete.'); }
+}
+
+async function loadCertificationsForProfile(userId) {
+  const container = document.getElementById(`uprofile-certifications-${userId}`);
+  if (!container) return;
+  try {
+    const certs = await api('GET', `/api/certifications/${userId}`);
+    if (!certs.length) return;
+    container.innerHTML = `
+      <div class="uprofile-section">
+        <div class="uprofile-section-title">Certifications</div>
+        ${certs.map(c => {
+          const dateStr = c.issueDate
+            ? fmtMonthDate(c.issueDate) + (c.expiryDate ? ` – ${fmtMonthDate(c.expiryDate)}` : '')
+            : '';
+          return `
+            <div class="cert-card">
+              <div class="cert-card-icon">🏅</div>
+              <div class="cert-card-body">
+                <div class="cert-card-name">${escHtml(c.name)}</div>
+                ${c.issuer  ? `<div class="cert-card-issuer">${escHtml(c.issuer)}</div>` : ''}
+                ${dateStr   ? `<div class="cert-card-dates">${escHtml(dateStr)}</div>` : ''}
+                ${c.credentialUrl ? `<a class="cert-card-link" href="${escHtml(c.credentialUrl)}" target="_blank" rel="noopener">🔗 Show Credential</a>` : ''}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+  } catch { /* silently skip */ }
 }
 
 function renderNav() {
@@ -4479,6 +4650,7 @@ async function openProfile() {
   document.getElementById('pfResumeSection').classList.toggle('hidden', !isStudent);
   document.getElementById('pfProjectsSection').classList.toggle('hidden', !isStudent);
   if (isStudent) loadMyProjects();
+  loadMyCerts();
 
   // Status toggles — students see "Open to Work", pros see "Hiring"
   document.getElementById('pfOtwRow')   .style.display = isStudent ? '' : 'none';
@@ -4927,6 +5099,7 @@ function renderUserProfileModal(p) {
     <div id="uprofile-mutual-${escHtml(p.id)}"></div>
     <div id="uprofile-resume-${escHtml(p.id)}"></div>
     <div id="uprofile-projects-${escHtml(p.id)}"></div>
+    <div id="uprofile-certifications-${escHtml(p.id)}"></div>
     <div id="uprofile-recommendations-${escHtml(p.id)}"></div>
   `;
 
@@ -4935,6 +5108,7 @@ function renderUserProfileModal(p) {
   if (p.role === 'student') loadProfileProjects(p.id);
   if (!p.isSelf) loadMutualConnections(p.id);
   loadRecommendations(p.id, p.isSelf);
+  loadCertificationsForProfile(p.id);
 }
 
 async function loadMutualConnections(userId) {

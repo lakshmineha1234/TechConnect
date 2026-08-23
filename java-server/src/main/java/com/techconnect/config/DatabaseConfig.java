@@ -388,6 +388,21 @@ public class DatabaseConfig {
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_recs_recipient ON recommendations(recipient_id, status)");
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_recs_author    ON recommendations(author_id)");
 
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS certifications (
+                    id             TEXT PRIMARY KEY,
+                    user_id        TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    name           TEXT NOT NULL,
+                    issuer         TEXT NOT NULL DEFAULT '',
+                    issue_date     TEXT NOT NULL DEFAULT '',
+                    expiry_date    TEXT NOT NULL DEFAULT '',
+                    credential_url TEXT NOT NULL DEFAULT '',
+                    display_order  INTEGER NOT NULL DEFAULT 0,
+                    created_at     TEXT DEFAULT (datetime('now'))
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_certs_user ON certifications(user_id, display_order)");
+
             // Purge any rows that reference deleted users (guards against external deletes
             // that bypass the server's foreign-key enforcement).
             jdbc.update("DELETE FROM connections   WHERE requester_id NOT IN (SELECT id FROM users) OR recipient_id  NOT IN (SELECT id FROM users)");
