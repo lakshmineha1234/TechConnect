@@ -4089,6 +4089,43 @@ async function loadCertificationsForProfile(userId) {
   } catch { /* silently skip */ }
 }
 
+/* ── Connection Notes ───────────────────────────────────────────────────── */
+async function loadConnectionNote(userId) {
+  const container = document.getElementById(`uprofile-conn-note-${userId}`);
+  if (!container) return;
+  try {
+    const data = await api('GET', `/api/connections/${userId}/note`);
+    const note = data.note || '';
+    container.innerHTML = `
+      <div class="uprofile-section" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:16px;">
+        <div class="uprofile-section-title" style="display:flex;align-items:center;gap:6px;">
+          🔒 <span>Private Note</span>
+          <span style="font-size:.72rem;color:var(--muted);font-weight:400;">Only you can see this</span>
+        </div>
+        <textarea id="conn-note-ta-${escHtml(userId)}" maxlength="500"
+          placeholder="Add a private note about this connection… (e.g. met at PyData 2025, works on ML infra)"
+          style="width:100%;min-height:72px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;
+                 padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;
+                 resize:vertical;outline:none;box-sizing:border-box;"
+          onblur="saveConnectionNote('${escHtml(userId)}')"
+        >${escHtml(note)}</textarea>
+        <div id="conn-note-status-${escHtml(userId)}" style="font-size:.75rem;color:var(--muted);margin-top:4px;min-height:1em;"></div>
+      </div>`;
+  } catch { /* silently skip */ }
+}
+
+async function saveConnectionNote(userId) {
+  const ta     = document.getElementById(`conn-note-ta-${userId}`);
+  const status = document.getElementById(`conn-note-status-${userId}`);
+  if (!ta) return;
+  try {
+    await api('PUT', `/api/connections/${userId}/note`, { note: ta.value });
+    if (status) { status.textContent = '✓ Saved'; setTimeout(() => { if (status) status.textContent = ''; }, 2000); }
+  } catch {
+    if (status) status.textContent = '✗ Could not save';
+  }
+}
+
 function renderNav() {
   const nav = document.getElementById('navActions');
   if (!currentUser) {
@@ -5247,6 +5284,7 @@ function renderUserProfileModal(p) {
     <div id="uprofile-projects-${escHtml(p.id)}"></div>
     <div id="uprofile-certifications-${escHtml(p.id)}"></div>
     <div id="uprofile-recommendations-${escHtml(p.id)}"></div>
+    <div id="uprofile-conn-note-${escHtml(p.id)}"></div>
   `;
 
   if (p.skills?.length) loadEndorsements(p.id, canEndorse);
@@ -5255,6 +5293,7 @@ function renderUserProfileModal(p) {
   if (!p.isSelf) loadMutualConnections(p.id);
   loadRecommendations(p.id, p.isSelf);
   loadCertificationsForProfile(p.id);
+  if (p.connStatus === 'accepted' && !p.isSelf) loadConnectionNote(p.id);
 }
 
 async function loadMutualConnections(userId) {

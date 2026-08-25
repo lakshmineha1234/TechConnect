@@ -237,6 +237,16 @@ public class DatabaseConfig {
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_emoji TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_text  TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_expires TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            // Private connection notes
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS connection_notes (
+                    author_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    subject_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    note       TEXT NOT NULL DEFAULT '',
+                    updated_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (author_id, subject_id)
+                )
+                """);
             // Hashtag following
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS followed_hashtags (
