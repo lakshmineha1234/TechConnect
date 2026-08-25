@@ -2979,7 +2979,7 @@
 
   <!-- Create Event Modal -->
   <div class="modal-backdrop" id="createEventBackdrop" onclick="if(event.target===this)closeModal('createEventBackdrop')">
-    <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal wide" role="dialog" aria-modal="true">
       <button class="modal-close" onclick="closeModal('createEventBackdrop')">✕</button>
       <h2 class="modal-title">Create Event</h2>
       <div id="createEventError" class="form-error" style="display:none;"></div>
@@ -2999,7 +2999,7 @@
         <div class="field"><label>Start Date &amp; Time *</label><input type="datetime-local" id="evStart"/></div>
         <div class="field"><label>End Date &amp; Time</label><input type="datetime-local" id="evEnd"/></div>
         <div class="field"><label>Max Attendees <span style="color:var(--muted);font-weight:400;">(0 = unlimited)</span></label><input type="number" id="evMax" value="0" min="0"/></div>
-        <div class="field event-form-full"><label>Description *</label><textarea id="evDesc" rows="4" placeholder="What's this event about? Agenda, requirements, links…" maxlength="2000" style="resize:vertical;"></textarea></div>
+        <div class="field event-form-full"><label>Description *</label><textarea id="evDesc" rows="6" placeholder="What's this event about? Agenda, requirements, links…" maxlength="2000" style="resize:vertical;"></textarea></div>
       </div>
       <div style="display:flex;gap:12px;margin-top:20px;justify-content:flex-end;">
         <button class="btn btn-ghost" onclick="closeModal('createEventBackdrop')">Cancel</button>
