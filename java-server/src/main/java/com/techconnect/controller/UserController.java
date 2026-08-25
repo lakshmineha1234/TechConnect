@@ -126,6 +126,24 @@ public class UserController {
         }
         result.put("statusEmoji",    statusActive ? statusEmoji   : "");
         result.put("statusText",     statusActive ? statusText    : "");
+
+        // Pinned post
+        String pinnedId = s(p, "pinned_post_id");
+        if (!pinnedId.isBlank()) {
+            try {
+                List<Map<String, Object>> pinRows = jdbc.queryForList(
+                    "SELECT id, content, created_at FROM posts WHERE id=? AND user_id=?", pinnedId, id);
+                if (!pinRows.isEmpty()) {
+                    Map<String, Object> pp = pinRows.get(0);
+                    Map<String, Object> pinnedPost = new LinkedHashMap<>();
+                    pinnedPost.put("id",        pp.get("id"));
+                    pinnedPost.put("content",   pp.get("content"));
+                    pinnedPost.put("createdAt", pp.get("created_at"));
+                    result.put("pinnedPost",    pinnedPost);
+                    result.put("pinnedPostId",  pinnedId);
+                }
+            } catch (Exception ignored) {}
+        }
         return ResponseEntity.ok(result);
     }
 

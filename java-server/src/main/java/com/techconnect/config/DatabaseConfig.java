@@ -237,6 +237,8 @@ public class DatabaseConfig {
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_emoji TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_text  TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_expires TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            // Pinned post on profile
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN pinned_post_id TEXT DEFAULT NULL"); } catch (Exception ignored) {}
             // Muted users
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS muted_users (

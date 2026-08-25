@@ -4134,6 +4134,26 @@ async function loadMutedUsers() {
   } catch {}
 }
 
+/* ── Pin Post to Profile ─────────────────────────────────────────────────── */
+async function pinPost(postId) {
+  try {
+    const r = await api('PUT', `/api/profile/pin/${postId}`);
+    if (r.ok) {
+      if (currentUser) currentUser.pinnedPostId = postId;
+      showToast('Post pinned to your profile', 'success');
+    }
+  } catch (e) { showToast('Could not pin post', 'error'); }
+}
+async function unpinPost() {
+  try {
+    const r = await api('DELETE', '/api/profile/pin');
+    if (r.ok) {
+      if (currentUser) currentUser.pinnedPostId = null;
+      showToast('Post unpinned', 'success');
+    }
+  } catch (e) { showToast('Could not unpin post', 'error'); }
+}
+
 async function toggleMuteUser(userId, name) {
   try {
     const r = await api('POST', `/api/users/${userId}/mute`);
@@ -5349,6 +5369,11 @@ function renderUserProfileModal(p) {
         <div class="uprofile-actions">${actionBtns}</div>
       </div>
     </div>
+    ${p.pinnedPost ? `
+    <div class="uprofile-section" style="border:1px solid rgba(0,229,200,.2);border-radius:10px;padding:12px 14px;background:var(--surface2);">
+      <div class="uprofile-section-title" style="margin-bottom:6px;">📌 Pinned Post</div>
+      <div style="font-size:.88rem;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word;">${escHtml((p.pinnedPost.content||'').substring(0,280))}${(p.pinnedPost.content||'').length>280?'…':''}</div>
+    </div>` : ''}
     ${p.bio ? `<div class="uprofile-section"><div class="uprofile-section-title">About</div><div class="uprofile-bio">${escHtml(p.bio)}</div></div>` : ''}
     ${detailSection}
     ${skillsHtml}
@@ -7298,6 +7323,9 @@ function renderPostCard(p) {
           <div class="post-menu-dropdown" id="pmenu-${escHtml(p.id)}">
             ${p.isMine ? `
               ${!p.sharedFromId ? `<button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');startEditPost('${escHtml(p.id)}')">✏️ Edit post</button>` : ''}
+              <button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');${currentUser?.pinnedPostId === p.id ? `unpinPost()` : `pinPost('${escHtml(p.id)}')`}">
+                ${currentUser?.pinnedPostId === p.id ? '📌 Unpin from profile' : '📌 Pin to profile'}
+              </button>
               <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');deletePost('${escHtml(p.id)}')">🗑️ Delete post</button>
             ` : `
               <button class="post-menu-item" id="pmenu-mute-${escHtml(p.userId)}"

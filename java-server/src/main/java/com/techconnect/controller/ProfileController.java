@@ -67,6 +67,7 @@ public class ProfileController {
         result.put("statusEmoji",    str(p, "status_emoji"));
         result.put("statusText",     str(p, "status_text"));
         result.put("statusExpires",  str(p, "status_expires"));
+        result.put("pinnedPostId",   str(p, "pinned_post_id"));
 
         return ResponseEntity.ok(result);
     }
@@ -129,6 +130,32 @@ public class ProfileController {
             }
         }
 
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    // ── PUT /api/profile/pin/{postId} ─────────────────────────────────────────
+    @PutMapping("/pin/{postId}")
+    public ResponseEntity<Map<String, Object>> pinPost(
+            @PathVariable String postId, HttpSession session) {
+
+        String uid = (String) session.getAttribute("userId");
+        if (uid == null) return err(401, "Not authenticated.");
+
+        Integer owns = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM posts WHERE id=? AND user_id=?", Integer.class, postId, uid);
+        if (owns == null || owns == 0)
+            return err(403, "Post not found or not yours.");
+
+        jdbc.update("UPDATE profiles SET pinned_post_id=? WHERE user_id=?", postId, uid);
+        return ResponseEntity.ok(Map.of("ok", true, "pinnedPostId", postId));
+    }
+
+    // ── DELETE /api/profile/pin ───────────────────────────────────────────────
+    @DeleteMapping("/pin")
+    public ResponseEntity<Map<String, Object>> unpinPost(HttpSession session) {
+        String uid = (String) session.getAttribute("userId");
+        if (uid == null) return err(401, "Not authenticated.");
+        jdbc.update("UPDATE profiles SET pinned_post_id=NULL WHERE user_id=?", uid);
         return ResponseEntity.ok(Map.of("ok", true));
     }
 
