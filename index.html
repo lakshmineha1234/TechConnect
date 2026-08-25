@@ -3124,7 +3124,10 @@
   <div class="modal wide" role="dialog" aria-modal="true">
     <div class="modal-header">
       <span class="modal-title">Profile</span>
-      <button class="modal-close" onclick="closeModal('userProfileBackdrop')" aria-label="Close">✕</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="shareProfileBtn" class="btn btn-ghost" style="font-size:.78rem;padding:5px 12px;" onclick="shareCurrentProfile()" title="Copy profile link">🔗 Share</button>
+        <button class="modal-close" onclick="closeModal('userProfileBackdrop')" aria-label="Close">✕</button>
+      </div>
     </div>
     <div id="userProfileContent">
       <div style="text-align:center;padding:40px;color:var(--muted);">Loading…</div>
@@ -4179,10 +4182,6 @@ function renderHero() {
         <button class="btn btn-outline-grad" style="font-size:.95rem;padding:12px 26px;" onclick="document.getElementById('jobsSection').scrollIntoView({behavior:'smooth'})">Browse Jobs</button>
       </div>
 
-      <div class="logout-section">
-        <button class="btn btn-danger" onclick="openModal('logoutBackdrop')">Log Out</button>
-        <span class="logout-hint">You can also log out from the nav menu above</span>
-      </div>
     `;
   }
 }
@@ -4296,8 +4295,15 @@ async function initSession() {
     initViewObserver();
   }
   render();
-  if (currentUser) { doSearch(); initFeed(); initJobs(); initEvents(); loadSuggestions(); initLiveMembers(); loadProfileViewCount(); }
-  // doSearch() will show the "type a name" prompt when query is empty
+  if (currentUser) {
+    doSearch(); initFeed(); initJobs(); initEvents(); loadSuggestions(); initLiveMembers(); loadProfileViewCount();
+    // Auto-open shared profile link: ?profile=userId
+    const profileParam = params.get('profile');
+    if (profileParam) {
+      history.replaceState({}, '', '/');
+      setTimeout(() => openUserProfile(profileParam), 600);
+    }
+  }
 }
 
 /* ════════════════════════════════════════
@@ -5041,8 +5047,24 @@ function renderProfileCard(p) {
 /* ════════════════════════════════════════
    USER PROFILE VIEW
 ════════════════════════════════════════ */
+let _viewingProfileId = null;
+
+function shareCurrentProfile() {
+  if (!_viewingProfileId) return;
+  const url = `${window.location.origin}/?profile=${encodeURIComponent(_viewingProfileId)}`;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Profile link copied to clipboard!', 2500);
+    const btn = document.getElementById('shareProfileBtn');
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '🔗 Share'; }, 2000); }
+  }).catch(() => {
+    // Fallback for browsers that block clipboard access
+    prompt('Copy this link:', url);
+  });
+}
+
 async function openUserProfile(userId) {
   if (!currentUser) return;
+  _viewingProfileId = userId;
   openModal('userProfileBackdrop');
   document.getElementById('userProfileContent').innerHTML =
     `<div style="text-align:center;padding:40px;color:var(--muted);">Loading…</div>`;
