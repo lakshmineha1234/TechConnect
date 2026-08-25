@@ -2477,6 +2477,52 @@
   .cert-card-dates { font-size: .78rem; color: var(--muted); margin-top: 4px; }
   .cert-card-link  { font-size: .78rem; color: var(--cyan); text-decoration: none; margin-top: 6px; display: inline-block; }
   .cert-card-link:hover { text-decoration: underline; }
+
+  /* ── Unified Search modal ── */
+  .search-modal-backdrop { align-items: flex-start; padding-top: 60px; }
+  .search-modal {
+    max-width: 640px; border-radius: 16px;
+    padding: 0; overflow: hidden; max-height: 80vh; display: flex; flex-direction: column;
+  }
+  .search-modal-input-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+  }
+  .search-modal-icon { font-size: 1.1rem; color: var(--muted); flex-shrink: 0; }
+  .search-modal-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-size: 1rem; color: var(--text); font-family: inherit;
+  }
+  .search-modal-input::placeholder { color: var(--muted); }
+  .search-tabs {
+    display: flex; gap: 4px; padding: 10px 16px 0;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .search-tab {
+    padding: 7px 14px; font-size: .83rem; border: none; background: transparent;
+    color: var(--muted); cursor: pointer; border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s;
+  }
+  .search-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .search-tab:hover:not(.active) { color: var(--text); }
+  .search-results { flex: 1; overflow-y: auto; padding: 12px 4px; }
+  .search-empty { font-size: .88rem; color: var(--muted); text-align: center; padding: 30px 0; }
+  .search-section-label {
+    font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); padding: 8px 16px 4px; font-weight: 600;
+  }
+  .search-result-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; cursor: pointer; border-radius: 10px; transition: background .15s;
+  }
+  .search-result-item:hover { background: var(--surface2); }
+  .search-result-icon { font-size: 1.1rem; flex-shrink: 0; width: 28px; text-align: center; }
+  .search-result-body { min-width: 0; flex: 1; }
+  .search-result-title { font-size: .9rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-result-sub   { font-size: .78rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .search-result-tag   { font-size: .7rem; padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+    background: rgba(0,200,255,.1); color: var(--cyan); border: 1px solid rgba(0,200,255,.2); }
+
   /* Edit-mode project item */
   .project-edit-item {
     background: var(--surface); border: 1px solid var(--border2);
@@ -3332,6 +3378,31 @@
   </div>
 </div>
 
+<!-- ══ UNIFIED SEARCH ══ -->
+<div class="modal-backdrop search-modal-backdrop" id="searchModalBackdrop" onclick="closeSearchModal(event)">
+  <div class="modal wide search-modal" role="dialog" aria-modal="true">
+    <div class="search-modal-input-row">
+      <span class="search-modal-icon">🔍</span>
+      <input type="text" id="searchModalInput" class="search-modal-input"
+        placeholder="Search people, posts, jobs…"
+        oninput="onSearchModalInput()"
+        onkeydown="onSearchModalKey(event)"
+        autocomplete="off">
+      <button class="modal-close" onclick="closeModal('searchModalBackdrop')" aria-label="Close">✕</button>
+    </div>
+    <!-- Tabs -->
+    <div class="search-tabs" id="searchTabs">
+      <button class="search-tab active" data-tab="all"    onclick="switchSearchTab('all')">All</button>
+      <button class="search-tab"        data-tab="people" onclick="switchSearchTab('people')">People</button>
+      <button class="search-tab"        data-tab="posts"  onclick="switchSearchTab('posts')">Posts</button>
+      <button class="search-tab"        data-tab="jobs"   onclick="switchSearchTab('jobs')">Jobs</button>
+    </div>
+    <div class="search-results" id="searchResults">
+      <div class="search-empty">Start typing to search…</div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ LOGOUT CONFIRM ══ -->
 <div class="modal-backdrop" id="logoutBackdrop">
   <div class="modal" role="dialog" aria-modal="true">
@@ -4001,6 +4072,7 @@ function renderNav() {
     const notifBadge   = notifUnread > 0 ? `<span class="notif-badge">${notifUnread > 99 ? '99+' : notifUnread}</span>` : '';
     nav.innerHTML = `
       <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle light/dark mode">${document.documentElement.dataset.theme === 'light' ? '🌙' : '☀️'}</button>
+      <button class="chat-btn" onclick="openSearchModal()" title="Search" style="font-size:1rem;">🔍</button>
       <button class="chat-btn" onclick="openChat()" title="Messages">
         💬${unreadMsgs}
       </button>
@@ -5277,6 +5349,135 @@ async function hideRecommendation(id) {
   } catch (e) {
     showToast(e?.message || 'Could not hide. Please try again.', 3000);
   }
+}
+
+/* ════════════════════════════════════════
+   UNIFIED SEARCH
+════════════════════════════════════════ */
+let _searchTab     = 'all';
+let _searchTimer   = null;
+let _searchLastQ   = '';
+
+function openSearchModal() {
+  openModal('searchModalBackdrop');
+  setTimeout(() => {
+    const inp = document.getElementById('searchModalInput');
+    if (inp) { inp.focus(); inp.select(); }
+  }, 80);
+}
+
+function closeSearchModal(e) {
+  if (e && e.target !== document.getElementById('searchModalBackdrop')) return;
+  closeModal('searchModalBackdrop');
+}
+
+function switchSearchTab(tab) {
+  _searchTab = tab;
+  document.querySelectorAll('.search-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab));
+  const q = (document.getElementById('searchModalInput')?.value || '').trim();
+  if (q) runSearch(q, true);
+}
+
+function onSearchModalInput() {
+  const q = (document.getElementById('searchModalInput')?.value || '').trim();
+  clearTimeout(_searchTimer);
+  if (!q) {
+    document.getElementById('searchResults').innerHTML =
+      '<div class="search-empty">Start typing to search…</div>';
+    return;
+  }
+  _searchTimer = setTimeout(() => runSearch(q), 300);
+}
+
+function onSearchModalKey(e) {
+  if (e.key === 'Escape') closeModal('searchModalBackdrop');
+}
+
+async function runSearch(q, immediate) {
+  if (!immediate) { /* already debounced */ }
+  _searchLastQ = q;
+  document.getElementById('searchResults').innerHTML =
+    '<div class="search-empty">Searching…</div>';
+  try {
+    const data = await api('GET', `/api/search?q=${encodeURIComponent(q)}&type=${_searchTab}`);
+    if (q !== _searchLastQ) return; // stale
+    renderSearchResults(data, q);
+  } catch {
+    document.getElementById('searchResults').innerHTML =
+      '<div class="search-empty">Search failed. Please try again.</div>';
+  }
+}
+
+function renderSearchResults(data, q) {
+  const container = document.getElementById('searchResults');
+  const people = data.people || [];
+  const posts  = data.posts  || [];
+  const jobs   = data.jobs   || [];
+
+  if (!people.length && !posts.length && !jobs.length) {
+    container.innerHTML = `<div class="search-empty">No results for "<strong>${escHtml(q)}</strong>"</div>`;
+    return;
+  }
+
+  let html = '';
+
+  if (people.length) {
+    html += `<div class="search-section-label">People</div>`;
+    html += people.map(p => `
+      <div class="search-result-item" onclick="closeModal('searchModalBackdrop');openUserProfile('${escHtml(p.id)}')">
+        <div class="search-result-icon">${avatarHtml(p.id, p.name, '', '', false)}</div>
+        <div class="search-result-body">
+          <div class="search-result-title">${escHtml(p.name)}</div>
+          ${p.subtitle ? `<div class="search-result-sub">${escHtml(p.subtitle)}</div>` : ''}
+        </div>
+        <span class="search-result-tag">${p.role === 'pro' ? 'Professional' : 'Student'}</span>
+      </div>`).join('');
+  }
+
+  if (posts.length) {
+    html += `<div class="search-section-label">Posts</div>`;
+    html += posts.map(p => `
+      <div class="search-result-item" onclick="closeModal('searchModalBackdrop');scrollToPost('${escHtml(p.id)}')">
+        <div class="search-result-icon">📝</div>
+        <div class="search-result-body">
+          <div class="search-result-title">${escHtml(p.authorName)}</div>
+          <div class="search-result-sub">${escHtml(p.content)}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  if (jobs.length) {
+    html += `<div class="search-section-label">Jobs</div>`;
+    html += jobs.map(j => `
+      <div class="search-result-item" onclick="closeModal('searchModalBackdrop');openJobFromSearch('${escHtml(j.id)}')">
+        <div class="search-result-icon">💼</div>
+        <div class="search-result-body">
+          <div class="search-result-title">${escHtml(j.title)}</div>
+          <div class="search-result-sub">${escHtml(j.company)}${j.location ? ' · ' + escHtml(j.location) : ''}</div>
+        </div>
+        <span class="search-result-tag">${escHtml(j.type)}</span>
+      </div>`).join('');
+  }
+
+  container.innerHTML = html;
+}
+
+function scrollToPost(postId) {
+  // Navigate to feed section and highlight the post
+  document.getElementById('feedSection')?.scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => {
+    const el = document.getElementById(`post-${postId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.outline = '2px solid var(--cyan)';
+      setTimeout(() => el.style.outline = '', 2000);
+    }
+  }, 500);
+}
+
+function openJobFromSearch(jobId) {
+  openJobDetail(jobId);
 }
 
 async function loadEndorsements(userId, canEndorse) {
