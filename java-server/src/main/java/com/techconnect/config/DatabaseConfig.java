@@ -237,6 +237,15 @@ public class DatabaseConfig {
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_emoji TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_text  TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_expires TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            // Muted users
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS muted_users (
+                    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    muted_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (user_id, muted_id)
+                )
+                """);
             // Private connection notes
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS connection_notes (

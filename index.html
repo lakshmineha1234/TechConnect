@@ -2739,6 +2739,16 @@
     </div>
   </div>
 
+  <!-- ══ MUTED USERS MODAL ══ -->
+  <div class="modal-backdrop" id="mutedUsersBackdrop" onclick="if(event.target===this)closeModal('mutedUsersBackdrop')">
+    <div class="modal" style="max-width:480px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('mutedUsersBackdrop')">✕</button>
+      <h2 class="modal-title">🔇 Muted Users</h2>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Posts from muted users are hidden from your feed. They don't know they're muted.</p>
+      <div id="mutedUsersContent"></div>
+    </div>
+  </div>
+
   <!-- ══ MY STATS MODAL ══ -->
   <div class="modal-backdrop" id="myStatsBackdrop" onclick="if(event.target===this)closeModal('myStatsBackdrop')">
     <div class="modal" style="max-width:560px;width:95%;max-height:80vh;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
@@ -4114,6 +4124,69 @@ async function loadConnectionNote(userId) {
   } catch { /* silently skip */ }
 }
 
+/* ── Mute Users ─────────────────────────────────────────────────────────── */
+let mutedUserIds = new Set();
+
+async function loadMutedUsers() {
+  try {
+    const list = await api('GET', '/api/users/muted');
+    mutedUserIds = new Set(list.map(u => u.id));
+  } catch {}
+}
+
+async function toggleMuteUser(userId, name) {
+  try {
+    const r = await api('POST', `/api/users/${userId}/mute`);
+    if (r.muted) {
+      mutedUserIds.add(userId);
+      showToast(`🔇 ${name} muted — their posts won't appear in your feed.`);
+      // Remove their visible posts from the current feed
+      document.querySelectorAll(`.feed-post[data-post-id]`).forEach(el => {
+        const inner = el.querySelector('.feed-post-name');
+        if (inner && el.querySelector(`[onclick*="openUserProfile('${userId}')"]`)) el.remove();
+      });
+    } else {
+      mutedUserIds.delete(userId);
+      showToast(`🔊 ${name} unmuted.`);
+    }
+    // Update any visible mute buttons for this user
+    document.querySelectorAll(`#pmenu-mute-${userId}`).forEach(btn => {
+      btn.textContent = (mutedUserIds.has(userId) ? '🔊 Unmute ' : '🔇 Mute ') + (name?.split(' ')[0] || 'user');
+    });
+  } catch (e) { showToast(e.message || 'Failed to update mute.', 'error'); }
+}
+
+async function openMutedUsersModal() {
+  closeDropdown();
+  const backdrop = document.getElementById('mutedUsersBackdrop');
+  const content  = document.getElementById('mutedUsersContent');
+  if (!backdrop) return;
+  content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">Loading…</div>';
+  openModal('mutedUsersBackdrop');
+  try {
+    const list = await api('GET', '/api/users/muted');
+    if (!list.length) {
+      content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">No muted users.</div>';
+      return;
+    }
+    content.innerHTML = list.map(u => {
+      const sub = u.role === 'pro' ? u.jobTitle || 'IT Professional' : u.institution || 'Student';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);">
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:.9rem;">${escHtml(u.name)}</div>
+          <div style="font-size:.78rem;color:var(--muted);">${escHtml(sub)}</div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:.78rem;padding:5px 12px;"
+          onclick="toggleMuteUser('${escHtml(u.id)}','${escHtml(u.name)}');this.closest('div[style]').remove();if(!document.getElementById('mutedUsersContent').children.length)document.getElementById('mutedUsersContent').innerHTML='<div style=text-align:center;padding:24px;color:var(--muted);>No muted users.</div>'">
+          🔊 Unmute
+        </button>
+      </div>`;
+    }).join('');
+  } catch {
+    content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--danger);">Failed to load.</div>';
+  }
+}
+
 async function saveConnectionNote(userId) {
   const ta     = document.getElementById(`conn-note-ta-${userId}`);
   const status = document.getElementById(`conn-note-status-${userId}`);
@@ -4173,6 +4246,7 @@ function renderNav() {
         <div class="dd-item" onclick="openRequestsModal();closeDropdown();"><span class="dd-icon">🔗</span> Connections</div>
         <div class="dd-item" onclick="openMyStats();closeDropdown();"><span class="dd-icon">📊</span> Post Analytics</div>
         <div class="dd-item" onclick="openLeaderboard();closeDropdown();"><span class="dd-icon">🏆</span> Leaderboard</div>
+        <div class="dd-item" onclick="openMutedUsersModal()"><span class="dd-icon">🔇</span> Muted Users</div>
         <div class="dd-divider"></div>
         <div class="dd-item danger" onclick="openModal('logoutBackdrop');closeDropdown();">
           <span class="dd-icon">🚪</span> Log Out
@@ -7036,6 +7110,7 @@ async function initFeed() {
   await loadMorePosts();
   loadTrendingTags();
   loadFollowedTags();
+  loadMutedUsers();
   // Fetch activity count for dashboard
   try {
     const r = await api('GET', '/api/posts/activity');
@@ -7218,14 +7293,20 @@ function renderPostCard(p) {
             <span>·</span><span>${escHtml(timeStr)}</span>
           </div>
         </div>
-        ${p.isMine ? `
         <div class="post-menu-wrap" id="pmenu-wrap-${escHtml(p.id)}">
           <button class="post-menu-btn" onclick="togglePostMenu('${escHtml(p.id)}')" title="More options">•••</button>
           <div class="post-menu-dropdown" id="pmenu-${escHtml(p.id)}">
-            ${!p.sharedFromId ? `<button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');startEditPost('${escHtml(p.id)}')">✏️ Edit post</button>` : ''}
-            <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');deletePost('${escHtml(p.id)}')">🗑️ Delete post</button>
+            ${p.isMine ? `
+              ${!p.sharedFromId ? `<button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');startEditPost('${escHtml(p.id)}')">✏️ Edit post</button>` : ''}
+              <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');deletePost('${escHtml(p.id)}')">🗑️ Delete post</button>
+            ` : `
+              <button class="post-menu-item" id="pmenu-mute-${escHtml(p.userId)}"
+                onclick="closePostMenu('${escHtml(p.id)}');toggleMuteUser('${escHtml(p.userId)}','${escHtml(p.name)}')">
+                ${mutedUserIds.has(p.userId) ? '🔊 Unmute' : '🔇 Mute'} ${escHtml(p.name?.split(' ')[0] || 'user')}
+              </button>
+            `}
           </div>
-        </div>` : ''}
+        </div>
       </div>
       ${p.content ? `<div class="feed-post-content" id="fpost-content-${escHtml(p.id)}" data-raw="${escHtml(p.content)}">${renderPostContent(p.content)}</div>` : ''}
       ${origEmbed}
