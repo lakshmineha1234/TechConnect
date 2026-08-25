@@ -230,6 +230,9 @@ public class DatabaseConfig {
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN is_hiring    INTEGER NOT NULL DEFAULT 0"); } catch (Exception ignored) {}
             // Add repost support to posts (idempotent)
             try { jdbc.execute("ALTER TABLE posts ADD COLUMN shared_from_id TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            // Add scheduled publish time to posts (idempotent)
+            try { jdbc.execute("ALTER TABLE posts ADD COLUMN scheduled_at TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            try { jdbc.execute("CREATE INDEX IF NOT EXISTS idx_posts_scheduled ON posts(scheduled_at) WHERE scheduled_at IS NOT NULL"); } catch (Exception ignored) {}
             // Add reaction type to post_likes (idempotent) — existing rows keep 'like' default
             try { jdbc.execute("ALTER TABLE post_likes ADD COLUMN reaction TEXT NOT NULL DEFAULT 'like'"); } catch (Exception ignored) {}
             // Add personal note to connection requests (idempotent)

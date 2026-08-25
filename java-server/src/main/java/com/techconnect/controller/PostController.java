@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
@@ -68,16 +69,36 @@ public class PostController {
             }
         }
 
+        // Optional scheduled publish time (ISO-8601, must be in the future)
+        String scheduledAt = null;
+        Object rawSched = body.get("scheduledAt");
+        if (rawSched != null && !rawSched.toString().isBlank()) {
+            String candidate = rawSched.toString().trim();
+            // Basic sanity: must be in the future
+            try {
+                if (!Instant.parse(candidate).isAfter(Instant.now()))
+                    return ResponseEntity.badRequest().body(Map.of("error", "Scheduled time must be in the future."));
+                scheduledAt = candidate;
+            } catch (Exception ignored) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid scheduledAt format (use ISO-8601)."));
+            }
+        }
+
         String id = UUID.randomUUID().toString();
-        jdbc.update("INSERT INTO posts (id, user_id, content) VALUES (?,?,?)", id, uid, content);
+        if (scheduledAt != null) {
+            jdbc.update("INSERT INTO posts (id, user_id, content, scheduled_at) VALUES (?,?,?,?)",
+                id, uid, content, scheduledAt);
+        } else {
+            jdbc.update("INSERT INTO posts (id, user_id, content) VALUES (?,?,?)", id, uid, content);
+        }
 
         // Extract and store hashtags
         extractHashtags(content).forEach(tag ->
             jdbc.update("INSERT OR IGNORE INTO post_hashtags (id, post_id, hashtag) VALUES (?,?,?)",
                 UUID.randomUUID().toString(), id, tag));
 
-        // Notify mentioned users
-        notifyMentions(content, uid, id);
+        // Notify mentioned users only for immediately-published posts
+        if (scheduledAt == null) notifyMentions(content, uid, id);
 
         // Insert poll options if present
         if (pollOpts != null) {
@@ -87,6 +108,9 @@ public class PostController {
             }
         }
 
+        if (scheduledAt != null) {
+            return ResponseEntity.ok(Map.of("scheduled", true, "id", id, "scheduledAt", scheduledAt));
+        }
         // Return the new post so the frontend can prepend it immediately
         Map<String, Object> post = buildPost(id, uid, content, Instant.now().toString(), 0, true);
         post.put("hasPoll", pollOpts != null);
@@ -123,12 +147,13 @@ public class PostController {
                 JOIN users u ON u.id = p.user_id
                 LEFT JOIN posts op ON op.id = p.shared_from_id AND p.shared_from_id != ''
                 LEFT JOIN users ou ON ou.id = op.user_id
-                WHERE p.user_id = ?
+                WHERE (p.scheduled_at IS NULL OR p.scheduled_at <= datetime('now'))
+                  AND (p.user_id = ?
                    OR p.user_id IN (
                        SELECT CASE WHEN requester_id = ? THEN recipient_id ELSE requester_id END
                        FROM connections WHERE status = 'accepted'
                          AND (requester_id = ? OR recipient_id = ?)
-                   )
+                   ))
                 ORDER BY p.created_at DESC
                 LIMIT 20 OFFSET ?
                 """, uid, uid, uid, uid, uid, uid, uid, offset);
@@ -641,6 +666,31 @@ public class PostController {
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map<String, Object> r : rows) {
             result.add(Map.of("tag", r.get("hashtag"), "count", toLong(r.get("cnt"))));
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    // ── Scheduled posts (mine, not yet published) ────────────────────────────
+    @GetMapping("/scheduled")
+    public ResponseEntity<List<Map<String, Object>>> getScheduled(HttpSession session) {
+        String uid = (String) session.getAttribute("userId");
+        if (uid == null) return ResponseEntity.status(401).build();
+
+        List<Map<String, Object>> rows = jdbc.queryForList("""
+            SELECT id, content, scheduled_at, created_at
+            FROM posts
+            WHERE user_id = ? AND scheduled_at > datetime('now')
+            ORDER BY scheduled_at ASC
+            """, uid);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> r : rows) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id",          r.get("id"));
+            m.put("content",     r.get("content"));
+            m.put("scheduledAt", r.get("scheduled_at"));
+            m.put("createdAt",   r.get("created_at"));
+            result.add(m);
         }
         return ResponseEntity.ok(result);
     }

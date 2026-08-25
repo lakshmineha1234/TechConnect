@@ -2608,12 +2608,21 @@
           <button class="poll-toggle-btn" id="pollToggleBtn" onclick="togglePollComposer()" title="Add a poll">
             📊 Poll
           </button>
+          <button class="poll-toggle-btn" id="schedToggleBtn" onclick="toggleScheduleComposer()" title="Schedule post">
+            🕐 Schedule
+          </button>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
           <span class="feed-char-count" id="feedCharCount">0 / 1000</span>
           <button class="btn btn-grad" style="font-size:.85rem;padding:8px 20px;"
-                  onclick="submitPost()">Post</button>
+                  id="postSubmitBtn" onclick="submitPost()">Post</button>
         </div>
+      </div>
+      <!-- Schedule datetime picker (hidden by default) -->
+      <div id="schedPickerArea" style="display:none;margin-top:10px;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;">
+        <span style="font-size:.85rem;color:var(--muted);">Schedule for:</span>
+        <input type="datetime-local" id="schedDatetimeInput" style="background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;font-size:.85rem;" onchange="onScheduleTimeChange(this)">
+        <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 10px;" onclick="clearSchedule()">✕ Clear</button>
       </div>
     </div>
 
@@ -2628,7 +2637,8 @@
       <button class="feed-tab active" id="ftab-feed"    onclick="switchFeedTab('feed')">🌐 Feed</button>
       <button class="feed-tab"        id="ftab-network" onclick="switchFeedTab('network')">👥 Network</button>
       <button class="feed-tab"        id="ftab-top"     onclick="switchFeedTab('top')">🔥 Top</button>
-      <button class="feed-tab"        id="ftab-saved"   onclick="switchFeedTab('saved')">🔖 Saved</button>
+      <button class="feed-tab"        id="ftab-saved"      onclick="switchFeedTab('saved')">🔖 Saved</button>
+      <button class="feed-tab"        id="ftab-scheduled"  onclick="switchFeedTab('scheduled')">📅 Scheduled</button>
     </div>
 
     <!-- Active hashtag filter banner -->
@@ -7241,10 +7251,41 @@ async function submitPost() {
     if (pollOptions.length < 2) { alert('Add at least 2 poll options.'); return; }
   }
 
+  // Collect scheduled time if set
+  const schedInput = document.getElementById('schedDatetimeInput');
+  let scheduledAt = null;
+  if (schedInput && schedInput.value) {
+    const dt = new Date(schedInput.value);
+    if (isNaN(dt.getTime()) || dt <= new Date()) {
+      alert('Scheduled time must be in the future.'); return;
+    }
+    scheduledAt = dt.toISOString();
+  }
+
   try {
     const body = { content };
     if (pollOptions) body.pollOptions = pollOptions;
+    if (scheduledAt)  body.scheduledAt  = scheduledAt;
     const post = await api('POST', '/api/posts', body);
+
+    // Handle scheduled post response
+    if (post.scheduled) {
+      const fmtTime = new Date(post.scheduledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+      showToast(`Post scheduled for ${fmtTime}!`, 'success');
+      textarea.value = '';
+      document.getElementById('feedCharCount').textContent = '0 / 1000';
+      document.getElementById('feedCharCount').className = 'feed-char-count';
+      clearSchedule();
+      if (pollOptions) {
+        const pa = document.getElementById('pollOptionsArea');
+        if (pa) pa.style.display = 'none';
+        const btn = document.getElementById('pollToggleBtn');
+        if (btn) btn.classList.remove('active');
+        initPollOptions();
+        document.getElementById('feedImageBtn').style.display = '';
+      }
+      return;
+    }
 
     // Upload image if one was selected
     if (pendingPostImage) {
@@ -7295,6 +7336,67 @@ async function submitPost() {
     const actEl = document.getElementById('dashActivityVal');
     if (actEl) actEl.textContent = feedActivity;
   } catch (e) { alert(e.message || 'Failed to post.'); }
+}
+
+function toggleScheduleComposer() {
+  const area = document.getElementById('schedPickerArea');
+  const btn  = document.getElementById('schedToggleBtn');
+  const isOpen = area.style.display !== 'none';
+  area.style.display = isOpen ? 'none' : 'flex';
+  btn.classList.toggle('active', !isOpen);
+  if (isOpen) clearSchedule();
+}
+
+function onScheduleTimeChange(input) {
+  const dt = new Date(input.value);
+  const submitBtn = document.getElementById('postSubmitBtn');
+  if (!isNaN(dt.getTime()) && dt > new Date()) {
+    if (submitBtn) submitBtn.textContent = 'Schedule';
+  } else {
+    if (submitBtn) submitBtn.textContent = 'Post';
+  }
+}
+
+function clearSchedule() {
+  const input = document.getElementById('schedDatetimeInput');
+  if (input) input.value = '';
+  const submitBtn = document.getElementById('postSubmitBtn');
+  if (submitBtn) submitBtn.textContent = 'Post';
+  const area = document.getElementById('schedPickerArea');
+  if (area) area.style.display = 'none';
+  const btn = document.getElementById('schedToggleBtn');
+  if (btn) btn.classList.remove('active');
+}
+
+async function loadScheduledPosts() {
+  const container = document.getElementById('feedPosts');
+  container.innerHTML = '<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">Loading…</div>';
+  try {
+    const posts = await api('GET', '/api/posts/scheduled');
+    if (!posts.length) {
+      container.innerHTML = '<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">No scheduled posts.</div>';
+      return;
+    }
+    container.innerHTML = posts.map(p => {
+      const fmtTime = new Date(p.scheduledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+      const preview = (p.content || '').slice(0, 200);
+      return `<div class="feed-post" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:.78rem;font-weight:700;color:var(--accent);">📅 Scheduled for ${escHtml(fmtTime)}</span>
+          <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 10px;color:var(--danger,#f44);" onclick="cancelScheduledPost('${escHtml(p.id)}')">Cancel</button>
+        </div>
+        <p style="font-size:.92rem;color:var(--text);white-space:pre-wrap;margin:0;">${escHtml(preview)}${p.content.length > 200 ? '…' : ''}</p>
+      </div>`;
+    }).join('');
+  } catch (e) { container.innerHTML = '<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">Failed to load scheduled posts.</div>'; }
+}
+
+async function cancelScheduledPost(id) {
+  if (!confirm('Cancel this scheduled post?')) return;
+  try {
+    await api('DELETE', `/api/posts/${id}`);
+    loadScheduledPosts();
+  } catch (e) { alert(e.message || 'Failed to cancel.'); }
 }
 
 /* ── Hashtag rendering & filtering ─────────────────────────────────────── */
@@ -7482,7 +7584,7 @@ let activeFeedTab = 'feed';
 function switchFeedTab(tab) {
   const prevTab = activeFeedTab;
   activeFeedTab = tab;
-  ['feed','network','top','saved'].forEach(t => {
+  ['feed','network','top','saved','scheduled'].forEach(t => {
     document.getElementById(`ftab-${t}`)?.classList.toggle('active', t === tab);
   });
 
@@ -7496,7 +7598,7 @@ function switchFeedTab(tab) {
     feedPostsEl .style.display = '';
     savedPostsEl.style.display = 'none';
     // Reload if we were on a different sub-feed (network/top) that wrote into feedPosts
-    if (prevTab === 'network' || prevTab === 'top') {
+    if (prevTab === 'network' || prevTab === 'top' || prevTab === 'scheduled') {
       feedOffset = 0;
       feedPostsEl.innerHTML = '';
       feedLoadMore.style.display = 'none';
@@ -7511,6 +7613,12 @@ function switchFeedTab(tab) {
     feedPostsEl.style.display = '';
     feedLoadMore.style.display = 'none';
     loadAltFeed(tab);
+  } else if (tab === 'scheduled') {
+    feedComposer.style.display = 'none';
+    savedPostsEl.style.display = 'none';
+    feedPostsEl.style.display = '';
+    feedLoadMore.style.display = 'none';
+    loadScheduledPosts();
   } else {
     feedComposer.style.display = 'none';
     feedPostsEl .style.display = 'none';
