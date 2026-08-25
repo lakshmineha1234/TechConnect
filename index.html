@@ -2085,6 +2085,13 @@
   .post-menu-item:hover { background: rgba(255,255,255,.06); }
   .post-menu-item.danger { color: var(--danger); }
   .post-menu-item.danger:hover { background: rgba(255,77,77,.08); }
+  .report-reason-btn {
+    display: block; width: 100%; text-align: left; padding: 10px 14px;
+    background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); font-size: .86rem; cursor: pointer; transition: background .12s, border-color .15s;
+  }
+  .report-reason-btn:hover { background: rgba(255,255,255,.07); }
+  .report-reason-btn.selected { border-color: var(--teal); background: rgba(0,229,200,.08); }
 
   /* Inline post edit mode */
   .feed-post-edit-area {
@@ -2736,6 +2743,29 @@
       <div id="leaderboardContent" style="overflow-y:auto;flex:1;padding-right:4px;">
         <div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>
       </div>
+    </div>
+  </div>
+
+  <!-- ══ REPORT POST MODAL ══ -->
+  <div class="modal-backdrop" id="reportPostBackdrop" onclick="if(event.target===this)closeModal('reportPostBackdrop')">
+    <div class="modal" style="max-width:420px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('reportPostBackdrop')">✕</button>
+      <h2 class="modal-title">🚩 Report Post</h2>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Help us understand what's wrong with this post.</p>
+      <input type="hidden" id="reportPostId">
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+        <label style="font-size:.85rem;color:var(--text);font-weight:600;margin-bottom:4px;">Reason</label>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Spam')">📢 Spam or self-promotion</button>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Harassment')">🚫 Harassment or bullying</button>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Misinformation')">❌ False or misleading information</button>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Inappropriate')">⚠️ Inappropriate or offensive content</button>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Other')">💬 Other</button>
+      </div>
+      <div id="reportOtherArea" style="display:none;margin-bottom:18px;">
+        <textarea id="reportOtherText" placeholder="Describe the issue (optional)…"
+          style="width:100%;min-height:72px;resize:vertical;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:10px;font-size:.85rem;box-sizing:border-box;"></textarea>
+      </div>
+      <button class="btn btn-grad" id="reportSubmitBtn" style="width:100%;opacity:.4;pointer-events:none;" onclick="submitReport()">Submit Report</button>
     </div>
   </div>
 
@@ -4152,6 +4182,40 @@ async function unpinPost() {
       showToast('Post unpinned', 'success');
     }
   } catch (e) { showToast('Could not unpin post', 'error'); }
+}
+
+/* ── Report Post ─────────────────────────────────────────────────────────── */
+function openReportModal(postId) {
+  document.getElementById('reportPostId').value = postId;
+  document.querySelectorAll('.report-reason-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('reportOtherArea').style.display = 'none';
+  document.getElementById('reportOtherText').value = '';
+  const btn = document.getElementById('reportSubmitBtn');
+  btn.style.opacity = '.4'; btn.style.pointerEvents = 'none';
+  openModal('reportPostBackdrop');
+}
+function selectReportReason(el, reason) {
+  document.querySelectorAll('.report-reason-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  const otherArea = document.getElementById('reportOtherArea');
+  otherArea.style.display = reason === 'Other' ? 'block' : 'none';
+  const btn = document.getElementById('reportSubmitBtn');
+  btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+}
+async function submitReport() {
+  const postId = document.getElementById('reportPostId').value;
+  const selected = document.querySelector('.report-reason-btn.selected');
+  if (!selected) return;
+  const reasonLabel = selected.textContent.trim().replace(/^[^ ]+ /, '');
+  const otherText   = document.getElementById('reportOtherText').value.trim();
+  const reason = reasonLabel === 'Other' && otherText ? otherText : reasonLabel;
+  try {
+    const r = await api('POST', `/api/posts/${postId}/report`, { reason });
+    closeModal('reportPostBackdrop');
+    showToast(r.message || 'Report submitted', 'success');
+  } catch (e) {
+    showToast(e.message || 'Could not submit report', 'error');
+  }
 }
 
 async function toggleMuteUser(userId, name) {
@@ -7332,6 +7396,7 @@ function renderPostCard(p) {
                 onclick="closePostMenu('${escHtml(p.id)}');toggleMuteUser('${escHtml(p.userId)}','${escHtml(p.name)}')">
                 ${mutedUserIds.has(p.userId) ? '🔊 Unmute' : '🔇 Mute'} ${escHtml(p.name?.split(' ')[0] || 'user')}
               </button>
+              <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');openReportModal('${escHtml(p.id)}')">🚩 Report post</button>
             `}
           </div>
         </div>

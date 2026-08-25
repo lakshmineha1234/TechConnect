@@ -441,6 +441,19 @@ public class DatabaseConfig {
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_certs_user ON certifications(user_id, display_order)");
 
+            // Post reports
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS post_reports (
+                    id         TEXT PRIMARY KEY,
+                    post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                    reporter_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    reason     TEXT NOT NULL DEFAULT '',
+                    created_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(post_id, reporter_id)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_reports_post ON post_reports(post_id, created_at)");
+
             // Purge any rows that reference deleted users (guards against external deletes
             // that bypass the server's foreign-key enforcement).
             jdbc.update("DELETE FROM connections   WHERE requester_id NOT IN (SELECT id FROM users) OR recipient_id  NOT IN (SELECT id FROM users)");
