@@ -233,6 +233,10 @@ public class DatabaseConfig {
             // Add scheduled publish time to posts (idempotent)
             try { jdbc.execute("ALTER TABLE posts ADD COLUMN scheduled_at TEXT DEFAULT NULL"); } catch (Exception ignored) {}
             try { jdbc.execute("CREATE INDEX IF NOT EXISTS idx_posts_scheduled ON posts(scheduled_at) WHERE scheduled_at IS NOT NULL"); } catch (Exception ignored) {}
+            // User status (emoji + short message + optional expiry)
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_emoji TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_text  TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_expires TEXT DEFAULT NULL"); } catch (Exception ignored) {}
             // Add reaction type to post_likes (idempotent) — existing rows keep 'like' default
             try { jdbc.execute("ALTER TABLE post_likes ADD COLUMN reaction TEXT NOT NULL DEFAULT 'like'"); } catch (Exception ignored) {}
             // Add personal note to connection requests (idempotent)

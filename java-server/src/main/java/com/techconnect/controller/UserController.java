@@ -107,12 +107,25 @@ public class UserController {
             if (mutual != null && mutual > 0) connDegree = 2;
         }
 
-        result.put("connStatus",  connStatus);
-        result.put("connId",      connId);
-        result.put("isSelf",      me.equals(id));
-        result.put("connDegree",  connDegree);
-        result.put("openToWork",  toBool(p.get("open_to_work")));
-        result.put("isHiring",    toBool(p.get("is_hiring")));
+        result.put("connStatus",     connStatus);
+        result.put("connId",         connId);
+        result.put("isSelf",         me.equals(id));
+        result.put("connDegree",     connDegree);
+        result.put("openToWork",     toBool(p.get("open_to_work")));
+        result.put("isHiring",       toBool(p.get("is_hiring")));
+        // User status — respect expiry
+        String statusEmoji   = s(p, "status_emoji");
+        String statusText    = s(p, "status_text");
+        String statusExpires = s(p, "status_expires");
+        boolean statusActive = !statusText.isBlank() || !statusEmoji.isBlank();
+        if (statusActive && !statusExpires.isBlank()) {
+            try {
+                if (java.time.Instant.parse(statusExpires).isBefore(java.time.Instant.now()))
+                    statusActive = false;
+            } catch (Exception ignored) {}
+        }
+        result.put("statusEmoji",    statusActive ? statusEmoji   : "");
+        result.put("statusText",     statusActive ? statusText    : "");
         return ResponseEntity.ok(result);
     }
 

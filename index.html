@@ -3574,6 +3574,26 @@
         <input type="checkbox" id="pfIsHiring">
         <span class="status-toggle-label">🔵 Actively Hiring — show companies and students you're recruiting</span>
       </label>
+      <!-- Custom Status -->
+      <div style="margin-top:14px;">
+        <div style="font-size:.8rem;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">Custom Status</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="pfStatusEmoji" maxlength="2" placeholder="😊"
+                 style="width:48px;text-align:center;font-size:1.3rem;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 4px;color:var(--text);">
+          <input type="text" id="pfStatusText" maxlength="120" placeholder="e.g. Open to collaborations…"
+                 style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:.9rem;">
+          <button class="btn btn-ghost" style="font-size:.78rem;padding:6px 10px;white-space:nowrap;" onclick="clearUserStatus()">Clear</button>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:.8rem;color:var(--muted);">Presets:</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="statusPresets">
+            <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 8px;" onclick="applyStatusPreset('🟢','Available for mentoring')">🟢 Mentoring</button>
+            <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 8px;" onclick="applyStatusPreset('💼','Actively job hunting')">💼 Job hunting</button>
+            <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 8px;" onclick="applyStatusPreset('📚','Studying / Busy')">📚 Busy</button>
+            <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 8px;" onclick="applyStatusPreset('🚀','Working on a project')">🚀 On a project</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="section-heading">Skills</div>
@@ -4111,6 +4131,7 @@ function renderNav() {
       </div>
       <div class="dropdown" id="navDropdown">
         <div class="dd-item" onclick="openProfile()"><span class="dd-icon">👤</span> My Profile</div>
+        ${(currentUser.statusEmoji || currentUser.statusText) ? `<div class="dd-item" onclick="openProfile();closeDropdown();" style="font-size:.8rem;color:var(--muted);padding:2px 16px 8px 36px;cursor:pointer;" title="Edit status">${escHtml((currentUser.statusEmoji||'') + ' ' + (currentUser.statusText||'')).trim()}</div>` : ''}
         <div class="dd-item" onclick="openRequestsModal();closeDropdown();"><span class="dd-icon">🔗</span> Connections</div>
         <div class="dd-item" onclick="openMyStats();closeDropdown();"><span class="dd-icon">📊</span> Post Analytics</div>
         <div class="dd-item" onclick="openLeaderboard();closeDropdown();"><span class="dd-icon">🏆</span> Leaderboard</div>
@@ -4743,6 +4764,8 @@ async function openProfile() {
   document.getElementById('pfHiringRow').style.display = isStudent ? 'none' : '';
   document.getElementById('pfOpenToWork').checked = !!u.openToWork;
   document.getElementById('pfIsHiring')  .checked = !!u.isHiring;
+  document.getElementById('pfStatusEmoji').value  = u.statusEmoji || '';
+  document.getElementById('pfStatusText') .value  = u.statusText  || '';
 
   if (isStudent) {
     document.getElementById('pfInstitution').value = u.institution || '';
@@ -4793,6 +4816,18 @@ function removeSkill(idx) {
   renderSkillTags();
 }
 
+function applyStatusPreset(emoji, text) {
+  document.getElementById('pfStatusEmoji').value = emoji;
+  document.getElementById('pfStatusText') .value = text;
+}
+
+async function clearUserStatus() {
+  document.getElementById('pfStatusEmoji').value = '';
+  document.getElementById('pfStatusText') .value = '';
+  try { await api('DELETE', '/api/profile/status'); } catch {}
+  if (currentUser) { currentUser.statusEmoji = ''; currentUser.statusText = ''; }
+}
+
 async function saveProfile() {
   if (!currentUser) return;
 
@@ -4829,12 +4864,19 @@ async function saveProfile() {
   try {
     await api('PUT', '/api/profile', payload);
 
+    // Save custom status separately
+    const sEmoji = document.getElementById('pfStatusEmoji').value.trim();
+    const sText  = document.getElementById('pfStatusText') .value.trim();
+    await api('PUT', '/api/profile/status', { statusEmoji: sEmoji, statusText: sText });
+
     // update local cache
     Object.assign(currentUser, payload, {
-      name:      [fn, ln].filter(Boolean).join(' ') || currentUser.name,
-      skills:    pendingSkills,
-      openToWork: document.getElementById('pfOpenToWork').checked,
-      isHiring:   document.getElementById('pfIsHiring').checked,
+      name:        [fn, ln].filter(Boolean).join(' ') || currentUser.name,
+      skills:      pendingSkills,
+      openToWork:  document.getElementById('pfOpenToWork').checked,
+      isHiring:    document.getElementById('pfIsHiring').checked,
+      statusEmoji: sEmoji,
+      statusText:  sText,
     });
     currentUser.firstName = fn;
     currentUser.lastName  = ln;
@@ -5191,6 +5233,7 @@ function renderUserProfileModal(p) {
           ${p.isHiring   ? `<span class="badge-hiring">🔵 Hiring</span>` : ''}
         </div>
         ${p.location ? `<div style="font-size:.82rem;color:var(--muted);margin-top:6px;">📍 ${escHtml(p.location)}</div>` : ''}
+        ${(p.statusEmoji || p.statusText) ? `<div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;font-size:.82rem;color:var(--text);">${p.statusEmoji ? `<span>${escHtml(p.statusEmoji)}</span>` : ''}<span>${escHtml(p.statusText)}</span></div>` : ''}
         <div class="uprofile-actions">${actionBtns}</div>
       </div>
     </div>

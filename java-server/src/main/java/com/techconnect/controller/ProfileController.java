@@ -62,8 +62,11 @@ public class ProfileController {
         result.put("linkedin",    str(p, "linkedin"));
         result.put("github",      str(p, "github"));
         result.put("skills",      skills);
-        result.put("openToWork",  toBoolean(p.get("open_to_work")));
-        result.put("isHiring",    toBoolean(p.get("is_hiring")));
+        result.put("openToWork",     toBoolean(p.get("open_to_work")));
+        result.put("isHiring",       toBoolean(p.get("is_hiring")));
+        result.put("statusEmoji",    str(p, "status_emoji"));
+        result.put("statusText",     str(p, "status_text"));
+        result.put("statusExpires",  str(p, "status_expires"));
 
         return ResponseEntity.ok(result);
     }
@@ -127,6 +130,37 @@ public class ProfileController {
         }
 
         return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    // ── PUT /api/profile/status ───────────────────────────────────────────────
+    @PutMapping("/status")
+    public ResponseEntity<Map<String, Object>> setStatus(
+            @RequestBody Map<String, Object> body, HttpSession session) {
+
+        String uid = (String) session.getAttribute("userId");
+        if (uid == null) return err(401, "Not authenticated.");
+
+        String emoji   = truncate(clean(body, "statusEmoji"),  10);
+        String text    = truncate(clean(body, "statusText"),   120);
+        String expires = truncate(clean(body, "statusExpires"), 30); // ISO-8601 or blank
+
+        jdbc.update("""
+            UPDATE profiles SET status_emoji=?, status_text=?, status_expires=? WHERE user_id=?
+            """, emoji, text, expires.isBlank() ? null : expires, uid);
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    // ── DELETE /api/profile/status ────────────────────────────────────────────
+    @DeleteMapping("/status")
+    public ResponseEntity<Map<String, Object>> clearStatus(HttpSession session) {
+        String uid = (String) session.getAttribute("userId");
+        if (uid == null) return err(401, "Not authenticated.");
+        jdbc.update("UPDATE profiles SET status_emoji='', status_text='', status_expires=NULL WHERE user_id=?", uid);
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    private static String truncate(String s, int max) {
+        return s.length() > max ? s.substring(0, max) : s;
     }
 
     private static boolean toBoolean(Object v) {
