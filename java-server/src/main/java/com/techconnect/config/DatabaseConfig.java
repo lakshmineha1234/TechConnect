@@ -237,6 +237,16 @@ public class DatabaseConfig {
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_emoji TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_text  TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_expires TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            // Hashtag following
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS followed_hashtags (
+                    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    hashtag TEXT NOT NULL,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (user_id, hashtag)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_followed_ht_user ON followed_hashtags(user_id)");
             // Add reaction type to post_likes (idempotent) — existing rows keep 'like' default
             try { jdbc.execute("ALTER TABLE post_likes ADD COLUMN reaction TEXT NOT NULL DEFAULT 'like'"); } catch (Exception ignored) {}
             // Add personal note to connection requests (idempotent)

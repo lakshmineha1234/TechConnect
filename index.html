@@ -2639,6 +2639,7 @@
       <button class="feed-tab"        id="ftab-top"     onclick="switchFeedTab('top')">🔥 Top</button>
       <button class="feed-tab"        id="ftab-saved"      onclick="switchFeedTab('saved')">🔖 Saved</button>
       <button class="feed-tab"        id="ftab-scheduled"  onclick="switchFeedTab('scheduled')">📅 Scheduled</button>
+      <button class="feed-tab"        id="ftab-following"  onclick="switchFeedTab('following')">★ Following</button>
     </div>
 
     <!-- Active hashtag filter banner -->
@@ -6995,6 +6996,7 @@ async function initFeed() {
   if (av && currentUser) refreshAvatarEl(av, currentUser.id, currentUser.name, true);
   await loadMorePosts();
   loadTrendingTags();
+  loadFollowedTags();
   // Fetch activity count for dashboard
   try {
     const r = await api('GET', '/api/posts/activity');
@@ -7563,19 +7565,95 @@ document.addEventListener('click', e => {
   if (dd && dd.style.display !== 'none' && !dd.contains(e.target)) hideMentionDropdown();
 });
 
+// Hashtags the current user follows (loaded on init)
+let followedTags = new Set();
+
+async function loadFollowedTags() {
+  try {
+    const tags = await api('GET', '/api/hashtags/followed');
+    followedTags = new Set(tags);
+    updateFollowingTabBadge();
+  } catch {}
+}
+
+function updateFollowingTabBadge() {
+  const btn = document.getElementById('ftab-following');
+  if (btn) btn.textContent = followedTags.size > 0
+    ? `★ Following (${followedTags.size})`
+    : '★ Following';
+}
+
+async function toggleFollowHashtag(tag, e) {
+  e?.stopPropagation();
+  try {
+    const r = await api('POST', `/api/hashtags/follow/${encodeURIComponent(tag)}`);
+    if (r.following) followedTags.add(tag); else followedTags.delete(tag);
+    updateFollowingTabBadge();
+    // Refresh the trending strip to update button state
+    loadTrendingTags();
+  } catch {}
+}
+
 async function loadTrendingTags() {
   try {
     const tags = await api('GET', '/api/posts/trending-tags');
     const strip = document.getElementById('trendingTags');
     const wrap  = document.getElementById('trendingStrip');
     if (!tags.length) { wrap.style.display = 'none'; return; }
-    strip.innerHTML = tags.map(t =>
-      `<span class="trending-tag${activeHashtag === t.tag ? ' active' : ''}"
-             onclick="filterByHashtag('${escHtml(t.tag)}')">#${escHtml(t.tag)}
-       <span style="opacity:.6;font-size:.72rem;">${t.count}</span></span>`
-    ).join('');
+    strip.innerHTML = tags.map(t => {
+      const isFollowed = followedTags.has(t.tag);
+      return `<span class="trending-tag${activeHashtag === t.tag ? ' active' : ''}" style="display:inline-flex;align-items:center;gap:4px;">
+        <span onclick="filterByHashtag('${escHtml(t.tag)}')">#${escHtml(t.tag)} <span style="opacity:.6;font-size:.72rem;">${t.count}</span></span>
+        <button onclick="toggleFollowHashtag('${escHtml(t.tag)}',event)" title="${isFollowed ? 'Unfollow' : 'Follow'} #${escHtml(t.tag)}"
+          style="background:none;border:none;cursor:pointer;font-size:.82rem;color:${isFollowed ? 'var(--cyan)' : 'var(--muted)'};padding:0 2px;line-height:1;">${isFollowed ? '★' : '☆'}</button>
+      </span>`;
+    }).join('');
     wrap.style.display = '';
   } catch { document.getElementById('trendingStrip').style.display = 'none'; }
+}
+
+async function loadFollowingFeed() {
+  const container = document.getElementById('feedPosts');
+  const loadMore  = document.getElementById('feedLoadMore');
+
+  if (followedTags.size === 0) {
+    container.innerHTML = `<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">
+      <div style="font-size:2rem;margin-bottom:12px;">☆</div>
+      <div style="font-weight:600;margin-bottom:6px;">No followed hashtags yet</div>
+      <div style="font-size:.88rem;">Click the ☆ next to any trending tag to follow it.</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>`;
+  loadMore.style.display = 'none';
+  let offset = 0;
+
+  const fetchPage = async () => {
+    try {
+      const posts = await api('GET', `/api/posts/following?offset=${offset}`);
+      if (offset === 0) container.innerHTML = '';
+      if (!posts.length && offset === 0) {
+        const tagList = [...followedTags].map(t => `<span class="trending-tag" onclick="filterByHashtag('${escHtml(t)}')">#${escHtml(t)}</span>`).join(' ');
+        container.innerHTML = `<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">
+          <div>No posts yet for your followed tags:</div>
+          <div style="margin-top:10px;">${tagList}</div>
+        </div>`;
+        return;
+      }
+      posts.forEach(p => {
+        container.insertAdjacentHTML('beforeend', renderPostCard(p));
+        if (p.hasPoll) loadPollData(p.id);
+      });
+      observePostCards();
+      offset += posts.length;
+      loadMore.style.display = posts.length === 20 ? '' : 'none';
+      loadMore.onclick = () => fetchPage();
+    } catch {
+      container.innerHTML = '<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">Failed to load.</div>';
+    }
+  };
+  fetchPage();
 }
 
 async function filterByHashtag(tag) {
@@ -7627,7 +7705,7 @@ let activeFeedTab = 'feed';
 function switchFeedTab(tab) {
   const prevTab = activeFeedTab;
   activeFeedTab = tab;
-  ['feed','network','top','saved','scheduled'].forEach(t => {
+  ['feed','network','top','saved','scheduled','following'].forEach(t => {
     document.getElementById(`ftab-${t}`)?.classList.toggle('active', t === tab);
   });
 
@@ -7662,6 +7740,12 @@ function switchFeedTab(tab) {
     feedPostsEl.style.display = '';
     feedLoadMore.style.display = 'none';
     loadScheduledPosts();
+  } else if (tab === 'following') {
+    feedComposer.style.display = 'none';
+    savedPostsEl.style.display = 'none';
+    feedPostsEl.style.display = '';
+    feedLoadMore.style.display = 'none';
+    loadFollowingFeed();
   } else {
     feedComposer.style.display = 'none';
     feedPostsEl .style.display = 'none';
