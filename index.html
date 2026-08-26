@@ -4718,7 +4718,8 @@ async function doForgotPassword() {
     const r = await api('POST', '/api/auth/forgot-password', { email });
     if (r.resetLink) {
       linkEl.textContent = r.resetLink;
-      linkEl.href = r.resetLink;
+      linkEl.href = 'javascript:void(0)';
+      linkEl.onclick = () => { closeModal('forgotPwBackdrop'); document.getElementById('resetPwToken').value = new URL(r.resetLink).searchParams.get('reset'); openModal('resetPwBackdrop'); };
       linkBox.style.display = 'block';
       sucEl.textContent = r.emailSent ? 'Link also sent to your email.' : 'Click the link below to reset your password:';
       sucEl.style.display = 'block';
