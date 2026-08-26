@@ -2548,16 +2548,83 @@
   .project-edit-btn.del:hover { border-color: var(--danger); color: var(--danger); }
 
   /* ── Responsive ── */
-  @media (max-width: 600px) {
-    nav { padding: 0 20px; }
-    .hero { padding: 60px 20px 80px; }
+  @media (max-width: 640px) {
+    /* Nav */
+    nav { padding: 0 14px; height: 56px; gap: 8px; }
+    .nav-brand { font-size: 1.1rem; }
+    .nav-search-wrap { flex: 1; min-width: 0; }
+    .nav-search-input { font-size: .82rem; }
+    .nav-actions { gap: 6px; }
+    .nav-actions .btn { font-size: .78rem; padding: 6px 12px; }
+    .notif-bell-btn { font-size: 1.1rem; }
+
+    /* Hero */
+    .hero { padding: 48px 18px 64px; }
+    .hero h1 { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+    .hero p  { font-size: .95rem; }
+    .hero-btns { flex-direction: column; align-items: stretch; gap: 10px; }
+    .hero-btns .btn { text-align: center; padding: 13px; }
+
+    /* Feed */
+    .feed-section { padding: 0 12px; margin-bottom: 40px; }
+    .feed-composer { padding: 12px; }
+    .feed-composer-avatar { width: 34px; height: 34px; font-size: .72rem; }
+    .feed-composer-footer { flex-wrap: wrap; gap: 8px; }
+    .feed-composer-footer > div:first-child { flex-wrap: wrap; }
+    .feed-image-btn, .poll-toggle-btn { font-size: .78rem; padding: 5px 10px; }
+
+    /* Feed tabs — scrollable row */
+    .feed-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+    .feed-tab  { font-size: .78rem; padding: 10px 13px; white-space: nowrap; }
+
+    /* Post cards */
+    .feed-post { padding: 14px 12px; }
+    .feed-post-name { font-size: .88rem; }
+    .feed-post-content { font-size: .9rem; }
+    .feed-post-actions { gap: 4px; flex-wrap: wrap; }
+    .feed-action-btn { font-size: .78rem; padding: 5px 8px; }
+    .post-image { border-radius: 8px; }
+
+    /* Modals — full width on mobile */
+    .modal-backdrop { padding: 10px 0 0; align-items: flex-end; }
+    .modal {
+      padding: 20px 16px 28px;
+      border-radius: 18px 18px 0 0;
+      max-height: 92vh;
+      overflow-y: auto;
+      width: 100%;
+      max-width: 100% !important;
+    }
+    .modal-close { top: 14px; right: 14px; }
+
+    /* Dashboard */
     .dash-grid { grid-template-columns: 1fr 1fr; }
     .dash-grid .dash-card:nth-child(n) { grid-column: auto; }
+
+    /* Profile */
     .field-row { grid-template-columns: 1fr; }
     .profile-avatar-section { flex-direction: column; text-align: center; }
-    .modal { padding: 24px; }
+    .uprofile-hero { flex-direction: column; align-items: center; text-align: center; }
+    .uprofile-actions { justify-content: center; flex-wrap: wrap; }
+    .uprofile-name { justify-content: center; }
+
+    /* Search */
     .profiles-grid { grid-template-columns: 1fr; }
-    .search-bar-wrap { padding: 6px 6px 6px 14px; }
+    .search-bar-wrap { padding: 6px 6px 6px 12px; }
+
+    /* Chat */
+    .chat-panel { padding: 8px; }
+    .chat-msg-bubble { max-width: 85%; }
+
+    /* Jobs / Events */
+    .job-card { padding: 14px; }
+    .jobs-grid { grid-template-columns: 1fr; }
+
+    /* Avatar dropdown */
+    .dropdown { right: 8px; left: 8px; width: auto; }
+
+    /* Composer char count */
+    #feedCharCount { font-size: .75rem; }
   }
 </style>
 </head>
