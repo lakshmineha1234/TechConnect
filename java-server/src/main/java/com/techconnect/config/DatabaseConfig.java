@@ -441,6 +441,15 @@ public class DatabaseConfig {
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_certs_user ON certifications(user_id, display_order)");
 
+            // Post drafts — one per user, upserted on save
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS post_drafts (
+                    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                    content    TEXT NOT NULL DEFAULT '',
+                    updated_at TEXT DEFAULT (datetime('now'))
+                )
+                """);
+
             // Post reports
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS post_reports (

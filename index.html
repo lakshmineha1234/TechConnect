@@ -2596,6 +2596,10 @@
                   placeholder="Share an update, article, or thought with your network…"
                   oninput="onFeedInput(this);onMentionInput(this)" maxlength="1000"></textarea>
       </div>
+      <div id="draftBanner" style="display:none;margin-top:8px;padding:7px 12px;background:rgba(0,229,200,.08);border:1px solid rgba(0,229,200,.25);border-radius:8px;font-size:.82rem;color:var(--teal);display:none;align-items:center;justify-content:space-between;gap:10px;">
+        <span>📝 Draft restored</span>
+        <button class="btn btn-ghost" style="font-size:.78rem;padding:3px 10px;color:var(--muted);" onclick="discardDraft()">Discard</button>
+      </div>
       <div class="feed-image-preview" id="feedImagePreview">
         <img id="feedImageThumb" src="" alt="preview" />
         <button class="feed-image-remove" onclick="clearPostImage()" title="Remove image">✕</button>
@@ -2619,7 +2623,10 @@
             🕐 Schedule
           </button>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-ghost" id="draftSaveBtn" title="Save draft"
+                  style="font-size:.82rem;padding:6px 14px;display:none;"
+                  onclick="saveDraft()">💾 Save draft</button>
           <span class="feed-char-count" id="feedCharCount">0 / 1000</span>
           <button class="btn btn-grad" style="font-size:.85rem;padding:8px 20px;"
                   id="postSubmitBtn" onclick="submitPost()">Post</button>
@@ -4182,6 +4189,36 @@ async function unpinPost() {
       showToast('Post unpinned', 'success');
     }
   } catch (e) { showToast('Could not unpin post', 'error'); }
+}
+
+/* ── Post Drafts ─────────────────────────────────────────────────────────── */
+async function loadDraft() {
+  try {
+    const d = await api('GET', '/api/drafts');
+    if (!d.content) return;
+    const ta = document.getElementById('feedTextarea');
+    if (!ta || ta.value.trim()) return; // don't overwrite if user already typed
+    ta.value = d.content;
+    onFeedInput(ta);
+    const banner = document.getElementById('draftBanner');
+    if (banner) { banner.style.display = 'flex'; }
+  } catch {}
+}
+async function saveDraft() {
+  const content = document.getElementById('feedTextarea')?.value || '';
+  if (!content.trim()) return;
+  try {
+    await api('POST', '/api/drafts', { content });
+    const btn = document.getElementById('draftSaveBtn');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Saved'; setTimeout(() => btn.textContent = orig, 1800); }
+  } catch { showToast('Could not save draft', 'error'); }
+}
+async function discardDraft() {
+  try { await api('DELETE', '/api/drafts'); } catch {}
+  const ta = document.getElementById('feedTextarea');
+  if (ta) { ta.value = ''; onFeedInput(ta); }
+  const banner = document.getElementById('draftBanner');
+  if (banner) banner.style.display = 'none';
 }
 
 /* ── Report Post ─────────────────────────────────────────────────────────── */
@@ -7200,6 +7237,7 @@ async function initFeed() {
   loadTrendingTags();
   loadFollowedTags();
   loadMutedUsers();
+  loadDraft();
   // Fetch activity count for dashboard
   try {
     const r = await api('GET', '/api/posts/activity');
@@ -7533,6 +7571,9 @@ async function submitPost() {
       textarea.value = '';
       document.getElementById('feedCharCount').textContent = '0 / 1000';
       document.getElementById('feedCharCount').className = 'feed-char-count';
+      document.getElementById('draftSaveBtn').style.display = 'none';
+      document.getElementById('draftBanner').style.display = 'none';
+      api('DELETE', '/api/drafts').catch(() => {});
       clearSchedule();
       if (pollOptions) {
         const pa = document.getElementById('pollOptionsArea');
@@ -7578,6 +7619,9 @@ async function submitPost() {
     textarea.value = '';
     document.getElementById('feedCharCount').textContent = '0 / 1000';
     document.getElementById('feedCharCount').className = 'feed-char-count';
+    document.getElementById('draftSaveBtn').style.display = 'none';
+    document.getElementById('draftBanner').style.display = 'none';
+    api('DELETE', '/api/drafts').catch(() => {});
     // Reset poll composer
     if (pollOptions) {
       const pa = document.getElementById('pollOptionsArea');
@@ -8440,6 +8484,8 @@ function onFeedInput(el) {
   if (!cc) return;
   cc.textContent = `${len} / 1000`;
   cc.className = len > 900 ? 'feed-char-count over' : len > 750 ? 'feed-char-count warn' : 'feed-char-count';
+  const draftBtn = document.getElementById('draftSaveBtn');
+  if (draftBtn) draftBtn.style.display = len > 0 ? 'inline-flex' : 'none';
 }
 
 /* ── Live New Members ── */
