@@ -61,9 +61,19 @@ public class PasswordResetController {
                 token, uid, expiresAt);
 
         String resetLink = appUrl + "/?reset=" + token;
-        sendResetEmail(email, firstName, resetLink);
 
-        return ResponseEntity.ok(Map.of("ok", true, "message", "If that email is registered, a reset link has been sent."));
+        // Try to send email if SMTP is configured; always return the link for dev/demo use
+        boolean emailSent = false;
+        if (fromEmail != null && !fromEmail.isBlank()) {
+            sendResetEmail(email, firstName, resetLink);
+            emailSent = true;
+        }
+
+        Map<String, Object> resp = new LinkedHashMap<>();
+        resp.put("ok", true);
+        resp.put("resetLink", resetLink);
+        resp.put("emailSent", emailSent);
+        return ResponseEntity.ok(resp);
     }
 
     // POST /api/auth/reset-password  { token, password }

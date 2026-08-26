@@ -3283,7 +3283,11 @@
     </div>
     <p class="form-error" id="forgotPwError"></p>
     <p id="forgotPwSuccess" style="display:none;font-size:.85rem;color:var(--teal);margin-bottom:8px;"></p>
-    <button class="btn btn-grad" id="forgotPwBtn" style="width:100%;padding:13px;" onclick="doForgotPassword()">Send Reset Link</button>
+    <div id="forgotPwLinkBox" style="display:none;margin-bottom:12px;padding:12px;background:var(--surface2);border:1px solid rgba(0,229,200,.3);border-radius:10px;">
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:6px;">🔗 Your password reset link — click it to set a new password:</div>
+      <a id="forgotPwLink" href="#" style="font-size:.82rem;color:var(--teal);word-break:break-all;"></a>
+    </div>
+    <button class="btn btn-grad" id="forgotPwBtn" style="width:100%;padding:13px;" onclick="doForgotPassword()">Get Reset Link</button>
     <p class="text-center mt-8" style="font-size:.85rem;color:var(--muted);margin-top:14px;">
       Remembered it? <a href="#" style="color:var(--teal);" onclick="event.preventDefault();closeModal('forgotPwBackdrop');openModal('loginBackdrop')">Log in</a>
     </p>
@@ -4701,21 +4705,28 @@ async function initSession() {
 ════════════════════════════════════════ */
 /* ── Forgot / Reset Password ─────────────────────────────────────────────── */
 async function doForgotPassword() {
-  const email = document.getElementById('forgotPwEmail').value.trim();
-  const errEl = document.getElementById('forgotPwError');
-  const sucEl = document.getElementById('forgotPwSuccess');
-  const btn   = document.getElementById('forgotPwBtn');
-  errEl.textContent = ''; sucEl.style.display = 'none';
+  const email   = document.getElementById('forgotPwEmail').value.trim();
+  const errEl   = document.getElementById('forgotPwError');
+  const sucEl   = document.getElementById('forgotPwSuccess');
+  const linkBox = document.getElementById('forgotPwLinkBox');
+  const linkEl  = document.getElementById('forgotPwLink');
+  const btn     = document.getElementById('forgotPwBtn');
+  errEl.textContent = ''; sucEl.style.display = 'none'; linkBox.style.display = 'none';
   if (!email) { errEl.textContent = 'Please enter your email.'; return; }
-  btn.disabled = true; btn.textContent = 'Sending…';
+  btn.disabled = true; btn.textContent = 'Generating…';
   try {
     const r = await api('POST', '/api/auth/forgot-password', { email });
-    sucEl.textContent = r.message || 'Reset link sent! Check your inbox.';
-    sucEl.style.display = 'block';
-    btn.textContent = 'Sent ✓';
+    if (r.resetLink) {
+      linkEl.textContent = r.resetLink;
+      linkEl.href = r.resetLink;
+      linkBox.style.display = 'block';
+      sucEl.textContent = r.emailSent ? 'Link also sent to your email.' : 'Click the link below to reset your password:';
+      sucEl.style.display = 'block';
+    }
+    btn.textContent = 'Done ✓';
   } catch (e) {
-    errEl.textContent = e.message || 'Something went wrong.';
-    btn.disabled = false; btn.textContent = 'Send Reset Link';
+    errEl.textContent = e.message || 'Something went wrong. Check the email and try again.';
+    btn.disabled = false; btn.textContent = 'Get Reset Link';
   }
 }
 
