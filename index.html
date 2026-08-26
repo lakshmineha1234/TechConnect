@@ -2550,12 +2550,32 @@
   /* ── Responsive ── */
   @media (max-width: 640px) {
     /* Nav */
-    nav { padding: 0 14px; height: 56px; gap: 8px; }
-    .nav-brand { font-size: 1.1rem; }
-    .nav-search-wrap { flex: 1; min-width: 0; }
-    .nav-search-input { font-size: .82rem; }
-    .nav-actions { gap: 6px; }
-    .nav-actions .btn { font-size: .78rem; padding: 6px 12px; }
+    nav { padding: 0 12px; height: 54px; gap: 6px; }
+    .nav-brand { font-size: 1rem; flex-shrink: 0; }
+
+    /* Search bar — icon tap only, no visible text box */
+    .nav-search-wrap { flex: 1; min-width: 0; max-width: 120px; }
+    .nav-search-input { font-size: .8rem; padding: 6px 8px; }
+
+    /* Nav action buttons — icon only, no text */
+    .nav-actions { gap: 4px; }
+    .nav-actions .btn { font-size: .82rem; padding: 6px 10px; }
+
+    /* Theme, chat, notif — compact icon buttons */
+    .theme-toggle { font-size: 1.1rem !important; padding: 4px 6px !important; background: none !important; border: none !important; }
+    .chat-btn     { font-size: 1.1rem !important; padding: 4px 6px !important; }
+    .notif-btn    { font-size: 1.1rem !important; padding: 4px 6px !important; }
+
+    /* Avatar pill — hide name/role/chevron, just show the circle */
+    .avatar-pill { padding: 3px 6px 3px 3px; gap: 4px; }
+    .avatar-info  { display: none; }
+    .chevron      { display: none; }
+
+    /* Dropdown — full width from right edge */
+    .dropdown { right: 0; left: auto; min-width: 220px; }
+
+    /* Notif panel */
+    .notif-panel { right: -60px; width: 300px; }
     .notif-bell-btn { font-size: 1.1rem; }
 
     /* Hero */
