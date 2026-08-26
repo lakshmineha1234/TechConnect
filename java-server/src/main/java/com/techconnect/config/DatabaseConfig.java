@@ -441,6 +441,18 @@ public class DatabaseConfig {
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_certs_user ON certifications(user_id, display_order)");
 
+            // Blocked users — bidirectional block
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS blocked_users (
+                    blocker_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    blocked_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (blocker_id, blocked_id)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_blocked_blocker ON blocked_users(blocker_id)");
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_blocked_blocked ON blocked_users(blocked_id)");
+
             // Post drafts — one per user, upserted on save
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS post_drafts (

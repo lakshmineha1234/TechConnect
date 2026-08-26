@@ -148,7 +148,9 @@ public class PostController {
                 LEFT JOIN posts op ON op.id = p.shared_from_id AND p.shared_from_id != ''
                 LEFT JOIN users ou ON ou.id = op.user_id
                 WHERE (p.scheduled_at IS NULL OR p.scheduled_at <= datetime('now'))
-                  AND p.user_id NOT IN (SELECT muted_id FROM muted_users WHERE user_id = ?)
+                  AND p.user_id NOT IN (SELECT muted_id    FROM muted_users    WHERE user_id   = ?)
+                  AND p.user_id NOT IN (SELECT blocked_id  FROM blocked_users  WHERE blocker_id= ?)
+                  AND p.user_id NOT IN (SELECT blocker_id  FROM blocked_users  WHERE blocked_id= ?)
                   AND (p.user_id = ?
                    OR p.user_id IN (
                        SELECT CASE WHEN requester_id = ? THEN recipient_id ELSE requester_id END
@@ -157,7 +159,7 @@ public class PostController {
                    ))
                 ORDER BY p.created_at DESC
                 LIMIT 20 OFFSET ?
-                """, uid, uid, uid, uid, uid, uid, uid, uid, offset);
+                """, uid, uid, uid, uid, uid, uid, uid, uid, uid, uid, offset);
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map<String, Object> r : rows) {
@@ -218,7 +220,9 @@ public class PostController {
                        (SELECT COUNT(*) FROM post_views    v WHERE v.post_id = p.id)                   AS view_count
                 FROM posts p
                 JOIN users u ON u.id = p.user_id
-                WHERE p.user_id NOT IN (SELECT muted_id FROM muted_users WHERE user_id = ?)
+                WHERE p.user_id NOT IN (SELECT muted_id    FROM muted_users    WHERE user_id   = ?)
+                  AND p.user_id NOT IN (SELECT blocked_id  FROM blocked_users  WHERE blocker_id= ?)
+                  AND p.user_id NOT IN (SELECT blocker_id  FROM blocked_users  WHERE blocked_id= ?)
                   AND p.user_id IN (
                     SELECT CASE WHEN requester_id = ? THEN recipient_id ELSE requester_id END
                     FROM connections WHERE status = 'accepted'
@@ -226,7 +230,7 @@ public class PostController {
                 )
                 ORDER BY p.created_at DESC
                 LIMIT 20 OFFSET ?
-                """, uid, uid, uid, uid, uid, uid, uid, offset);
+                """, uid, uid, uid, uid, uid, uid, uid, uid, uid, uid, offset);
 
         return ResponseEntity.ok(mapFeedRows(rows, uid));
     }
@@ -257,10 +261,12 @@ public class PostController {
                 JOIN users u ON u.id = p.user_id
                 WHERE p.shared_from_id = ''
                   AND p.created_at >= datetime('now', '-7 days')
-                  AND p.user_id NOT IN (SELECT muted_id FROM muted_users WHERE user_id = ?)
+                  AND p.user_id NOT IN (SELECT muted_id    FROM muted_users    WHERE user_id   = ?)
+                  AND p.user_id NOT IN (SELECT blocked_id  FROM blocked_users  WHERE blocker_id= ?)
+                  AND p.user_id NOT IN (SELECT blocker_id  FROM blocked_users  WHERE blocked_id= ?)
                 ORDER BY engagement_score DESC, p.created_at DESC
                 LIMIT 20 OFFSET ?
-                """, uid, uid, uid, uid, offset);
+                """, uid, uid, uid, uid, uid, uid, offset);
 
         return ResponseEntity.ok(mapFeedRows(rows, uid));
     }

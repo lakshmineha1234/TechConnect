@@ -2776,6 +2776,16 @@
     </div>
   </div>
 
+  <!-- ══ BLOCKED USERS MODAL ══ -->
+  <div class="modal-backdrop" id="blockedUsersBackdrop" onclick="if(event.target===this)closeModal('blockedUsersBackdrop')">
+    <div class="modal" style="max-width:480px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('blockedUsersBackdrop')">✕</button>
+      <h2 class="modal-title">🚫 Blocked Users</h2>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Blocked users cannot connect with you, message you, or appear in your feed.</p>
+      <div id="blockedUsersContent"></div>
+    </div>
+  </div>
+
   <!-- ══ MUTED USERS MODAL ══ -->
   <div class="modal-backdrop" id="mutedUsersBackdrop" onclick="if(event.target===this)closeModal('mutedUsersBackdrop')">
     <div class="modal" style="max-width:480px;" onclick="event.stopPropagation()">
@@ -4161,6 +4171,66 @@ async function loadConnectionNote(userId) {
   } catch { /* silently skip */ }
 }
 
+/* ── Block Users ─────────────────────────────────────────────────────────── */
+let blockedUserIds = new Set();
+
+async function loadBlockedUsers() {
+  try {
+    const list = await api('GET', '/api/users/blocked');
+    blockedUserIds = new Set(list.map(u => u.id));
+  } catch {}
+}
+
+async function toggleBlockUser(userId, name) {
+  try {
+    const r = await api('POST', `/api/users/${userId}/block`);
+    if (r.blocked) {
+      blockedUserIds.add(userId);
+      showToast(`${name} has been blocked`, 'success');
+      // Remove their posts from the visible feed
+      document.querySelectorAll(`.feed-post[data-post-id]`).forEach(el => {
+        if (el.dataset.mine !== '1') {
+          const menuMute = el.querySelector(`[id^="pmenu-mute-${userId}"]`);
+          if (menuMute) el.remove();
+        }
+      });
+    } else {
+      blockedUserIds.delete(userId);
+      showToast(`${name} has been unblocked`, 'info');
+    }
+  } catch (e) { showToast(e.message || 'Failed to update block.', 'error'); }
+}
+
+async function openBlockedUsersModal() {
+  closeDropdown();
+  const backdrop = document.getElementById('blockedUsersBackdrop');
+  const content  = document.getElementById('blockedUsersContent');
+  if (!backdrop || !content) return;
+  content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">Loading…</div>';
+  openModal('blockedUsersBackdrop');
+  try {
+    const list = await api('GET', '/api/users/blocked');
+    if (!list.length) {
+      content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">No blocked users.</div>';
+      return;
+    }
+    content.innerHTML = list.map(u => {
+      const sub = u.role === 'pro' ? (u.jobTitle || 'IT Professional') : (u.institution || 'Student');
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);">
+        ${avatarHtml(u.id, u.name, '', 'width:38px;height:38px;font-size:.75rem;')}
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:.9rem;">${escHtml(u.name)}</div>
+          <div style="font-size:.78rem;color:var(--muted);">${escHtml(sub)}</div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:.78rem;padding:5px 12px;"
+          onclick="toggleBlockUser('${escHtml(u.id)}','${escHtml(u.name)}');this.closest('div[style]').remove();if(!document.getElementById('blockedUsersContent').children.length)document.getElementById('blockedUsersContent').innerHTML='<div style=text-align:center;padding:24px;color:var(--muted);>No blocked users.</div>'">
+          ✅ Unblock
+        </button>
+      </div>`;
+    }).join('');
+  } catch { content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">Failed to load.</div>'; }
+}
+
 /* ── Mute Users ─────────────────────────────────────────────────────────── */
 let mutedUserIds = new Set();
 
@@ -4368,6 +4438,7 @@ function renderNav() {
         <div class="dd-item" onclick="openMyStats();closeDropdown();"><span class="dd-icon">📊</span> Post Analytics</div>
         <div class="dd-item" onclick="openLeaderboard();closeDropdown();"><span class="dd-icon">🏆</span> Leaderboard</div>
         <div class="dd-item" onclick="openMutedUsersModal()"><span class="dd-icon">🔇</span> Muted Users</div>
+        <div class="dd-item" onclick="openBlockedUsersModal()"><span class="dd-icon">🚫</span> Blocked Users</div>
         <div class="dd-divider"></div>
         <div class="dd-item danger" onclick="openModal('logoutBackdrop');closeDropdown();">
           <span class="dd-icon">🚪</span> Log Out
@@ -5373,6 +5444,12 @@ function renderUserProfileModal(p) {
 
   // ── Action buttons based on connection status ─────────────────────────────
   let actionBtns = '';
+  const blockBtn = p.isSelf ? '' : `
+    <button class="btn btn-ghost" style="font-size:.82rem;padding:6px 14px;color:var(--danger);border-color:rgba(255,77,77,.3);"
+      onclick="toggleBlockUser('${escHtml(p.id)}','${escHtml(p.name)}');closeModal('userProfileBackdrop')">
+      ${blockedUserIds.has(p.id) ? '✅ Unblock' : '🚫 Block'}
+    </button>`;
+
   if (p.isSelf) {
     actionBtns = `<button class="btn btn-ghost" style="font-size:.85rem;padding:8px 16px;" onclick="closeModal('userProfileBackdrop');openProfile();">✏️ Edit My Profile</button>`;
   } else if (p.connStatus === 'accepted') {
@@ -5467,7 +5544,7 @@ function renderUserProfileModal(p) {
         </div>
         ${p.location ? `<div style="font-size:.82rem;color:var(--muted);margin-top:6px;">📍 ${escHtml(p.location)}</div>` : ''}
         ${(p.statusEmoji || p.statusText) ? `<div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;font-size:.82rem;color:var(--text);">${p.statusEmoji ? `<span>${escHtml(p.statusEmoji)}</span>` : ''}<span>${escHtml(p.statusText)}</span></div>` : ''}
-        <div class="uprofile-actions">${actionBtns}</div>
+        <div class="uprofile-actions">${actionBtns}${blockBtn}</div>
       </div>
     </div>
     ${p.pinnedPost ? `
@@ -7237,6 +7314,7 @@ async function initFeed() {
   loadTrendingTags();
   loadFollowedTags();
   loadMutedUsers();
+  loadBlockedUsers();
   loadDraft();
   // Fetch activity count for dashboard
   try {
@@ -7433,6 +7511,9 @@ function renderPostCard(p) {
               <button class="post-menu-item" id="pmenu-mute-${escHtml(p.userId)}"
                 onclick="closePostMenu('${escHtml(p.id)}');toggleMuteUser('${escHtml(p.userId)}','${escHtml(p.name)}')">
                 ${mutedUserIds.has(p.userId) ? '🔊 Unmute' : '🔇 Mute'} ${escHtml(p.name?.split(' ')[0] || 'user')}
+              </button>
+              <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');toggleBlockUser('${escHtml(p.userId)}','${escHtml(p.name)}')">
+                ${blockedUserIds.has(p.userId) ? '✅ Unblock' : '🚫 Block'} ${escHtml(p.name?.split(' ')[0] || 'user')}
               </button>
               <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');openReportModal('${escHtml(p.id)}')">🚩 Report post</button>
             `}
