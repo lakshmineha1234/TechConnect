@@ -441,6 +441,16 @@ public class DatabaseConfig {
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_certs_user ON certifications(user_id, display_order)");
 
+            // Password reset tokens (expire after 1 hour)
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    token      TEXT PRIMARY KEY,
+                    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    expires_at TEXT NOT NULL,
+                    created_at TEXT DEFAULT (datetime('now'))
+                )
+                """);
+
             // Blocked users — bidirectional block
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS blocked_users (

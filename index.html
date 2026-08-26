@@ -3268,6 +3268,51 @@
   </div>
 </div>
 
+<!-- ══ FORGOT PASSWORD MODAL ══ -->
+<div class="modal-backdrop" id="forgotPwBackdrop" onclick="if(event.target===this)closeModal('forgotPwBackdrop')">
+  <div class="modal" style="max-width:400px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Reset Password</span>
+      <button class="modal-close" onclick="closeModal('forgotPwBackdrop')">✕</button>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px;">Enter your registered email and we'll send you a reset link.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="forgotPwEmail" placeholder="your@email.com" autocomplete="email"
+             onkeydown="if(event.key==='Enter')doForgotPassword()" />
+    </div>
+    <p class="form-error" id="forgotPwError"></p>
+    <p id="forgotPwSuccess" style="display:none;font-size:.85rem;color:var(--teal);margin-bottom:8px;"></p>
+    <button class="btn btn-grad" id="forgotPwBtn" style="width:100%;padding:13px;" onclick="doForgotPassword()">Send Reset Link</button>
+    <p class="text-center mt-8" style="font-size:.85rem;color:var(--muted);margin-top:14px;">
+      Remembered it? <a href="#" style="color:var(--teal);" onclick="event.preventDefault();closeModal('forgotPwBackdrop');openModal('loginBackdrop')">Log in</a>
+    </p>
+  </div>
+</div>
+
+<!-- ══ RESET PASSWORD MODAL ══ -->
+<div class="modal-backdrop" id="resetPwBackdrop">
+  <div class="modal" style="max-width:400px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Set New Password</span>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px;">Choose a new password for your account.</p>
+    <input type="hidden" id="resetPwToken">
+    <div class="field">
+      <label>New Password</label>
+      <input type="password" id="resetPwInput" placeholder="At least 6 characters"
+             onkeydown="if(event.key==='Enter')doResetPassword()" />
+    </div>
+    <div class="field">
+      <label>Confirm Password</label>
+      <input type="password" id="resetPwConfirm" placeholder="Repeat password"
+             onkeydown="if(event.key==='Enter')doResetPassword()" />
+    </div>
+    <p class="form-error" id="resetPwError"></p>
+    <button class="btn btn-grad" id="resetPwBtn" style="width:100%;padding:13px;" onclick="doResetPassword()">Update Password</button>
+  </div>
+</div>
+
 <!-- ══ LOGIN MODAL ══ -->
 <div class="modal-backdrop" id="loginBackdrop">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
@@ -3283,6 +3328,9 @@
       <label>Password</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
              onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <div style="text-align:right;margin-top:-4px;margin-bottom:4px;">
+      <a href="#" style="font-size:.8rem;color:var(--teal);text-decoration:none;" onclick="event.preventDefault();closeModal('loginBackdrop');openModal('forgotPwBackdrop')">Forgot password?</a>
     </div>
     <p class="form-error" id="loginError"></p>
     <button class="btn btn-grad" id="loginBtn" style="width:100%;padding:13px;" onclick="doLogin()">Log In</button>
@@ -4590,6 +4638,13 @@ async function initSession() {
   const socialParam = params.get('social');
   const socialError = params.get('social_error');
 
+  // Password reset token in URL
+  if (params.get('reset')) {
+    render();
+    checkPasswordResetToken();
+    return;
+  }
+
   if (socialError) {
     // OAuth failed or was cancelled
     history.replaceState({}, '', '/');
@@ -4644,6 +4699,58 @@ async function initSession() {
 /* ════════════════════════════════════════
    AUTH — LOGIN
 ════════════════════════════════════════ */
+/* ── Forgot / Reset Password ─────────────────────────────────────────────── */
+async function doForgotPassword() {
+  const email = document.getElementById('forgotPwEmail').value.trim();
+  const errEl = document.getElementById('forgotPwError');
+  const sucEl = document.getElementById('forgotPwSuccess');
+  const btn   = document.getElementById('forgotPwBtn');
+  errEl.textContent = ''; sucEl.style.display = 'none';
+  if (!email) { errEl.textContent = 'Please enter your email.'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const r = await api('POST', '/api/auth/forgot-password', { email });
+    sucEl.textContent = r.message || 'Reset link sent! Check your inbox.';
+    sucEl.style.display = 'block';
+    btn.textContent = 'Sent ✓';
+  } catch (e) {
+    errEl.textContent = e.message || 'Something went wrong.';
+    btn.disabled = false; btn.textContent = 'Send Reset Link';
+  }
+}
+
+async function doResetPassword() {
+  const token    = document.getElementById('resetPwToken').value;
+  const password = document.getElementById('resetPwInput').value;
+  const confirm  = document.getElementById('resetPwConfirm').value;
+  const errEl    = document.getElementById('resetPwError');
+  const btn      = document.getElementById('resetPwBtn');
+  errEl.textContent = '';
+  if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+  if (password !== confirm) { errEl.textContent = 'Passwords do not match.'; return; }
+  btn.disabled = true; btn.textContent = 'Updating…';
+  try {
+    const r = await api('POST', '/api/auth/reset-password', { token, password });
+    closeModal('resetPwBackdrop');
+    // Clean token from URL
+    history.replaceState({}, '', '/');
+    showToast(r.message || 'Password updated! Please log in.', 'success');
+    setTimeout(() => openModal('loginBackdrop'), 600);
+  } catch (e) {
+    errEl.textContent = e.message || 'Invalid or expired link.';
+    btn.disabled = false; btn.textContent = 'Update Password';
+  }
+}
+
+// Called on page load — checks for ?reset=TOKEN in the URL
+function checkPasswordResetToken() {
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('reset');
+  if (!token) return;
+  document.getElementById('resetPwToken').value = token;
+  openModal('resetPwBackdrop');
+}
+
 async function doLogin() {
   const email    = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
