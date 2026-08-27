@@ -63,7 +63,7 @@ public class ChatController {
         String id = UUID.randomUUID().toString();
         String now = Instant.now().toString();
         jdbc.update(
-                "INSERT INTO messages (id, sender_id, receiver_id, content, is_read, created_at) VALUES (?,?,?,?,0,datetime('now'))",
+                "INSERT INTO messages (id, sender_id, receiver_id, content, is_read, created_at) VALUES (?,?,?,?,0,NOW())",
                 id, senderId, recipientId, content);
 
         // Build message payload
@@ -121,7 +121,7 @@ public class ChatController {
         String id  = UUID.randomUUID().toString();
         String now = Instant.now().toString();
         jdbc.update(
-                "INSERT INTO messages (id, sender_id, receiver_id, content, is_read, created_at) VALUES (?,?,?,?,0,datetime('now'))",
+                "INSERT INTO messages (id, sender_id, receiver_id, content, is_read, created_at) VALUES (?,?,?,?,0,NOW())",
                 id, senderId, recipientId, content);
 
         String senderName = getSenderName(senderId);

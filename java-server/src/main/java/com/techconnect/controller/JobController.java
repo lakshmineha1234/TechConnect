@@ -228,7 +228,7 @@ public class JobController {
             jdbc.update("DELETE FROM job_saves WHERE job_id = ? AND user_id = ?", id, uid);
             nowSaved = false;
         } else {
-            jdbc.update("INSERT OR IGNORE INTO job_saves (id, job_id, user_id) VALUES (?,?,?)",
+            jdbc.update("INSERT INTO job_saves (id, job_id, user_id) VALUES (?,?,?) ON CONFLICT DO NOTHING",
                     UUID.randomUUID().toString(), id, uid);
             nowSaved = true;
         }

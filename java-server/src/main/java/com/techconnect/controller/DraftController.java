@@ -49,7 +49,7 @@ public class DraftController {
 
         jdbc.update("""
             INSERT INTO post_drafts (user_id, content, updated_at)
-            VALUES (?, ?, datetime('now'))
+            VALUES (?, ?, NOW())
             ON CONFLICT(user_id) DO UPDATE SET content=excluded.content, updated_at=excluded.updated_at
             """, uid, content);
 

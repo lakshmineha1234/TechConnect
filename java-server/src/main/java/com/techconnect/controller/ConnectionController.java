@@ -94,7 +94,7 @@ public class ConnectionController {
         int rows = jdbc.update(
                 """
                 UPDATE connections
-                SET status = 'accepted', updated_at = datetime('now')
+                SET status = 'accepted', updated_at = NOW()
                 WHERE id = ? AND recipient_id = ? AND status = 'pending'
                 """, id, me);
 
@@ -122,7 +122,7 @@ public class ConnectionController {
         int rows = jdbc.update(
                 """
                 UPDATE connections
-                SET status = 'declined', updated_at = datetime('now')
+                SET status = 'declined', updated_at = NOW()
                 WHERE id = ? AND recipient_id = ? AND status = 'pending'
                 """, id, me);
 

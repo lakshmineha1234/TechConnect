@@ -73,7 +73,7 @@ public class EndorsementController {
             nowEndorsed = false;
         } else {
             jdbc.update(
-                "INSERT OR IGNORE INTO skill_endorsements (id,endorsed_id,endorser_id,skill_name) VALUES (?,?,?,?)",
+                "INSERT INTO skill_endorsements (id,endorsed_id,endorser_id,skill_name) VALUES (?,?,?,?) ON CONFLICT DO NOTHING",
                 UUID.randomUUID().toString(), userId, me, skillName);
             nowEndorsed = true;
             notifSvc.create(userId, "skill_endorsement", me, skillName);

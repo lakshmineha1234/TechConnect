@@ -89,7 +89,7 @@ public class DataSeeder {
                 e.bio, e.location, e.linkedin, e.github);
 
             for (String skill : e.skills) {
-                jdbc.update("INSERT OR IGNORE INTO skills (user_id,skill_name) VALUES(?,?)", id, skill);
+                jdbc.update("INSERT INTO skills (user_id,skill_name) VALUES(?,?) ON CONFLICT DO NOTHING", id, skill);
             }
         }
 

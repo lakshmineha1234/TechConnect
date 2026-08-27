@@ -4,39 +4,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.sqlite.SQLiteConfig;
-import org.sqlite.SQLiteDataSource;
-
-import javax.sql.DataSource;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Configuration
 public class DatabaseConfig {
-
-    /**
-     * SQLite datasource — single-file, no native compilation, WAL mode for
-     * better concurrent read performance.
-     */
-    @Bean
-    public DataSource dataSource() {
-        // Resolve DB file relative to the project root (parent of java-server/).
-        // Fall back to the current directory if there is no parent.
-        Path here   = Paths.get("").toAbsolutePath();
-        Path parent = here.getParent() != null ? here.getParent() : here;
-        String envPath = System.getenv("DB_PATH");
-        Path dbPath = (envPath != null && !envPath.isBlank())
-            ? Paths.get(envPath)
-            : parent.resolve("techconnect_java.sqlite").normalize();
-
-        SQLiteConfig cfg = new SQLiteConfig();
-        cfg.enforceForeignKeys(true);
-        cfg.setJournalMode(SQLiteConfig.JournalMode.WAL);
-
-        SQLiteDataSource ds = new SQLiteDataSource(cfg);
-        ds.setUrl("jdbc:sqlite:" + dbPath);
-        return ds;
-    }
 
     /**
      * Create tables on startup — idempotent (IF NOT EXISTS), safe to run
@@ -53,7 +23,7 @@ public class DatabaseConfig {
                     role          TEXT NOT NULL CHECK(role IN ('student','pro')),
                     first_name    TEXT NOT NULL DEFAULT '',
                     last_name     TEXT NOT NULL DEFAULT '',
-                    created_at    TEXT DEFAULT (datetime('now'))
+                    created_at    TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
 
@@ -72,13 +42,13 @@ public class DatabaseConfig {
                     experience  TEXT DEFAULT '',
                     linkedin    TEXT DEFAULT '',
                     github      TEXT DEFAULT '',
-                    updated_at  TEXT DEFAULT (datetime('now'))
+                    updated_at  TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
 
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS skills (
-                    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id         SERIAL PRIMARY KEY,
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     skill_name TEXT NOT NULL,
                     UNIQUE(user_id, skill_name)
@@ -92,7 +62,7 @@ public class DatabaseConfig {
                     receiver_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     content     TEXT NOT NULL,
                     is_read     INTEGER NOT NULL DEFAULT 0,
-                    created_at  TEXT DEFAULT (datetime('now'))
+                    created_at  TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
 
@@ -106,8 +76,8 @@ public class DatabaseConfig {
                     recipient_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     status       TEXT NOT NULL DEFAULT 'pending'
                                  CHECK(status IN ('pending','accepted','declined')),
-                    created_at   TEXT DEFAULT (datetime('now')),
-                    updated_at   TEXT DEFAULT (datetime('now')),
+                    created_at   TIMESTAMPTZ DEFAULT NOW(),
+                    updated_at   TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(requester_id, recipient_id)
                 )
                 """);
@@ -117,7 +87,7 @@ public class DatabaseConfig {
                     id         TEXT PRIMARY KEY,
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     content    TEXT NOT NULL,
-                    created_at TEXT DEFAULT (datetime('now'))
+                    created_at TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_posts_user ON posts(user_id, created_at)");
@@ -127,7 +97,7 @@ public class DatabaseConfig {
                     id         TEXT PRIMARY KEY,
                     post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(post_id, user_id)
                 )
                 """);
@@ -137,7 +107,7 @@ public class DatabaseConfig {
                     id         TEXT PRIMARY KEY,
                     post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(post_id, user_id)
                 )
                 """);
@@ -155,7 +125,7 @@ public class DatabaseConfig {
                     description TEXT NOT NULL,
                     skills      TEXT DEFAULT '',
                     salary      TEXT DEFAULT '',
-                    created_at  TEXT DEFAULT (datetime('now'))
+                    created_at  TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_jobs_user    ON jobs(user_id, created_at)");
@@ -166,7 +136,7 @@ public class DatabaseConfig {
                     id         TEXT PRIMARY KEY,
                     job_id     TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(job_id, user_id)
                 )
                 """);
@@ -179,7 +149,7 @@ public class DatabaseConfig {
                     actor_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     ref_id     TEXT DEFAULT '',
                     is_read    INTEGER NOT NULL DEFAULT 0,
-                    created_at TEXT DEFAULT (datetime('now'))
+                    created_at TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, is_read, created_at)");
@@ -196,7 +166,7 @@ public class DatabaseConfig {
                     start_time    TEXT NOT NULL,
                     end_time      TEXT DEFAULT '',
                     max_attendees INTEGER DEFAULT 0,
-                    created_at    TEXT DEFAULT (datetime('now'))
+                    created_at    TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_events_start ON events(start_time)");
@@ -206,7 +176,7 @@ public class DatabaseConfig {
                     id         TEXT PRIMARY KEY,
                     event_id   TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(event_id, user_id)
                 )
                 """);
@@ -231,7 +201,7 @@ public class DatabaseConfig {
             // Add repost support to posts (idempotent)
             try { jdbc.execute("ALTER TABLE posts ADD COLUMN shared_from_id TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
             // Add scheduled publish time to posts (idempotent)
-            try { jdbc.execute("ALTER TABLE posts ADD COLUMN scheduled_at TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            try { jdbc.execute("ALTER TABLE posts ADD COLUMN scheduled_at TIMESTAMPTZ DEFAULT NULL"); } catch (Exception ignored) {}
             try { jdbc.execute("CREATE INDEX IF NOT EXISTS idx_posts_scheduled ON posts(scheduled_at) WHERE scheduled_at IS NOT NULL"); } catch (Exception ignored) {}
             // User status (emoji + short message + optional expiry)
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_emoji TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
@@ -244,7 +214,7 @@ public class DatabaseConfig {
                 CREATE TABLE IF NOT EXISTS muted_users (
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     muted_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     PRIMARY KEY (user_id, muted_id)
                 )
                 """);
@@ -254,7 +224,7 @@ public class DatabaseConfig {
                     author_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     subject_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     note       TEXT NOT NULL DEFAULT '',
-                    updated_at TEXT DEFAULT (datetime('now')),
+                    updated_at TIMESTAMPTZ DEFAULT NOW(),
                     PRIMARY KEY (author_id, subject_id)
                 )
                 """);
@@ -263,7 +233,7 @@ public class DatabaseConfig {
                 CREATE TABLE IF NOT EXISTS followed_hashtags (
                     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     hashtag TEXT NOT NULL,
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     PRIMARY KEY (user_id, hashtag)
                 )
                 """);
@@ -284,7 +254,7 @@ public class DatabaseConfig {
                     id         TEXT PRIMARY KEY,
                     post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
                     viewer_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    viewed_at  TEXT DEFAULT (datetime('now')),
+                    viewed_at  TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(post_id, viewer_id)
                 )
                 """);
@@ -297,7 +267,7 @@ public class DatabaseConfig {
                     id         TEXT PRIMARY KEY,
                     post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
                     hashtag    TEXT NOT NULL,
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(post_id, hashtag)
                 )
                 """);
@@ -320,7 +290,7 @@ public class DatabaseConfig {
                     post_id   TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
                     option_id TEXT NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE,
                     user_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(post_id, user_id)
                 )
                 """);
@@ -336,7 +306,7 @@ public class DatabaseConfig {
                     github_url  TEXT NOT NULL DEFAULT '',
                     live_url    TEXT NOT NULL DEFAULT '',
                     display_order INTEGER NOT NULL DEFAULT 0,
-                    created_at  TEXT DEFAULT (datetime('now'))
+                    created_at  TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_projects_user ON projects(user_id, display_order)");
@@ -347,7 +317,7 @@ public class DatabaseConfig {
                     post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     content    TEXT NOT NULL,
-                    created_at TEXT DEFAULT (datetime('now'))
+                    created_at TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_comments_post ON post_comments(post_id, created_at)");
@@ -360,8 +330,8 @@ public class DatabaseConfig {
                     cover_note  TEXT DEFAULT '',
                     status      TEXT NOT NULL DEFAULT 'pending'
                                 CHECK(status IN ('pending','reviewed','accepted','rejected')),
-                    created_at  TEXT DEFAULT (datetime('now')),
-                    updated_at  TEXT DEFAULT (datetime('now')),
+                    created_at  TIMESTAMPTZ DEFAULT NOW(),
+                    updated_at  TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(job_id, applicant_id)
                 )
                 """);
@@ -374,7 +344,7 @@ public class DatabaseConfig {
                     endorsed_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     endorser_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     skill_name  TEXT NOT NULL,
-                    created_at  TEXT DEFAULT (datetime('now')),
+                    created_at  TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(endorsed_id, endorser_id, skill_name)
                 )
                 """);
@@ -393,7 +363,7 @@ public class DatabaseConfig {
                     notes          TEXT DEFAULT '',
                     status         TEXT NOT NULL DEFAULT 'pending'
                                    CHECK(status IN ('pending','accepted','declined','cancelled')),
-                    created_at     TEXT DEFAULT (datetime('now'))
+                    created_at     TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_meetings_req  ON meetings(requester_id, scheduled_time)");
@@ -404,8 +374,8 @@ public class DatabaseConfig {
                     id        TEXT PRIMARY KEY,
                     viewer_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     viewed_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    view_date TEXT NOT NULL DEFAULT (date('now')),
-                    viewed_at TEXT DEFAULT (datetime('now')),
+                    view_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                    viewed_at TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(viewer_id, viewed_id, view_date)
                 )
                 """);
@@ -419,7 +389,7 @@ public class DatabaseConfig {
                     text         TEXT NOT NULL,
                     status       TEXT NOT NULL DEFAULT 'pending'
                                  CHECK(status IN ('pending','approved','hidden')),
-                    created_at   TEXT DEFAULT (datetime('now')),
+                    created_at   TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(author_id, recipient_id)
                 )
                 """);
@@ -436,7 +406,7 @@ public class DatabaseConfig {
                     expiry_date    TEXT NOT NULL DEFAULT '',
                     credential_url TEXT NOT NULL DEFAULT '',
                     display_order  INTEGER NOT NULL DEFAULT 0,
-                    created_at     TEXT DEFAULT (datetime('now'))
+                    created_at     TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_certs_user ON certifications(user_id, display_order)");
@@ -446,8 +416,8 @@ public class DatabaseConfig {
                 CREATE TABLE IF NOT EXISTS password_reset_tokens (
                     token      TEXT PRIMARY KEY,
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    expires_at TEXT NOT NULL,
-                    created_at TEXT DEFAULT (datetime('now'))
+                    expires_at TIMESTAMPTZ NOT NULL,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
 
@@ -456,7 +426,7 @@ public class DatabaseConfig {
                 CREATE TABLE IF NOT EXISTS blocked_users (
                     blocker_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     blocked_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     PRIMARY KEY (blocker_id, blocked_id)
                 )
                 """);
@@ -468,7 +438,7 @@ public class DatabaseConfig {
                 CREATE TABLE IF NOT EXISTS post_drafts (
                     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
                     content    TEXT NOT NULL DEFAULT '',
-                    updated_at TEXT DEFAULT (datetime('now'))
+                    updated_at TIMESTAMPTZ DEFAULT NOW()
                 )
                 """);
 
@@ -479,7 +449,7 @@ public class DatabaseConfig {
                     post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
                     reporter_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     reason     TEXT NOT NULL DEFAULT '',
-                    created_at TEXT DEFAULT (datetime('now')),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
                     UNIQUE(post_id, reporter_id)
                 )
                 """);
@@ -491,7 +461,7 @@ public class DatabaseConfig {
                     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     skill_name TEXT NOT NULL,
                     score      INTEGER NOT NULL DEFAULT 0,
-                    earned_at  TEXT DEFAULT (datetime('now')),
+                    earned_at  TIMESTAMPTZ DEFAULT NOW(),
                     PRIMARY KEY (user_id, skill_name)
                 )
                 """);

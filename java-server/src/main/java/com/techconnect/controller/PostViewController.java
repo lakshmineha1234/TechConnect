@@ -52,7 +52,7 @@ public class PostViewController {
 
             try {
                 jdbc.update(
-                    "INSERT OR IGNORE INTO post_views (id, post_id, viewer_id) VALUES (?,?,?)",
+                    "INSERT INTO post_views (id, post_id, viewer_id) VALUES (?,?,?) ON CONFLICT DO NOTHING",
                     UUID.randomUUID().toString(), postId, uid);
                 recorded++;
             } catch (Exception ignored) {}
@@ -128,7 +128,7 @@ public class PostViewController {
             SELECT date(viewed_at) AS day, COUNT(*) AS cnt
             FROM post_views
             WHERE post_id = ?
-              AND viewed_at >= date('now', '-6 days')
+              AND viewed_at >= CURRENT_DATE - INTERVAL '6 days'
             GROUP BY date(viewed_at)
             ORDER BY day
             """, id);

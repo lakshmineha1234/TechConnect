@@ -273,7 +273,7 @@ public class SkillAssessmentController {
                 jdbc.update("""
                     INSERT INTO skill_badges (user_id, skill_name, score)
                     VALUES (?, ?, ?)
-                    ON CONFLICT(user_id, skill_name) DO UPDATE SET score=excluded.score, earned_at=datetime('now')
+                    ON CONFLICT(user_id, skill_name) DO UPDATE SET score=excluded.score, earned_at=NOW()
                     """, uid, key, score);
             } catch (Exception ignored) {}
         }

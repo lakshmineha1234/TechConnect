@@ -199,7 +199,7 @@ public class EventController {
                         return err(400,"Event is full ("+max+" attendees max).");
                 }
             }
-            jdbc.update("INSERT OR IGNORE INTO event_attendees (id,event_id,user_id) VALUES (?,?,?)",
+            jdbc.update("INSERT INTO event_attendees (id,event_id,user_id) VALUES (?,?,?) ON CONFLICT DO NOTHING",
                 UUID.randomUUID().toString(), id, uid);
             nowRsvped = true;
         }

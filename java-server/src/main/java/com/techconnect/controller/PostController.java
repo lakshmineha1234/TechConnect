@@ -94,7 +94,7 @@ public class PostController {
 
         // Extract and store hashtags
         extractHashtags(content).forEach(tag ->
-            jdbc.update("INSERT OR IGNORE INTO post_hashtags (id, post_id, hashtag) VALUES (?,?,?)",
+            jdbc.update("INSERT INTO post_hashtags (id, post_id, hashtag) VALUES (?,?,?) ON CONFLICT DO NOTHING",
                 UUID.randomUUID().toString(), id, tag));
 
         // Notify mentioned users only for immediately-published posts
@@ -147,7 +147,7 @@ public class PostController {
                 JOIN users u ON u.id = p.user_id
                 LEFT JOIN posts op ON op.id = p.shared_from_id AND p.shared_from_id != ''
                 LEFT JOIN users ou ON ou.id = op.user_id
-                WHERE (p.scheduled_at IS NULL OR p.scheduled_at <= datetime('now'))
+                WHERE (p.scheduled_at IS NULL OR p.scheduled_at <= NOW())
                   AND p.user_id NOT IN (SELECT muted_id    FROM muted_users    WHERE user_id   = ?)
                   AND p.user_id NOT IN (SELECT blocked_id  FROM blocked_users  WHERE blocker_id= ?)
                   AND p.user_id NOT IN (SELECT blocker_id  FROM blocked_users  WHERE blocked_id= ?)
@@ -260,7 +260,7 @@ public class PostController {
                 FROM posts p
                 JOIN users u ON u.id = p.user_id
                 WHERE p.shared_from_id = ''
-                  AND p.created_at >= datetime('now', '-7 days')
+                  AND p.created_at >= NOW() - INTERVAL '7 days'
                   AND p.user_id NOT IN (SELECT muted_id    FROM muted_users    WHERE user_id   = ?)
                   AND p.user_id NOT IN (SELECT blocked_id  FROM blocked_users  WHERE blocker_id= ?)
                   AND p.user_id NOT IN (SELECT blocker_id  FROM blocked_users  WHERE blocked_id= ?)
@@ -451,7 +451,7 @@ public class PostController {
         // Re-sync hashtags: delete old, insert new
         jdbc.update("DELETE FROM post_hashtags WHERE post_id = ?", id);
         extractHashtags(content).forEach(tag ->
-            jdbc.update("INSERT OR IGNORE INTO post_hashtags (id, post_id, hashtag) VALUES (?,?,?)",
+            jdbc.update("INSERT INTO post_hashtags (id, post_id, hashtag) VALUES (?,?,?) ON CONFLICT DO NOTHING",
                 UUID.randomUUID().toString(), id, tag));
 
         return ResponseEntity.ok(Map.of("id", id, "content", content));
@@ -666,7 +666,7 @@ public class PostController {
         List<Map<String, Object>> rows = jdbc.queryForList("""
                 SELECT hashtag, COUNT(*) AS cnt
                 FROM post_hashtags
-                WHERE created_at >= datetime('now', '-7 days')
+                WHERE created_at >= NOW() - INTERVAL '7 days'
                 GROUP BY hashtag
                 ORDER BY cnt DESC
                 LIMIT 12
@@ -688,7 +688,7 @@ public class PostController {
         List<Map<String, Object>> rows = jdbc.queryForList("""
             SELECT id, content, scheduled_at, created_at
             FROM posts
-            WHERE user_id = ? AND scheduled_at > datetime('now')
+            WHERE user_id = ? AND scheduled_at > NOW()
             ORDER BY scheduled_at ASC
             """, uid);
 
@@ -712,7 +712,7 @@ public class PostController {
 
         Long count = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM posts
-                WHERE created_at >= datetime('now', '-7 days')
+                WHERE created_at >= NOW() - INTERVAL '7 days'
                   AND (user_id = ?
                     OR user_id IN (
                         SELECT CASE WHEN requester_id = ? THEN recipient_id ELSE requester_id END

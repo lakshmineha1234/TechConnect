@@ -63,8 +63,8 @@ public class ConnectionNoteController {
 
         jdbc.update("""
             INSERT INTO connection_notes (author_id, subject_id, note, updated_at)
-            VALUES (?, ?, ?, datetime('now'))
-            ON CONFLICT(author_id, subject_id) DO UPDATE SET note=excluded.note, updated_at=datetime('now')
+            VALUES (?, ?, ?, NOW())
+            ON CONFLICT(author_id, subject_id) DO UPDATE SET note=excluded.note, updated_at=NOW()
             """, me, subjectId, note);
 
         return ResponseEntity.ok(Map.of("ok", true));

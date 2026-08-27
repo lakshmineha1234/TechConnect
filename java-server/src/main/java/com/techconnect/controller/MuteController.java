@@ -39,7 +39,7 @@ public class MuteController {
             jdbc.update("DELETE FROM muted_users WHERE user_id=? AND muted_id=?", me, id);
             nowMuted = false;
         } else {
-            jdbc.update("INSERT OR IGNORE INTO muted_users (user_id, muted_id) VALUES (?,?)", me, id);
+            jdbc.update("INSERT INTO muted_users (user_id, muted_id) VALUES (?,?) ON CONFLICT DO NOTHING", me, id);
             nowMuted = true;
         }
         return ResponseEntity.ok(Map.of("muted", nowMuted, "mutedId", id));

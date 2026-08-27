@@ -37,7 +37,7 @@ public class BlockController {
             jdbc.update("DELETE FROM blocked_users WHERE blocker_id=? AND blocked_id=?", uid, id);
             nowBlocked = false;
         } else {
-            jdbc.update("INSERT OR IGNORE INTO blocked_users (blocker_id, blocked_id) VALUES (?,?)", uid, id);
+            jdbc.update("INSERT INTO blocked_users (blocker_id, blocked_id) VALUES (?,?) ON CONFLICT DO NOTHING", uid, id);
             nowBlocked = true;
             // Also remove any pending connection between them
             jdbc.update("""

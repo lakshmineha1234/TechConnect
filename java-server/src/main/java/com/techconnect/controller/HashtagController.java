@@ -43,7 +43,7 @@ public class HashtagController {
             jdbc.update("DELETE FROM followed_hashtags WHERE user_id=? AND hashtag=?", uid, norm);
             nowFollowing = false;
         } else {
-            jdbc.update("INSERT OR IGNORE INTO followed_hashtags (user_id, hashtag) VALUES (?,?)", uid, norm);
+            jdbc.update("INSERT INTO followed_hashtags (user_id, hashtag) VALUES (?,?) ON CONFLICT DO NOTHING", uid, norm);
             nowFollowing = true;
         }
 
@@ -88,7 +88,7 @@ public class HashtagController {
             JOIN users u ON u.id = p.user_id
             JOIN post_hashtags h ON h.post_id = p.id
             JOIN followed_hashtags fh ON fh.hashtag = h.hashtag AND fh.user_id = ?
-            WHERE (p.scheduled_at IS NULL OR p.scheduled_at <= datetime('now'))
+            WHERE (p.scheduled_at IS NULL OR p.scheduled_at <= NOW())
             ORDER BY p.created_at DESC
             LIMIT 20 OFFSET ?
             """, uid, uid, uid, uid, offset);

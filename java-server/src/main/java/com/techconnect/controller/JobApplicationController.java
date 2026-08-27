@@ -170,7 +170,7 @@ public class JobApplicationController {
             return err(404, "Application not found or not your job.");
 
         jdbc.update(
-            "UPDATE job_applications SET status=?, updated_at=datetime('now') WHERE id=?",
+            "UPDATE job_applications SET status=?, updated_at=NOW() WHERE id=?",
             newStatus, appId);
 
         // Notify the applicant

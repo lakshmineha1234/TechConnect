@@ -42,7 +42,7 @@ public class PostBookmarkController {
             jdbc.update("DELETE FROM post_saves WHERE post_id = ? AND user_id = ?", id, uid);
             nowSaved = false;
         } else {
-            jdbc.update("INSERT OR IGNORE INTO post_saves (id, post_id, user_id) VALUES (?,?,?)",
+            jdbc.update("INSERT INTO post_saves (id, post_id, user_id) VALUES (?,?,?) ON CONFLICT DO NOTHING",
                 UUID.randomUUID().toString(), id, uid);
             nowSaved = true;
         }

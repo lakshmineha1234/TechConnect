@@ -106,7 +106,7 @@ public class ProfileController {
                     company=?, job_title=?, experience=?,
                     linkedin=?, github=?,
                     open_to_work=?, is_hiring=?,
-                    updated_at=datetime('now')
+                    updated_at=NOW()
                 WHERE user_id=?
                 """,
                 clean(body, "phone"),       clean(body, "location"),
@@ -124,7 +124,7 @@ public class ProfileController {
             for (Object s : rawSkills) {
                 String skill = s.toString().trim();
                 if (!skill.isEmpty()) {
-                    jdbc.update("INSERT OR IGNORE INTO skills (user_id,skill_name) VALUES(?,?)",
+                    jdbc.update("INSERT INTO skills (user_id,skill_name) VALUES(?,?) ON CONFLICT DO NOTHING",
                             uid, skill);
                 }
             }
