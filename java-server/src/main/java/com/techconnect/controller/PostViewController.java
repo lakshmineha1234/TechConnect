@@ -86,6 +86,79 @@ public class PostViewController {
         return ResponseEntity.ok(resp);
     }
 
+    // ── Per-post detailed analytics (owner only) ─────────────────────────────
+    @GetMapping("/{id}/analytics")
+    public ResponseEntity<Map<String, Object>> getPostAnalytics(
+            @PathVariable String id, HttpSession session) {
+
+        String uid = (String) session.getAttribute("userId");
+        if (uid == null) return ResponseEntity.status(401).build();
+
+        Integer isOwn = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM posts WHERE id = ? AND user_id = ?",
+            Integer.class, id, uid);
+        if (isOwn == null || isOwn == 0)
+            return ResponseEntity.status(403).body(Map.of("error", "Not your post."));
+
+        // Total views
+        Long totalViews = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM post_views WHERE post_id = ?", Long.class, id);
+
+        // Reaction breakdown
+        List<Map<String, Object>> reactionRows = jdbc.queryForList(
+            "SELECT reaction, COUNT(*) AS cnt FROM post_likes WHERE post_id = ? GROUP BY reaction", id);
+        Map<String, Object> reactions = new LinkedHashMap<>();
+        long totalReactions = 0;
+        for (Map<String, Object> r : reactionRows) {
+            long cnt = toLong(r.get("cnt"));
+            reactions.put(s(r, "reaction"), cnt);
+            totalReactions += cnt;
+        }
+
+        // Comments
+        Long comments = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM post_comments WHERE post_id = ?", Long.class, id);
+
+        // Reposts
+        Long reposts = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM posts WHERE shared_from_id = ?", Long.class, id);
+
+        // Daily views — last 7 days
+        List<Map<String, Object>> dailyRows = jdbc.queryForList("""
+            SELECT date(viewed_at) AS day, COUNT(*) AS cnt
+            FROM post_views
+            WHERE post_id = ?
+              AND viewed_at >= date('now', '-6 days')
+            GROUP BY date(viewed_at)
+            ORDER BY day
+            """, id);
+        List<Map<String, Object>> dailyViews = new ArrayList<>();
+        for (Map<String, Object> r : dailyRows) {
+            Map<String, Object> d = new LinkedHashMap<>();
+            d.put("date",  s(r, "day"));
+            d.put("count", toLong(r.get("cnt")));
+            dailyViews.add(d);
+        }
+
+        // Post snippet
+        List<Map<String, Object>> postRows = jdbc.queryForList(
+            "SELECT content, created_at FROM posts WHERE id = ?", id);
+        String content   = postRows.isEmpty() ? "" : s(postRows.get(0), "content");
+        String createdAt = postRows.isEmpty() ? "" : s(postRows.get(0), "created_at");
+
+        Map<String, Object> resp = new LinkedHashMap<>();
+        resp.put("postId",         id);
+        resp.put("content",        content);
+        resp.put("createdAt",      createdAt);
+        resp.put("views",          totalViews  == null ? 0 : totalViews);
+        resp.put("totalReactions", totalReactions);
+        resp.put("reactions",      reactions);
+        resp.put("comments",       comments    == null ? 0 : comments);
+        resp.put("reposts",        reposts     == null ? 0 : reposts);
+        resp.put("dailyViews",     dailyViews);
+        return ResponseEntity.ok(resp);
+    }
+
     // ── My posts stats (owner dashboard) ─────────────────────────────────────
     @GetMapping("/my-stats")
     public ResponseEntity<List<Map<String, Object>>> myStats(HttpSession session) {

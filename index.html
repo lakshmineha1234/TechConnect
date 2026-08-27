@@ -2149,6 +2149,46 @@
   .stats-metric { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
   .stats-metric strong { color: var(--text); font-size: .9rem; }
 
+  /* ── Per-post analytics modal ── */
+  .pa-stat-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;
+  }
+  .pa-stat-card {
+    background: var(--card); border: 1px solid var(--border2); border-radius: 10px;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .pa-stat-card .pa-val {
+    font-size: 1.6rem; font-weight: 700; color: var(--accent); line-height: 1;
+  }
+  .pa-stat-card .pa-label { font-size: .78rem; color: var(--muted); }
+  .pa-section-title {
+    font-size: .75rem; font-weight: 700; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--muted); margin: 18px 0 10px;
+  }
+  .pa-reaction-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .pa-reaction-label { width: 90px; font-size: .84rem; flex-shrink: 0; }
+  .pa-reaction-bar-wrap {
+    flex: 1; background: var(--bg2); border-radius: 4px; height: 8px; overflow: hidden;
+  }
+  .pa-reaction-bar { height: 100%; border-radius: 4px; background: var(--accent); transition: width .4s; }
+  .pa-reaction-count { font-size: .82rem; color: var(--text); width: 28px; text-align: right; flex-shrink: 0; }
+  .pa-sparkline {
+    display: flex; align-items: flex-end; gap: 4px; height: 52px; margin-top: 4px;
+  }
+  .pa-spark-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .pa-spark-bar {
+    width: 100%; background: var(--accent); border-radius: 3px 3px 0 0;
+    min-height: 3px; transition: height .3s;
+  }
+  .pa-spark-label { font-size: .6rem; color: var(--muted); white-space: nowrap; }
+  .pa-post-snippet {
+    font-size: .85rem; color: var(--text); background: var(--bg2); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 16px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+
   /* ── Leaderboard modal ── */
   .lb-section { margin-bottom: 24px; }
   .lb-section-title {
@@ -2890,6 +2930,17 @@
       <h2 class="modal-title">📊 Post Analytics</h2>
       <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Impressions on your posts (unique viewers, excluding yourself)</p>
       <div id="myStatsContent" style="overflow-y:auto;flex:1;">
+        <div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ POST ANALYTICS MODAL ══ -->
+  <div class="modal-backdrop" id="postAnalyticsBackdrop" onclick="if(event.target===this)closeModal('postAnalyticsBackdrop')">
+    <div class="modal" style="max-width:520px;width:95%;max-height:85vh;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('postAnalyticsBackdrop')">✕</button>
+      <h2 class="modal-title">📊 Post Analytics</h2>
+      <div id="postAnalyticsContent" style="overflow-y:auto;flex:1;padding-bottom:8px;">
         <div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>
       </div>
     </div>
@@ -7712,6 +7763,7 @@ function renderPostCard(p) {
               <button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');${currentUser?.pinnedPostId === p.id ? `unpinPost()` : `pinPost('${escHtml(p.id)}')`}">
                 ${currentUser?.pinnedPostId === p.id ? '📌 Unpin from profile' : '📌 Pin to profile'}
               </button>
+              <button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');openPostAnalytics('${escHtml(p.id)}')">📊 Analytics</button>
               <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');deletePost('${escHtml(p.id)}')">🗑️ Delete post</button>
             ` : `
               <button class="post-menu-item" id="pmenu-mute-${escHtml(p.userId)}"
@@ -9718,6 +9770,83 @@ async function openMyStats() {
           </div>
         </div>`;
     }).join('');
+  } catch {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--danger);">Could not load analytics.</div>';
+  }
+}
+
+// ── Per-post analytics ───────────────────────────────────────────────────
+async function openPostAnalytics(postId) {
+  openModal('postAnalyticsBackdrop');
+  const el = document.getElementById('postAnalyticsContent');
+  el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>';
+  try {
+    const d = await api('GET', `/api/posts/${postId}/analytics`);
+
+    const reactionMeta = {
+      like:       { emoji: '👍', label: 'Like' },
+      love:       { emoji: '❤️', label: 'Love' },
+      celebrate:  { emoji: '🎉', label: 'Celebrate' },
+      support:    { emoji: '💙', label: 'Support' },
+      insightful: { emoji: '💡', label: 'Insightful' },
+      funny:      { emoji: '😄', label: 'Funny' },
+    };
+
+    // Sparkline
+    const maxViews = Math.max(1, ...d.dailyViews.map(x => x.count));
+    const sparkBars = d.dailyViews.length === 0
+      ? '<span style="color:var(--muted);font-size:.8rem;">No view data yet</span>'
+      : d.dailyViews.map(x => {
+          const pct   = Math.round((x.count / maxViews) * 100);
+          const label = x.date ? x.date.slice(5) : ''; // MM-DD
+          return `<div class="pa-spark-col">
+            <div class="pa-spark-bar" style="height:${Math.max(3, pct * 0.48)}px;opacity:${0.4 + pct/170}"></div>
+            <div class="pa-spark-label">${escHtml(label)}</div>
+          </div>`;
+        }).join('');
+
+    // Reaction bars
+    const maxRxn = Math.max(1, ...Object.values(d.reactions).map(Number));
+    const rxnRows = Object.entries(reactionMeta).map(([key, meta]) => {
+      const count = Number(d.reactions[key] || 0);
+      if (count === 0) return '';
+      const pct = Math.round((count / maxRxn) * 100);
+      return `<div class="pa-reaction-row">
+        <div class="pa-reaction-label">${meta.emoji} ${meta.label}</div>
+        <div class="pa-reaction-bar-wrap"><div class="pa-reaction-bar" style="width:${pct}%"></div></div>
+        <div class="pa-reaction-count">${count}</div>
+      </div>`;
+    }).join('');
+
+    const snippet = (d.content || '').slice(0, 200) + (d.content?.length > 200 ? '…' : '');
+
+    el.innerHTML = `
+      <div class="pa-post-snippet">${escHtml(snippet || '(no text)')}</div>
+
+      <div class="pa-stat-grid">
+        <div class="pa-stat-card">
+          <div class="pa-val">${d.views}</div>
+          <div class="pa-label">👁 Unique views</div>
+        </div>
+        <div class="pa-stat-card">
+          <div class="pa-val">${d.totalReactions}</div>
+          <div class="pa-label">⚡ Reactions</div>
+        </div>
+        <div class="pa-stat-card">
+          <div class="pa-val">${d.comments}</div>
+          <div class="pa-label">💬 Comments</div>
+        </div>
+        <div class="pa-stat-card">
+          <div class="pa-val">${d.reposts}</div>
+          <div class="pa-label">🔁 Reposts</div>
+        </div>
+      </div>
+
+      ${rxnRows ? `<div class="pa-section-title">Reactions breakdown</div>${rxnRows}` : ''}
+
+      <div class="pa-section-title">Views — last 7 days</div>
+      <div class="pa-sparkline">${sparkBars}</div>
+    `;
   } catch {
     el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--danger);">Could not load analytics.</div>';
   }
