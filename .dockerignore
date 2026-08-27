@@ -1,5 +1,9 @@
 java-server/target/
+java-server/server.log.err
 *.sqlite
-*.log
-*.log.err
+*.bat
+*.ps1
 .git/
+.claude/
+node_modules/
+code2doc/

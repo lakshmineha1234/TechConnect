@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: techconnect
+    runtime: docker
+    plan: free
+    envVars:
+      - key: STATIC_DIR
+        value: /app/static
+      - key: DB_PATH
+        value: /app/data/techconnect.sqlite
