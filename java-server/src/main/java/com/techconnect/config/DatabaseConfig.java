@@ -485,6 +485,18 @@ public class DatabaseConfig {
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_reports_post ON post_reports(post_id, created_at)");
 
+            // Skill assessment badges
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS skill_badges (
+                    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    skill_name TEXT NOT NULL,
+                    score      INTEGER NOT NULL DEFAULT 0,
+                    earned_at  TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (user_id, skill_name)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_skill_badges_user ON skill_badges(user_id)");
+
             // Purge any rows that reference deleted users (guards against external deletes
             // that bypass the server's foreign-key enforcement).
             jdbc.update("DELETE FROM connections   WHERE requester_id NOT IN (SELECT id FROM users) OR recipient_id  NOT IN (SELECT id FROM users)");

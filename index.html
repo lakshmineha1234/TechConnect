@@ -2149,6 +2149,35 @@
   .stats-metric { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
   .stats-metric strong { color: var(--text); font-size: .9rem; }
 
+  /* ── Skill Assessment ── */
+  .skill-verified {
+    font-size: .7rem; line-height: 1; cursor: default; margin-left: 2px;
+    display: inline-flex; align-items: center;
+  }
+  .assess-all-btn {
+    display: inline-block; cursor: pointer;
+  }
+  .assess-skill-btn {
+    background: var(--bg2); border: 1px solid var(--border2); color: var(--text);
+    border-radius: 20px; padding: 7px 16px; font-size: .9rem; cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .assess-skill-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+  .assess-question { margin-bottom: 20px; }
+  .assess-q-text {
+    font-size: .9rem; font-weight: 600; color: var(--text); margin-bottom: 10px; line-height: 1.4;
+  }
+  .assess-options { display: flex; flex-direction: column; gap: 6px; }
+  .assess-option {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 8px;
+    padding: 9px 14px; font-size: .87rem; cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .assess-option:hover { border-color: var(--accent); }
+  .assess-option.selected { background: rgba(0,229,200,.1); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .assess-option input[type="radio"] { accent-color: var(--accent); flex-shrink: 0; }
+
   /* ── Per-post analytics modal ── */
   .pa-stat-grid {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;
@@ -2931,6 +2960,28 @@
       <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Impressions on your posts (unique viewers, excluding yourself)</p>
       <div id="myStatsContent" style="overflow-y:auto;flex:1;">
         <div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SKILL ASSESSMENT PICKER ══ -->
+  <div class="modal-backdrop" id="assessmentPickerBackdrop" onclick="if(event.target===this)closeModal('assessmentPickerBackdrop')">
+    <div class="modal" style="max-width:380px;width:95%;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('assessmentPickerBackdrop')">✕</button>
+      <h2 class="modal-title">🎯 Choose a Skill to Assess</h2>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Select a skill below to take a 10-question assessment. Score 7/10 or more to earn a verified ✅ badge.</p>
+      <div id="assessmentSkillList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+  </div>
+
+  <!-- ══ SKILL ASSESSMENT QUIZ ══ -->
+  <div class="modal-backdrop" id="assessmentBackdrop" onclick="if(event.target===this)closeModal('assessmentBackdrop')">
+    <div class="modal" style="max-width:560px;width:95%;max-height:88vh;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('assessmentBackdrop')">✕</button>
+      <h2 class="modal-title" id="assessmentTitle">🎯 Skill Assessment</h2>
+      <div id="assessmentBody" style="overflow-y:auto;flex:1;padding-bottom:8px;"></div>
+      <div style="padding-top:12px;border-top:1px solid var(--border2);">
+        <button id="assessmentSubmitBtn" class="btn-primary" style="width:100%;" onclick="submitAssessment()">Submit Answers</button>
       </div>
     </div>
   </div>
@@ -5822,6 +5873,7 @@ function renderUserProfileModal(p) {
   `;
 
   if (p.skills?.length) loadEndorsements(p.id, canEndorse);
+  if (p.skills?.length) loadSkillBadgesForProfile(p.id, p.isSelf);
   if (canSeeResume)     loadProfileResume(p.id, p.isSelf);
   if (p.role === 'student') loadProfileProjects(p.id);
   if (!p.isSelf) loadMutualConnections(p.id);
@@ -6180,6 +6232,154 @@ async function toggleEndorsement(userId, skillName) {
     btn.title = r.endorsed ? 'Remove endorsement' : 'Endorse this skill';
   } catch (e) { alert(e.message || 'Could not update endorsement.'); }
   finally { btn.disabled = false; }
+}
+
+// ── Skill Assessment ─────────────────────────────────────────────────────────
+const ASSESSABLE_SKILLS = new Set(['javascript','python','sql','java','html','react','git']);
+let assessmentAnswers  = {};
+let assessmentSkill    = '';
+let assessmentQuestions = [];
+
+async function loadSkillBadgesForProfile(userId, isSelf) {
+  try {
+    const badges = await api('GET', `/api/skill-assessment/badges/${userId}`);
+    const badgeSet = new Set(badges.map(s => s.toLowerCase()));
+    const container = document.getElementById(`uprofile-skills-${userId}`);
+    if (!container) return;
+
+    // Add ✅ badge to each verified skill chip
+    container.querySelectorAll('.skill-chip').forEach(chip => {
+      const skill = chip.textContent.trim().toLowerCase();
+      if (badgeSet.has(skill) && !chip.parentElement.querySelector('.skill-verified')) {
+        const mark = document.createElement('span');
+        mark.className = 'skill-verified';
+        mark.title = 'Skill verified by assessment';
+        mark.textContent = '✅';
+        const wrap = chip.closest('.skill-chip-wrap');
+        if (wrap) wrap.appendChild(mark);
+        else {
+          const w = document.createElement('span');
+          w.className = 'skill-chip-wrap';
+          chip.replaceWith(w);
+          w.appendChild(chip);
+          w.appendChild(mark);
+        }
+      }
+    });
+
+    // For own profile: add "Take Assessment" button per assessable skill without badge
+    if (isSelf) {
+      const existingBtn = container.querySelector('.assess-all-btn');
+      if (!existingBtn) {
+        const assessable = Array.from(container.querySelectorAll('.skill-chip'))
+          .map(c => c.textContent.trim().toLowerCase())
+          .filter(s => ASSESSABLE_SKILLS.has(s) && !badgeSet.has(s));
+        if (assessable.length > 0) {
+          const btn = document.createElement('button');
+          btn.className = 'btn-outline assess-all-btn';
+          btn.style.cssText = 'font-size:.78rem;padding:4px 10px;margin-top:6px;';
+          btn.textContent = '🎯 Take Skill Assessment';
+          btn.onclick = () => openAssessmentPicker(assessable);
+          container.appendChild(btn);
+        }
+      }
+    }
+  } catch { /* silently skip */ }
+}
+
+function openAssessmentPicker(skills) {
+  const modal = document.getElementById('assessmentPickerModal');
+  const list  = document.getElementById('assessmentSkillList');
+  list.innerHTML = skills.map(s => `
+    <button class="assess-skill-btn" onclick="startAssessment('${escHtml(s)}')">
+      ${escHtml(s.charAt(0).toUpperCase() + s.slice(1))}
+    </button>`).join('');
+  openModal('assessmentPickerBackdrop');
+}
+
+async function startAssessment(skill) {
+  closeModal('assessmentPickerBackdrop');
+  assessmentSkill = skill;
+  assessmentAnswers = {};
+  openModal('assessmentBackdrop');
+  const body = document.getElementById('assessmentBody');
+  body.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">Loading questions…</div>';
+  document.getElementById('assessmentTitle').textContent = `🎯 ${skill.charAt(0).toUpperCase() + skill.slice(1)} Assessment`;
+  try {
+    const data = await api('GET', `/api/skill-assessment/${skill}`);
+    if (data.alreadyPassed) {
+      body.innerHTML = `<div style="text-align:center;padding:32px;">
+        <div style="font-size:2rem;margin-bottom:8px;">✅</div>
+        <div style="font-size:1.1rem;font-weight:600;margin-bottom:4px;">Already verified!</div>
+        <div style="color:var(--muted);font-size:.87rem;">You earned this badge on ${formatPostTime(data.earnedAt)}.</div>
+      </div>`;
+      document.getElementById('assessmentSubmitBtn').style.display = 'none';
+      return;
+    }
+    assessmentQuestions = data.questions;
+    renderAssessmentQuestions(data.questions);
+    document.getElementById('assessmentSubmitBtn').style.display = '';
+  } catch (e) {
+    body.innerHTML = `<div style="text-align:center;padding:24px;color:var(--danger);">${escHtml(e.message || 'Could not load questions.')}</div>`;
+  }
+}
+
+function renderAssessmentQuestions(questions) {
+  const body = document.getElementById('assessmentBody');
+  body.innerHTML = `
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Answer all ${questions.length} questions. You need 7/10 to earn the verified badge.</p>
+    ${questions.map((q, qi) => `
+      <div class="assess-question" id="aq-${qi}">
+        <div class="assess-q-text">${qi + 1}. ${escHtml(q.question)}</div>
+        <div class="assess-options">
+          ${q.options.map((opt, oi) => `
+            <label class="assess-option" id="ao-${qi}-${oi}">
+              <input type="radio" name="aq${qi}" value="${oi}"
+                     onchange="assessmentAnswers[${q.id}]=${oi};highlightOption(${qi},${oi})">
+              ${escHtml(opt)}
+            </label>`).join('')}
+        </div>
+      </div>`).join('')}`;
+}
+
+function highlightOption(qi, oi) {
+  document.querySelectorAll(`#aq-${qi} .assess-option`).forEach((el, i) => {
+    el.classList.toggle('selected', i === oi);
+  });
+}
+
+async function submitAssessment() {
+  if (Object.keys(assessmentAnswers).length < assessmentQuestions.length) {
+    showToast('Please answer all questions before submitting.', 'error');
+    return;
+  }
+  const btn = document.getElementById('assessmentSubmitBtn');
+  btn.disabled = true;
+  try {
+    const result = await api('POST', `/api/skill-assessment/${assessmentSkill}/submit`, { answers: assessmentAnswers });
+    const body = document.getElementById('assessmentBody');
+    if (result.passed) {
+      body.innerHTML = `<div style="text-align:center;padding:32px;">
+        <div style="font-size:2.5rem;margin-bottom:8px;">🎉</div>
+        <div style="font-size:1.2rem;font-weight:700;color:var(--accent);margin-bottom:8px;">You passed!</div>
+        <div style="font-size:.95rem;margin-bottom:4px;">${result.score}/${result.total} correct</div>
+        <div style="color:var(--muted);font-size:.85rem;">✅ Verified badge added to your ${escHtml(assessmentSkill)} skill.</div>
+      </div>`;
+      btn.style.display = 'none';
+    } else {
+      body.innerHTML = `<div style="text-align:center;padding:32px;">
+        <div style="font-size:2rem;margin-bottom:8px;">😔</div>
+        <div style="font-size:1.1rem;font-weight:600;margin-bottom:8px;">Not quite this time</div>
+        <div style="font-size:.95rem;margin-bottom:4px;">${result.score}/${result.total} correct — need 7 to pass</div>
+        <div style="color:var(--muted);font-size:.85rem;">Study up and try again anytime!</div>
+        <button class="btn-primary" style="margin-top:18px;" onclick="startAssessment('${escHtml(assessmentSkill)}')">Try again</button>
+      </div>`;
+      btn.style.display = 'none';
+    }
+  } catch (e) {
+    showToast(e.message || 'Submission failed.', 'error');
+    btn.disabled = false;
+  }
 }
 
 /* ════════════════════════════════════════
