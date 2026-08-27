@@ -230,6 +230,44 @@ public class DatabaseConfig {
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN is_hiring    INTEGER NOT NULL DEFAULT 0"); } catch (Exception ignored) {}
             // Add repost support to posts (idempotent)
             try { jdbc.execute("ALTER TABLE posts ADD COLUMN shared_from_id TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            // Add scheduled publish time to posts (idempotent)
+            try { jdbc.execute("ALTER TABLE posts ADD COLUMN scheduled_at TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            try { jdbc.execute("CREATE INDEX IF NOT EXISTS idx_posts_scheduled ON posts(scheduled_at) WHERE scheduled_at IS NOT NULL"); } catch (Exception ignored) {}
+            // User status (emoji + short message + optional expiry)
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_emoji TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_text  TEXT NOT NULL DEFAULT ''"); } catch (Exception ignored) {}
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN status_expires TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            // Pinned post on profile
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN pinned_post_id TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            // Muted users
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS muted_users (
+                    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    muted_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (user_id, muted_id)
+                )
+                """);
+            // Private connection notes
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS connection_notes (
+                    author_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    subject_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    note       TEXT NOT NULL DEFAULT '',
+                    updated_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (author_id, subject_id)
+                )
+                """);
+            // Hashtag following
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS followed_hashtags (
+                    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    hashtag TEXT NOT NULL,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (user_id, hashtag)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_followed_ht_user ON followed_hashtags(user_id)");
             // Add reaction type to post_likes (idempotent) — existing rows keep 'like' default
             try { jdbc.execute("ALTER TABLE post_likes ADD COLUMN reaction TEXT NOT NULL DEFAULT 'like'"); } catch (Exception ignored) {}
             // Add personal note to connection requests (idempotent)
@@ -402,6 +440,50 @@ public class DatabaseConfig {
                 )
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_certs_user ON certifications(user_id, display_order)");
+
+            // Password reset tokens (expire after 1 hour)
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    token      TEXT PRIMARY KEY,
+                    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    expires_at TEXT NOT NULL,
+                    created_at TEXT DEFAULT (datetime('now'))
+                )
+                """);
+
+            // Blocked users — bidirectional block
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS blocked_users (
+                    blocker_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    blocked_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (blocker_id, blocked_id)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_blocked_blocker ON blocked_users(blocker_id)");
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_blocked_blocked ON blocked_users(blocked_id)");
+
+            // Post drafts — one per user, upserted on save
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS post_drafts (
+                    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                    content    TEXT NOT NULL DEFAULT '',
+                    updated_at TEXT DEFAULT (datetime('now'))
+                )
+                """);
+
+            // Post reports
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS post_reports (
+                    id         TEXT PRIMARY KEY,
+                    post_id    TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                    reporter_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    reason     TEXT NOT NULL DEFAULT '',
+                    created_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(post_id, reporter_id)
+                )
+                """);
+            jdbc.execute("CREATE INDEX IF NOT EXISTS idx_reports_post ON post_reports(post_id, created_at)");
 
             // Purge any rows that reference deleted users (guards against external deletes
             // that bypass the server's foreign-key enforcement).

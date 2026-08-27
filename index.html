@@ -2085,6 +2085,13 @@
   .post-menu-item:hover { background: rgba(255,255,255,.06); }
   .post-menu-item.danger { color: var(--danger); }
   .post-menu-item.danger:hover { background: rgba(255,77,77,.08); }
+  .report-reason-btn {
+    display: block; width: 100%; text-align: left; padding: 10px 14px;
+    background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); font-size: .86rem; cursor: pointer; transition: background .12s, border-color .15s;
+  }
+  .report-reason-btn:hover { background: rgba(255,255,255,.07); }
+  .report-reason-btn.selected { border-color: var(--teal); background: rgba(0,229,200,.08); }
 
   /* Inline post edit mode */
   .feed-post-edit-area {
@@ -2541,16 +2548,103 @@
   .project-edit-btn.del:hover { border-color: var(--danger); color: var(--danger); }
 
   /* ── Responsive ── */
-  @media (max-width: 600px) {
-    nav { padding: 0 20px; }
-    .hero { padding: 60px 20px 80px; }
+  @media (max-width: 640px) {
+    /* Nav */
+    nav { padding: 0 12px; height: 54px; gap: 6px; }
+    .nav-brand { font-size: 1rem; flex-shrink: 0; }
+
+    /* Search bar — icon tap only, no visible text box */
+    .nav-search-wrap { flex: 1; min-width: 0; max-width: 120px; }
+    .nav-search-input { font-size: .8rem; padding: 6px 8px; }
+
+    /* Nav action buttons — icon only, no text */
+    .nav-actions { gap: 4px; }
+    .nav-actions .btn { font-size: .82rem; padding: 6px 10px; }
+
+    /* Theme, chat, notif — compact icon buttons */
+    .theme-toggle { font-size: 1.1rem !important; padding: 4px 6px !important; background: none !important; border: none !important; }
+    .chat-btn     { font-size: 1.1rem !important; padding: 4px 6px !important; }
+    .notif-btn    { font-size: 1.1rem !important; padding: 4px 6px !important; }
+
+    /* Avatar pill — hide name/role/chevron, just show the circle */
+    .avatar-pill { padding: 3px 6px 3px 3px; gap: 4px; }
+    .avatar-info  { display: none; }
+    .chevron      { display: none; }
+
+    /* Dropdown — full width from right edge */
+    .dropdown { right: 0; left: auto; min-width: 220px; }
+
+    /* Notif panel */
+    .notif-panel { right: -60px; width: 300px; }
+    .notif-bell-btn { font-size: 1.1rem; }
+
+    /* Hero */
+    .hero { padding: 48px 18px 64px; }
+    .hero h1 { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+    .hero p  { font-size: .95rem; }
+    .hero-btns { flex-direction: column; align-items: stretch; gap: 10px; }
+    .hero-btns .btn { text-align: center; padding: 13px; }
+
+    /* Feed */
+    .feed-section { padding: 0 12px; margin-bottom: 40px; }
+    .feed-composer { padding: 12px; }
+    .feed-composer-avatar { width: 34px; height: 34px; font-size: .72rem; }
+    .feed-composer-footer { flex-wrap: wrap; gap: 8px; }
+    .feed-composer-footer > div:first-child { flex-wrap: wrap; }
+    .feed-image-btn, .poll-toggle-btn { font-size: .78rem; padding: 5px 10px; }
+
+    /* Feed tabs — scrollable row */
+    .feed-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+    .feed-tab  { font-size: .78rem; padding: 10px 13px; white-space: nowrap; }
+
+    /* Post cards */
+    .feed-post { padding: 14px 12px; }
+    .feed-post-name { font-size: .88rem; }
+    .feed-post-content { font-size: .9rem; }
+    .feed-post-actions { gap: 4px; flex-wrap: wrap; }
+    .feed-action-btn { font-size: .78rem; padding: 5px 8px; }
+    .post-image { border-radius: 8px; }
+
+    /* Modals — full width on mobile */
+    .modal-backdrop { padding: 10px 0 0; align-items: flex-end; }
+    .modal {
+      padding: 20px 16px 28px;
+      border-radius: 18px 18px 0 0;
+      max-height: 92vh;
+      overflow-y: auto;
+      width: 100%;
+      max-width: 100% !important;
+    }
+    .modal-close { top: 14px; right: 14px; }
+
+    /* Dashboard */
     .dash-grid { grid-template-columns: 1fr 1fr; }
     .dash-grid .dash-card:nth-child(n) { grid-column: auto; }
+
+    /* Profile */
     .field-row { grid-template-columns: 1fr; }
     .profile-avatar-section { flex-direction: column; text-align: center; }
-    .modal { padding: 24px; }
+    .uprofile-hero { flex-direction: column; align-items: center; text-align: center; }
+    .uprofile-actions { justify-content: center; flex-wrap: wrap; }
+    .uprofile-name { justify-content: center; }
+
+    /* Search */
     .profiles-grid { grid-template-columns: 1fr; }
-    .search-bar-wrap { padding: 6px 6px 6px 14px; }
+    .search-bar-wrap { padding: 6px 6px 6px 12px; }
+
+    /* Chat */
+    .chat-panel { padding: 8px; }
+    .chat-msg-bubble { max-width: 85%; }
+
+    /* Jobs / Events */
+    .job-card { padding: 14px; }
+    .jobs-grid { grid-template-columns: 1fr; }
+
+    /* Avatar dropdown */
+    .dropdown { right: 8px; left: 8px; width: auto; }
+
+    /* Composer char count */
+    #feedCharCount { font-size: .75rem; }
   }
 </style>
 </head>
@@ -2589,6 +2683,10 @@
                   placeholder="Share an update, article, or thought with your network…"
                   oninput="onFeedInput(this);onMentionInput(this)" maxlength="1000"></textarea>
       </div>
+      <div id="draftBanner" style="display:none;margin-top:8px;padding:7px 12px;background:rgba(0,229,200,.08);border:1px solid rgba(0,229,200,.25);border-radius:8px;font-size:.82rem;color:var(--teal);display:none;align-items:center;justify-content:space-between;gap:10px;">
+        <span>📝 Draft restored</span>
+        <button class="btn btn-ghost" style="font-size:.78rem;padding:3px 10px;color:var(--muted);" onclick="discardDraft()">Discard</button>
+      </div>
       <div class="feed-image-preview" id="feedImagePreview">
         <img id="feedImageThumb" src="" alt="preview" />
         <button class="feed-image-remove" onclick="clearPostImage()" title="Remove image">✕</button>
@@ -2608,12 +2706,24 @@
           <button class="poll-toggle-btn" id="pollToggleBtn" onclick="togglePollComposer()" title="Add a poll">
             📊 Poll
           </button>
+          <button class="poll-toggle-btn" id="schedToggleBtn" onclick="toggleScheduleComposer()" title="Schedule post">
+            🕐 Schedule
+          </button>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-ghost" id="draftSaveBtn" title="Save draft"
+                  style="font-size:.82rem;padding:6px 14px;display:none;"
+                  onclick="saveDraft()">💾 Save draft</button>
           <span class="feed-char-count" id="feedCharCount">0 / 1000</span>
           <button class="btn btn-grad" style="font-size:.85rem;padding:8px 20px;"
-                  onclick="submitPost()">Post</button>
+                  id="postSubmitBtn" onclick="submitPost()">Post</button>
         </div>
+      </div>
+      <!-- Schedule datetime picker (hidden by default) -->
+      <div id="schedPickerArea" style="display:none;margin-top:10px;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;">
+        <span style="font-size:.85rem;color:var(--muted);">Schedule for:</span>
+        <input type="datetime-local" id="schedDatetimeInput" style="background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;font-size:.85rem;" onchange="onScheduleTimeChange(this)">
+        <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 10px;" onclick="clearSchedule()">✕ Clear</button>
       </div>
     </div>
 
@@ -2628,7 +2738,9 @@
       <button class="feed-tab active" id="ftab-feed"    onclick="switchFeedTab('feed')">🌐 Feed</button>
       <button class="feed-tab"        id="ftab-network" onclick="switchFeedTab('network')">👥 Network</button>
       <button class="feed-tab"        id="ftab-top"     onclick="switchFeedTab('top')">🔥 Top</button>
-      <button class="feed-tab"        id="ftab-saved"   onclick="switchFeedTab('saved')">🔖 Saved</button>
+      <button class="feed-tab"        id="ftab-saved"      onclick="switchFeedTab('saved')">🔖 Saved</button>
+      <button class="feed-tab"        id="ftab-scheduled"  onclick="switchFeedTab('scheduled')">📅 Scheduled</button>
+      <button class="feed-tab"        id="ftab-following"  onclick="switchFeedTab('following')">★ Following</button>
     </div>
 
     <!-- Active hashtag filter banner -->
@@ -2725,6 +2837,49 @@
       <div id="leaderboardContent" style="overflow-y:auto;flex:1;padding-right:4px;">
         <div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>
       </div>
+    </div>
+  </div>
+
+  <!-- ══ REPORT POST MODAL ══ -->
+  <div class="modal-backdrop" id="reportPostBackdrop" onclick="if(event.target===this)closeModal('reportPostBackdrop')">
+    <div class="modal" style="max-width:420px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('reportPostBackdrop')">✕</button>
+      <h2 class="modal-title">🚩 Report Post</h2>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Help us understand what's wrong with this post.</p>
+      <input type="hidden" id="reportPostId">
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+        <label style="font-size:.85rem;color:var(--text);font-weight:600;margin-bottom:4px;">Reason</label>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Spam')">📢 Spam or self-promotion</button>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Harassment')">🚫 Harassment or bullying</button>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Misinformation')">❌ False or misleading information</button>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Inappropriate')">⚠️ Inappropriate or offensive content</button>
+        <button class="report-reason-btn" onclick="selectReportReason(this,'Other')">💬 Other</button>
+      </div>
+      <div id="reportOtherArea" style="display:none;margin-bottom:18px;">
+        <textarea id="reportOtherText" placeholder="Describe the issue (optional)…"
+          style="width:100%;min-height:72px;resize:vertical;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:10px;font-size:.85rem;box-sizing:border-box;"></textarea>
+      </div>
+      <button class="btn btn-grad" id="reportSubmitBtn" style="width:100%;opacity:.4;pointer-events:none;" onclick="submitReport()">Submit Report</button>
+    </div>
+  </div>
+
+  <!-- ══ BLOCKED USERS MODAL ══ -->
+  <div class="modal-backdrop" id="blockedUsersBackdrop" onclick="if(event.target===this)closeModal('blockedUsersBackdrop')">
+    <div class="modal" style="max-width:480px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('blockedUsersBackdrop')">✕</button>
+      <h2 class="modal-title">🚫 Blocked Users</h2>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Blocked users cannot connect with you, message you, or appear in your feed.</p>
+      <div id="blockedUsersContent"></div>
+    </div>
+  </div>
+
+  <!-- ══ MUTED USERS MODAL ══ -->
+  <div class="modal-backdrop" id="mutedUsersBackdrop" onclick="if(event.target===this)closeModal('mutedUsersBackdrop')">
+    <div class="modal" style="max-width:480px;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('mutedUsersBackdrop')">✕</button>
+      <h2 class="modal-title">🔇 Muted Users</h2>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px;">Posts from muted users are hidden from your feed. They don't know they're muted.</p>
+      <div id="mutedUsersContent"></div>
     </div>
   </div>
 
@@ -3200,6 +3355,55 @@
   </div>
 </div>
 
+<!-- ══ FORGOT PASSWORD MODAL ══ -->
+<div class="modal-backdrop" id="forgotPwBackdrop" onclick="if(event.target===this)closeModal('forgotPwBackdrop')">
+  <div class="modal" style="max-width:400px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Reset Password</span>
+      <button class="modal-close" onclick="closeModal('forgotPwBackdrop')">✕</button>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px;">Enter your registered email and we'll send you a reset link.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="forgotPwEmail" placeholder="your@email.com" autocomplete="email"
+             onkeydown="if(event.key==='Enter')doForgotPassword()" />
+    </div>
+    <p class="form-error" id="forgotPwError"></p>
+    <p id="forgotPwSuccess" style="display:none;font-size:.85rem;color:var(--teal);margin-bottom:8px;"></p>
+    <div id="forgotPwLinkBox" style="display:none;margin-bottom:12px;padding:12px;background:var(--surface2);border:1px solid rgba(0,229,200,.3);border-radius:10px;">
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:6px;">🔗 Your password reset link — click it to set a new password:</div>
+      <a id="forgotPwLink" href="#" style="font-size:.82rem;color:var(--teal);word-break:break-all;"></a>
+    </div>
+    <button class="btn btn-grad" id="forgotPwBtn" style="width:100%;padding:13px;" onclick="doForgotPassword()">Get Reset Link</button>
+    <p class="text-center mt-8" style="font-size:.85rem;color:var(--muted);margin-top:14px;">
+      Remembered it? <a href="#" style="color:var(--teal);" onclick="event.preventDefault();closeModal('forgotPwBackdrop');openModal('loginBackdrop')">Log in</a>
+    </p>
+  </div>
+</div>
+
+<!-- ══ RESET PASSWORD MODAL ══ -->
+<div class="modal-backdrop" id="resetPwBackdrop">
+  <div class="modal" style="max-width:400px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Set New Password</span>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px;">Choose a new password for your account.</p>
+    <input type="hidden" id="resetPwToken">
+    <div class="field">
+      <label>New Password</label>
+      <input type="password" id="resetPwInput" placeholder="At least 6 characters"
+             onkeydown="if(event.key==='Enter')doResetPassword()" />
+    </div>
+    <div class="field">
+      <label>Confirm Password</label>
+      <input type="password" id="resetPwConfirm" placeholder="Repeat password"
+             onkeydown="if(event.key==='Enter')doResetPassword()" />
+    </div>
+    <p class="form-error" id="resetPwError"></p>
+    <button class="btn btn-grad" id="resetPwBtn" style="width:100%;padding:13px;" onclick="doResetPassword()">Update Password</button>
+  </div>
+</div>
+
 <!-- ══ LOGIN MODAL ══ -->
 <div class="modal-backdrop" id="loginBackdrop">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
@@ -3215,6 +3419,9 @@
       <label>Password</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
              onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <div style="text-align:right;margin-top:-4px;margin-bottom:4px;">
+      <a href="#" style="font-size:.8rem;color:var(--teal);text-decoration:none;" onclick="event.preventDefault();closeModal('loginBackdrop');openModal('forgotPwBackdrop')">Forgot password?</a>
     </div>
     <p class="form-error" id="loginError"></p>
     <button class="btn btn-grad" id="loginBtn" style="width:100%;padding:13px;" onclick="doLogin()">Log In</button>
@@ -3564,6 +3771,26 @@
         <input type="checkbox" id="pfIsHiring">
         <span class="status-toggle-label">🔵 Actively Hiring — show companies and students you're recruiting</span>
       </label>
+      <!-- Custom Status -->
+      <div style="margin-top:14px;">
+        <div style="font-size:.8rem;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">Custom Status</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="pfStatusEmoji" maxlength="2" placeholder="😊"
+                 style="width:48px;text-align:center;font-size:1.3rem;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 4px;color:var(--text);">
+          <input type="text" id="pfStatusText" maxlength="120" placeholder="e.g. Open to collaborations…"
+                 style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:.9rem;">
+          <button class="btn btn-ghost" style="font-size:.78rem;padding:6px 10px;white-space:nowrap;" onclick="clearUserStatus()">Clear</button>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:.8rem;color:var(--muted);">Presets:</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="statusPresets">
+            <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 8px;" onclick="applyStatusPreset('🟢','Available for mentoring')">🟢 Mentoring</button>
+            <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 8px;" onclick="applyStatusPreset('💼','Actively job hunting')">💼 Job hunting</button>
+            <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 8px;" onclick="applyStatusPreset('📚','Studying / Busy')">📚 Busy</button>
+            <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 8px;" onclick="applyStatusPreset('🚀','Working on a project')">🚀 On a project</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="section-heading">Skills</div>
@@ -4058,6 +4285,250 @@ async function loadCertificationsForProfile(userId) {
   } catch { /* silently skip */ }
 }
 
+/* ── Connection Notes ───────────────────────────────────────────────────── */
+async function loadConnectionNote(userId) {
+  const container = document.getElementById(`uprofile-conn-note-${userId}`);
+  if (!container) return;
+  try {
+    const data = await api('GET', `/api/connections/${userId}/note`);
+    const note = data.note || '';
+    container.innerHTML = `
+      <div class="uprofile-section" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:16px;">
+        <div class="uprofile-section-title" style="display:flex;align-items:center;gap:6px;">
+          🔒 <span>Private Note</span>
+          <span style="font-size:.72rem;color:var(--muted);font-weight:400;">Only you can see this</span>
+        </div>
+        <textarea id="conn-note-ta-${escHtml(userId)}" maxlength="500"
+          placeholder="Add a private note about this connection… (e.g. met at PyData 2025, works on ML infra)"
+          style="width:100%;min-height:72px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;
+                 padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;
+                 resize:vertical;outline:none;box-sizing:border-box;"
+          onblur="saveConnectionNote('${escHtml(userId)}')"
+        >${escHtml(note)}</textarea>
+        <div id="conn-note-status-${escHtml(userId)}" style="font-size:.75rem;color:var(--muted);margin-top:4px;min-height:1em;"></div>
+      </div>`;
+  } catch { /* silently skip */ }
+}
+
+/* ── Block Users ─────────────────────────────────────────────────────────── */
+let blockedUserIds = new Set();
+
+async function loadBlockedUsers() {
+  try {
+    const list = await api('GET', '/api/users/blocked');
+    blockedUserIds = new Set(list.map(u => u.id));
+  } catch {}
+}
+
+async function toggleBlockUser(userId, name) {
+  try {
+    const r = await api('POST', `/api/users/${userId}/block`);
+    if (r.blocked) {
+      blockedUserIds.add(userId);
+      showToast(`${name} has been blocked`, 'success');
+      // Remove their posts from the visible feed
+      document.querySelectorAll(`.feed-post[data-post-id]`).forEach(el => {
+        if (el.dataset.mine !== '1') {
+          const menuMute = el.querySelector(`[id^="pmenu-mute-${userId}"]`);
+          if (menuMute) el.remove();
+        }
+      });
+    } else {
+      blockedUserIds.delete(userId);
+      showToast(`${name} has been unblocked`, 'info');
+    }
+  } catch (e) { showToast(e.message || 'Failed to update block.', 'error'); }
+}
+
+async function openBlockedUsersModal() {
+  closeDropdown();
+  const backdrop = document.getElementById('blockedUsersBackdrop');
+  const content  = document.getElementById('blockedUsersContent');
+  if (!backdrop || !content) return;
+  content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">Loading…</div>';
+  openModal('blockedUsersBackdrop');
+  try {
+    const list = await api('GET', '/api/users/blocked');
+    if (!list.length) {
+      content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">No blocked users.</div>';
+      return;
+    }
+    content.innerHTML = list.map(u => {
+      const sub = u.role === 'pro' ? (u.jobTitle || 'IT Professional') : (u.institution || 'Student');
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);">
+        ${avatarHtml(u.id, u.name, '', 'width:38px;height:38px;font-size:.75rem;')}
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:.9rem;">${escHtml(u.name)}</div>
+          <div style="font-size:.78rem;color:var(--muted);">${escHtml(sub)}</div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:.78rem;padding:5px 12px;"
+          onclick="toggleBlockUser('${escHtml(u.id)}','${escHtml(u.name)}');this.closest('div[style]').remove();if(!document.getElementById('blockedUsersContent').children.length)document.getElementById('blockedUsersContent').innerHTML='<div style=text-align:center;padding:24px;color:var(--muted);>No blocked users.</div>'">
+          ✅ Unblock
+        </button>
+      </div>`;
+    }).join('');
+  } catch { content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">Failed to load.</div>'; }
+}
+
+/* ── Mute Users ─────────────────────────────────────────────────────────── */
+let mutedUserIds = new Set();
+
+async function loadMutedUsers() {
+  try {
+    const list = await api('GET', '/api/users/muted');
+    mutedUserIds = new Set(list.map(u => u.id));
+  } catch {}
+}
+
+/* ── Pin Post to Profile ─────────────────────────────────────────────────── */
+async function pinPost(postId) {
+  try {
+    const r = await api('PUT', `/api/profile/pin/${postId}`);
+    if (r.ok) {
+      if (currentUser) currentUser.pinnedPostId = postId;
+      showToast('Post pinned to your profile', 'success');
+    }
+  } catch (e) { showToast('Could not pin post', 'error'); }
+}
+async function unpinPost() {
+  try {
+    const r = await api('DELETE', '/api/profile/pin');
+    if (r.ok) {
+      if (currentUser) currentUser.pinnedPostId = null;
+      showToast('Post unpinned', 'success');
+    }
+  } catch (e) { showToast('Could not unpin post', 'error'); }
+}
+
+/* ── Post Drafts ─────────────────────────────────────────────────────────── */
+async function loadDraft() {
+  try {
+    const d = await api('GET', '/api/drafts');
+    if (!d.content) return;
+    const ta = document.getElementById('feedTextarea');
+    if (!ta || ta.value.trim()) return; // don't overwrite if user already typed
+    ta.value = d.content;
+    onFeedInput(ta);
+    const banner = document.getElementById('draftBanner');
+    if (banner) { banner.style.display = 'flex'; }
+  } catch {}
+}
+async function saveDraft() {
+  const content = document.getElementById('feedTextarea')?.value || '';
+  if (!content.trim()) return;
+  try {
+    await api('POST', '/api/drafts', { content });
+    const btn = document.getElementById('draftSaveBtn');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Saved'; setTimeout(() => btn.textContent = orig, 1800); }
+  } catch { showToast('Could not save draft', 'error'); }
+}
+async function discardDraft() {
+  try { await api('DELETE', '/api/drafts'); } catch {}
+  const ta = document.getElementById('feedTextarea');
+  if (ta) { ta.value = ''; onFeedInput(ta); }
+  const banner = document.getElementById('draftBanner');
+  if (banner) banner.style.display = 'none';
+}
+
+/* ── Report Post ─────────────────────────────────────────────────────────── */
+function openReportModal(postId) {
+  document.getElementById('reportPostId').value = postId;
+  document.querySelectorAll('.report-reason-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('reportOtherArea').style.display = 'none';
+  document.getElementById('reportOtherText').value = '';
+  const btn = document.getElementById('reportSubmitBtn');
+  btn.style.opacity = '.4'; btn.style.pointerEvents = 'none';
+  openModal('reportPostBackdrop');
+}
+function selectReportReason(el, reason) {
+  document.querySelectorAll('.report-reason-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  const otherArea = document.getElementById('reportOtherArea');
+  otherArea.style.display = reason === 'Other' ? 'block' : 'none';
+  const btn = document.getElementById('reportSubmitBtn');
+  btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+}
+async function submitReport() {
+  const postId = document.getElementById('reportPostId').value;
+  const selected = document.querySelector('.report-reason-btn.selected');
+  if (!selected) return;
+  const reasonLabel = selected.textContent.trim().replace(/^[^ ]+ /, '');
+  const otherText   = document.getElementById('reportOtherText').value.trim();
+  const reason = reasonLabel === 'Other' && otherText ? otherText : reasonLabel;
+  try {
+    const r = await api('POST', `/api/posts/${postId}/report`, { reason });
+    closeModal('reportPostBackdrop');
+    showToast(r.message || 'Report submitted', 'success');
+  } catch (e) {
+    showToast(e.message || 'Could not submit report', 'error');
+  }
+}
+
+async function toggleMuteUser(userId, name) {
+  try {
+    const r = await api('POST', `/api/users/${userId}/mute`);
+    if (r.muted) {
+      mutedUserIds.add(userId);
+      showToast(`🔇 ${name} muted — their posts won't appear in your feed.`);
+      // Remove their visible posts from the current feed
+      document.querySelectorAll(`.feed-post[data-post-id]`).forEach(el => {
+        const inner = el.querySelector('.feed-post-name');
+        if (inner && el.querySelector(`[onclick*="openUserProfile('${userId}')"]`)) el.remove();
+      });
+    } else {
+      mutedUserIds.delete(userId);
+      showToast(`🔊 ${name} unmuted.`);
+    }
+    // Update any visible mute buttons for this user
+    document.querySelectorAll(`#pmenu-mute-${userId}`).forEach(btn => {
+      btn.textContent = (mutedUserIds.has(userId) ? '🔊 Unmute ' : '🔇 Mute ') + (name?.split(' ')[0] || 'user');
+    });
+  } catch (e) { showToast(e.message || 'Failed to update mute.', 'error'); }
+}
+
+async function openMutedUsersModal() {
+  closeDropdown();
+  const backdrop = document.getElementById('mutedUsersBackdrop');
+  const content  = document.getElementById('mutedUsersContent');
+  if (!backdrop) return;
+  content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">Loading…</div>';
+  openModal('mutedUsersBackdrop');
+  try {
+    const list = await api('GET', '/api/users/muted');
+    if (!list.length) {
+      content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">No muted users.</div>';
+      return;
+    }
+    content.innerHTML = list.map(u => {
+      const sub = u.role === 'pro' ? u.jobTitle || 'IT Professional' : u.institution || 'Student';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);">
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:.9rem;">${escHtml(u.name)}</div>
+          <div style="font-size:.78rem;color:var(--muted);">${escHtml(sub)}</div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:.78rem;padding:5px 12px;"
+          onclick="toggleMuteUser('${escHtml(u.id)}','${escHtml(u.name)}');this.closest('div[style]').remove();if(!document.getElementById('mutedUsersContent').children.length)document.getElementById('mutedUsersContent').innerHTML='<div style=text-align:center;padding:24px;color:var(--muted);>No muted users.</div>'">
+          🔊 Unmute
+        </button>
+      </div>`;
+    }).join('');
+  } catch {
+    content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--danger);">Failed to load.</div>';
+  }
+}
+
+async function saveConnectionNote(userId) {
+  const ta     = document.getElementById(`conn-note-ta-${userId}`);
+  const status = document.getElementById(`conn-note-status-${userId}`);
+  if (!ta) return;
+  try {
+    await api('PUT', `/api/connections/${userId}/note`, { note: ta.value });
+    if (status) { status.textContent = '✓ Saved'; setTimeout(() => { if (status) status.textContent = ''; }, 2000); }
+  } catch {
+    if (status) status.textContent = '✗ Could not save';
+  }
+}
+
 function renderNav() {
   const nav = document.getElementById('navActions');
   if (!currentUser) {
@@ -4101,9 +4572,12 @@ function renderNav() {
       </div>
       <div class="dropdown" id="navDropdown">
         <div class="dd-item" onclick="openProfile()"><span class="dd-icon">👤</span> My Profile</div>
+        ${(currentUser.statusEmoji || currentUser.statusText) ? `<div class="dd-item" onclick="openProfile();closeDropdown();" style="font-size:.8rem;color:var(--muted);padding:2px 16px 8px 36px;cursor:pointer;" title="Edit status">${escHtml((currentUser.statusEmoji||'') + ' ' + (currentUser.statusText||'')).trim()}</div>` : ''}
         <div class="dd-item" onclick="openRequestsModal();closeDropdown();"><span class="dd-icon">🔗</span> Connections</div>
         <div class="dd-item" onclick="openMyStats();closeDropdown();"><span class="dd-icon">📊</span> Post Analytics</div>
         <div class="dd-item" onclick="openLeaderboard();closeDropdown();"><span class="dd-icon">🏆</span> Leaderboard</div>
+        <div class="dd-item" onclick="openMutedUsersModal()"><span class="dd-icon">🔇</span> Muted Users</div>
+        <div class="dd-item" onclick="openBlockedUsersModal()"><span class="dd-icon">🚫</span> Blocked Users</div>
         <div class="dd-divider"></div>
         <div class="dd-item danger" onclick="openModal('logoutBackdrop');closeDropdown();">
           <span class="dd-icon">🚪</span> Log Out
@@ -4255,6 +4729,13 @@ async function initSession() {
   const socialParam = params.get('social');
   const socialError = params.get('social_error');
 
+  // Password reset token in URL
+  if (params.get('reset')) {
+    render();
+    checkPasswordResetToken();
+    return;
+  }
+
   if (socialError) {
     // OAuth failed or was cancelled
     history.replaceState({}, '', '/');
@@ -4309,6 +4790,66 @@ async function initSession() {
 /* ════════════════════════════════════════
    AUTH — LOGIN
 ════════════════════════════════════════ */
+/* ── Forgot / Reset Password ─────────────────────────────────────────────── */
+async function doForgotPassword() {
+  const email   = document.getElementById('forgotPwEmail').value.trim();
+  const errEl   = document.getElementById('forgotPwError');
+  const sucEl   = document.getElementById('forgotPwSuccess');
+  const linkBox = document.getElementById('forgotPwLinkBox');
+  const linkEl  = document.getElementById('forgotPwLink');
+  const btn     = document.getElementById('forgotPwBtn');
+  errEl.textContent = ''; sucEl.style.display = 'none'; linkBox.style.display = 'none';
+  if (!email) { errEl.textContent = 'Please enter your email.'; return; }
+  btn.disabled = true; btn.textContent = 'Generating…';
+  try {
+    const r = await api('POST', '/api/auth/forgot-password', { email });
+    if (r.resetLink) {
+      linkEl.textContent = r.resetLink;
+      linkEl.href = 'javascript:void(0)';
+      linkEl.onclick = () => { closeModal('forgotPwBackdrop'); document.getElementById('resetPwToken').value = new URL(r.resetLink).searchParams.get('reset'); openModal('resetPwBackdrop'); };
+      linkBox.style.display = 'block';
+      sucEl.textContent = r.emailSent ? 'Link also sent to your email.' : 'Click the link below to reset your password:';
+      sucEl.style.display = 'block';
+    }
+    btn.textContent = 'Done ✓';
+  } catch (e) {
+    errEl.textContent = e.message || 'Something went wrong. Check the email and try again.';
+    btn.disabled = false; btn.textContent = 'Get Reset Link';
+  }
+}
+
+async function doResetPassword() {
+  const token    = document.getElementById('resetPwToken').value;
+  const password = document.getElementById('resetPwInput').value;
+  const confirm  = document.getElementById('resetPwConfirm').value;
+  const errEl    = document.getElementById('resetPwError');
+  const btn      = document.getElementById('resetPwBtn');
+  errEl.textContent = '';
+  if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+  if (password !== confirm) { errEl.textContent = 'Passwords do not match.'; return; }
+  btn.disabled = true; btn.textContent = 'Updating…';
+  try {
+    const r = await api('POST', '/api/auth/reset-password', { token, password });
+    closeModal('resetPwBackdrop');
+    // Clean token from URL
+    history.replaceState({}, '', '/');
+    showToast(r.message || 'Password updated! Please log in.', 'success');
+    setTimeout(() => openModal('loginBackdrop'), 600);
+  } catch (e) {
+    errEl.textContent = e.message || 'Invalid or expired link.';
+    btn.disabled = false; btn.textContent = 'Update Password';
+  }
+}
+
+// Called on page load — checks for ?reset=TOKEN in the URL
+function checkPasswordResetToken() {
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('reset');
+  if (!token) return;
+  document.getElementById('resetPwToken').value = token;
+  openModal('resetPwBackdrop');
+}
+
 async function doLogin() {
   const email    = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -4733,6 +5274,8 @@ async function openProfile() {
   document.getElementById('pfHiringRow').style.display = isStudent ? 'none' : '';
   document.getElementById('pfOpenToWork').checked = !!u.openToWork;
   document.getElementById('pfIsHiring')  .checked = !!u.isHiring;
+  document.getElementById('pfStatusEmoji').value  = u.statusEmoji || '';
+  document.getElementById('pfStatusText') .value  = u.statusText  || '';
 
   if (isStudent) {
     document.getElementById('pfInstitution').value = u.institution || '';
@@ -4783,6 +5326,18 @@ function removeSkill(idx) {
   renderSkillTags();
 }
 
+function applyStatusPreset(emoji, text) {
+  document.getElementById('pfStatusEmoji').value = emoji;
+  document.getElementById('pfStatusText') .value = text;
+}
+
+async function clearUserStatus() {
+  document.getElementById('pfStatusEmoji').value = '';
+  document.getElementById('pfStatusText') .value = '';
+  try { await api('DELETE', '/api/profile/status'); } catch {}
+  if (currentUser) { currentUser.statusEmoji = ''; currentUser.statusText = ''; }
+}
+
 async function saveProfile() {
   if (!currentUser) return;
 
@@ -4819,12 +5374,19 @@ async function saveProfile() {
   try {
     await api('PUT', '/api/profile', payload);
 
+    // Save custom status separately
+    const sEmoji = document.getElementById('pfStatusEmoji').value.trim();
+    const sText  = document.getElementById('pfStatusText') .value.trim();
+    await api('PUT', '/api/profile/status', { statusEmoji: sEmoji, statusText: sText });
+
     // update local cache
     Object.assign(currentUser, payload, {
-      name:      [fn, ln].filter(Boolean).join(' ') || currentUser.name,
-      skills:    pendingSkills,
-      openToWork: document.getElementById('pfOpenToWork').checked,
-      isHiring:   document.getElementById('pfIsHiring').checked,
+      name:        [fn, ln].filter(Boolean).join(' ') || currentUser.name,
+      skills:      pendingSkills,
+      openToWork:  document.getElementById('pfOpenToWork').checked,
+      isHiring:    document.getElementById('pfIsHiring').checked,
+      statusEmoji: sEmoji,
+      statusText:  sText,
     });
     currentUser.firstName = fn;
     currentUser.lastName  = ln;
@@ -5088,6 +5650,12 @@ function renderUserProfileModal(p) {
 
   // ── Action buttons based on connection status ─────────────────────────────
   let actionBtns = '';
+  const blockBtn = p.isSelf ? '' : `
+    <button class="btn btn-ghost" style="font-size:.82rem;padding:6px 14px;color:var(--danger);border-color:rgba(255,77,77,.3);"
+      onclick="toggleBlockUser('${escHtml(p.id)}','${escHtml(p.name)}');closeModal('userProfileBackdrop')">
+      ${blockedUserIds.has(p.id) ? '✅ Unblock' : '🚫 Block'}
+    </button>`;
+
   if (p.isSelf) {
     actionBtns = `<button class="btn btn-ghost" style="font-size:.85rem;padding:8px 16px;" onclick="closeModal('userProfileBackdrop');openProfile();">✏️ Edit My Profile</button>`;
   } else if (p.connStatus === 'accepted') {
@@ -5181,9 +5749,15 @@ function renderUserProfileModal(p) {
           ${p.isHiring   ? `<span class="badge-hiring">🔵 Hiring</span>` : ''}
         </div>
         ${p.location ? `<div style="font-size:.82rem;color:var(--muted);margin-top:6px;">📍 ${escHtml(p.location)}</div>` : ''}
-        <div class="uprofile-actions">${actionBtns}</div>
+        ${(p.statusEmoji || p.statusText) ? `<div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;font-size:.82rem;color:var(--text);">${p.statusEmoji ? `<span>${escHtml(p.statusEmoji)}</span>` : ''}<span>${escHtml(p.statusText)}</span></div>` : ''}
+        <div class="uprofile-actions">${actionBtns}${blockBtn}</div>
       </div>
     </div>
+    ${p.pinnedPost ? `
+    <div class="uprofile-section" style="border:1px solid rgba(0,229,200,.2);border-radius:10px;padding:12px 14px;background:var(--surface2);">
+      <div class="uprofile-section-title" style="margin-bottom:6px;">📌 Pinned Post</div>
+      <div style="font-size:.88rem;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word;">${escHtml((p.pinnedPost.content||'').substring(0,280))}${(p.pinnedPost.content||'').length>280?'…':''}</div>
+    </div>` : ''}
     ${p.bio ? `<div class="uprofile-section"><div class="uprofile-section-title">About</div><div class="uprofile-bio">${escHtml(p.bio)}</div></div>` : ''}
     ${detailSection}
     ${skillsHtml}
@@ -5193,6 +5767,7 @@ function renderUserProfileModal(p) {
     <div id="uprofile-projects-${escHtml(p.id)}"></div>
     <div id="uprofile-certifications-${escHtml(p.id)}"></div>
     <div id="uprofile-recommendations-${escHtml(p.id)}"></div>
+    <div id="uprofile-conn-note-${escHtml(p.id)}"></div>
   `;
 
   if (p.skills?.length) loadEndorsements(p.id, canEndorse);
@@ -5201,6 +5776,7 @@ function renderUserProfileModal(p) {
   if (!p.isSelf) loadMutualConnections(p.id);
   loadRecommendations(p.id, p.isSelf);
   loadCertificationsForProfile(p.id);
+  if (p.connStatus === 'accepted' && !p.isSelf) loadConnectionNote(p.id);
 }
 
 async function loadMutualConnections(userId) {
@@ -6942,6 +7518,10 @@ async function initFeed() {
   if (av && currentUser) refreshAvatarEl(av, currentUser.id, currentUser.name, true);
   await loadMorePosts();
   loadTrendingTags();
+  loadFollowedTags();
+  loadMutedUsers();
+  loadBlockedUsers();
+  loadDraft();
   // Fetch activity count for dashboard
   try {
     const r = await api('GET', '/api/posts/activity');
@@ -7124,14 +7704,27 @@ function renderPostCard(p) {
             <span>·</span><span>${escHtml(timeStr)}</span>
           </div>
         </div>
-        ${p.isMine ? `
         <div class="post-menu-wrap" id="pmenu-wrap-${escHtml(p.id)}">
           <button class="post-menu-btn" onclick="togglePostMenu('${escHtml(p.id)}')" title="More options">•••</button>
           <div class="post-menu-dropdown" id="pmenu-${escHtml(p.id)}">
-            ${!p.sharedFromId ? `<button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');startEditPost('${escHtml(p.id)}')">✏️ Edit post</button>` : ''}
-            <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');deletePost('${escHtml(p.id)}')">🗑️ Delete post</button>
+            ${p.isMine ? `
+              ${!p.sharedFromId ? `<button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');startEditPost('${escHtml(p.id)}')">✏️ Edit post</button>` : ''}
+              <button class="post-menu-item" onclick="closePostMenu('${escHtml(p.id)}');${currentUser?.pinnedPostId === p.id ? `unpinPost()` : `pinPost('${escHtml(p.id)}')`}">
+                ${currentUser?.pinnedPostId === p.id ? '📌 Unpin from profile' : '📌 Pin to profile'}
+              </button>
+              <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');deletePost('${escHtml(p.id)}')">🗑️ Delete post</button>
+            ` : `
+              <button class="post-menu-item" id="pmenu-mute-${escHtml(p.userId)}"
+                onclick="closePostMenu('${escHtml(p.id)}');toggleMuteUser('${escHtml(p.userId)}','${escHtml(p.name)}')">
+                ${mutedUserIds.has(p.userId) ? '🔊 Unmute' : '🔇 Mute'} ${escHtml(p.name?.split(' ')[0] || 'user')}
+              </button>
+              <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');toggleBlockUser('${escHtml(p.userId)}','${escHtml(p.name)}')">
+                ${blockedUserIds.has(p.userId) ? '✅ Unblock' : '🚫 Block'} ${escHtml(p.name?.split(' ')[0] || 'user')}
+              </button>
+              <button class="post-menu-item danger" onclick="closePostMenu('${escHtml(p.id)}');openReportModal('${escHtml(p.id)}')">🚩 Report post</button>
+            `}
           </div>
-        </div>` : ''}
+        </div>
       </div>
       ${p.content ? `<div class="feed-post-content" id="fpost-content-${escHtml(p.id)}" data-raw="${escHtml(p.content)}">${renderPostContent(p.content)}</div>` : ''}
       ${origEmbed}
@@ -7241,10 +7834,44 @@ async function submitPost() {
     if (pollOptions.length < 2) { alert('Add at least 2 poll options.'); return; }
   }
 
+  // Collect scheduled time if set
+  const schedInput = document.getElementById('schedDatetimeInput');
+  let scheduledAt = null;
+  if (schedInput && schedInput.value) {
+    const dt = new Date(schedInput.value);
+    if (isNaN(dt.getTime()) || dt <= new Date()) {
+      alert('Scheduled time must be in the future.'); return;
+    }
+    scheduledAt = dt.toISOString();
+  }
+
   try {
     const body = { content };
     if (pollOptions) body.pollOptions = pollOptions;
+    if (scheduledAt)  body.scheduledAt  = scheduledAt;
     const post = await api('POST', '/api/posts', body);
+
+    // Handle scheduled post response
+    if (post.scheduled) {
+      const fmtTime = new Date(post.scheduledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+      showToast(`Post scheduled for ${fmtTime}!`, 'success');
+      textarea.value = '';
+      document.getElementById('feedCharCount').textContent = '0 / 1000';
+      document.getElementById('feedCharCount').className = 'feed-char-count';
+      document.getElementById('draftSaveBtn').style.display = 'none';
+      document.getElementById('draftBanner').style.display = 'none';
+      api('DELETE', '/api/drafts').catch(() => {});
+      clearSchedule();
+      if (pollOptions) {
+        const pa = document.getElementById('pollOptionsArea');
+        if (pa) pa.style.display = 'none';
+        const btn = document.getElementById('pollToggleBtn');
+        if (btn) btn.classList.remove('active');
+        initPollOptions();
+        document.getElementById('feedImageBtn').style.display = '';
+      }
+      return;
+    }
 
     // Upload image if one was selected
     if (pendingPostImage) {
@@ -7279,6 +7906,9 @@ async function submitPost() {
     textarea.value = '';
     document.getElementById('feedCharCount').textContent = '0 / 1000';
     document.getElementById('feedCharCount').className = 'feed-char-count';
+    document.getElementById('draftSaveBtn').style.display = 'none';
+    document.getElementById('draftBanner').style.display = 'none';
+    api('DELETE', '/api/drafts').catch(() => {});
     // Reset poll composer
     if (pollOptions) {
       const pa = document.getElementById('pollOptionsArea');
@@ -7295,6 +7925,67 @@ async function submitPost() {
     const actEl = document.getElementById('dashActivityVal');
     if (actEl) actEl.textContent = feedActivity;
   } catch (e) { alert(e.message || 'Failed to post.'); }
+}
+
+function toggleScheduleComposer() {
+  const area = document.getElementById('schedPickerArea');
+  const btn  = document.getElementById('schedToggleBtn');
+  const isOpen = area.style.display !== 'none';
+  area.style.display = isOpen ? 'none' : 'flex';
+  btn.classList.toggle('active', !isOpen);
+  if (isOpen) clearSchedule();
+}
+
+function onScheduleTimeChange(input) {
+  const dt = new Date(input.value);
+  const submitBtn = document.getElementById('postSubmitBtn');
+  if (!isNaN(dt.getTime()) && dt > new Date()) {
+    if (submitBtn) submitBtn.textContent = 'Schedule';
+  } else {
+    if (submitBtn) submitBtn.textContent = 'Post';
+  }
+}
+
+function clearSchedule() {
+  const input = document.getElementById('schedDatetimeInput');
+  if (input) input.value = '';
+  const submitBtn = document.getElementById('postSubmitBtn');
+  if (submitBtn) submitBtn.textContent = 'Post';
+  const area = document.getElementById('schedPickerArea');
+  if (area) area.style.display = 'none';
+  const btn = document.getElementById('schedToggleBtn');
+  if (btn) btn.classList.remove('active');
+}
+
+async function loadScheduledPosts() {
+  const container = document.getElementById('feedPosts');
+  container.innerHTML = '<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">Loading…</div>';
+  try {
+    const posts = await api('GET', '/api/posts/scheduled');
+    if (!posts.length) {
+      container.innerHTML = '<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">No scheduled posts.</div>';
+      return;
+    }
+    container.innerHTML = posts.map(p => {
+      const fmtTime = new Date(p.scheduledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+      const preview = (p.content || '').slice(0, 200);
+      return `<div class="feed-post" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:.78rem;font-weight:700;color:var(--accent);">📅 Scheduled for ${escHtml(fmtTime)}</span>
+          <button class="btn btn-ghost" style="font-size:.78rem;padding:4px 10px;color:var(--danger,#f44);" onclick="cancelScheduledPost('${escHtml(p.id)}')">Cancel</button>
+        </div>
+        <p style="font-size:.92rem;color:var(--text);white-space:pre-wrap;margin:0;">${escHtml(preview)}${p.content.length > 200 ? '…' : ''}</p>
+      </div>`;
+    }).join('');
+  } catch (e) { container.innerHTML = '<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">Failed to load scheduled posts.</div>'; }
+}
+
+async function cancelScheduledPost(id) {
+  if (!confirm('Cancel this scheduled post?')) return;
+  try {
+    await api('DELETE', `/api/posts/${id}`);
+    loadScheduledPosts();
+  } catch (e) { alert(e.message || 'Failed to cancel.'); }
 }
 
 /* ── Hashtag rendering & filtering ─────────────────────────────────────── */
@@ -7418,19 +8109,95 @@ document.addEventListener('click', e => {
   if (dd && dd.style.display !== 'none' && !dd.contains(e.target)) hideMentionDropdown();
 });
 
+// Hashtags the current user follows (loaded on init)
+let followedTags = new Set();
+
+async function loadFollowedTags() {
+  try {
+    const tags = await api('GET', '/api/hashtags/followed');
+    followedTags = new Set(tags);
+    updateFollowingTabBadge();
+  } catch {}
+}
+
+function updateFollowingTabBadge() {
+  const btn = document.getElementById('ftab-following');
+  if (btn) btn.textContent = followedTags.size > 0
+    ? `★ Following (${followedTags.size})`
+    : '★ Following';
+}
+
+async function toggleFollowHashtag(tag, e) {
+  e?.stopPropagation();
+  try {
+    const r = await api('POST', `/api/hashtags/follow/${encodeURIComponent(tag)}`);
+    if (r.following) followedTags.add(tag); else followedTags.delete(tag);
+    updateFollowingTabBadge();
+    // Refresh the trending strip to update button state
+    loadTrendingTags();
+  } catch {}
+}
+
 async function loadTrendingTags() {
   try {
     const tags = await api('GET', '/api/posts/trending-tags');
     const strip = document.getElementById('trendingTags');
     const wrap  = document.getElementById('trendingStrip');
     if (!tags.length) { wrap.style.display = 'none'; return; }
-    strip.innerHTML = tags.map(t =>
-      `<span class="trending-tag${activeHashtag === t.tag ? ' active' : ''}"
-             onclick="filterByHashtag('${escHtml(t.tag)}')">#${escHtml(t.tag)}
-       <span style="opacity:.6;font-size:.72rem;">${t.count}</span></span>`
-    ).join('');
+    strip.innerHTML = tags.map(t => {
+      const isFollowed = followedTags.has(t.tag);
+      return `<span class="trending-tag${activeHashtag === t.tag ? ' active' : ''}" style="display:inline-flex;align-items:center;gap:4px;">
+        <span onclick="filterByHashtag('${escHtml(t.tag)}')">#${escHtml(t.tag)} <span style="opacity:.6;font-size:.72rem;">${t.count}</span></span>
+        <button onclick="toggleFollowHashtag('${escHtml(t.tag)}',event)" title="${isFollowed ? 'Unfollow' : 'Follow'} #${escHtml(t.tag)}"
+          style="background:none;border:none;cursor:pointer;font-size:.82rem;color:${isFollowed ? 'var(--cyan)' : 'var(--muted)'};padding:0 2px;line-height:1;">${isFollowed ? '★' : '☆'}</button>
+      </span>`;
+    }).join('');
     wrap.style.display = '';
   } catch { document.getElementById('trendingStrip').style.display = 'none'; }
+}
+
+async function loadFollowingFeed() {
+  const container = document.getElementById('feedPosts');
+  const loadMore  = document.getElementById('feedLoadMore');
+
+  if (followedTags.size === 0) {
+    container.innerHTML = `<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">
+      <div style="font-size:2rem;margin-bottom:12px;">☆</div>
+      <div style="font-weight:600;margin-bottom:6px;">No followed hashtags yet</div>
+      <div style="font-size:.88rem;">Click the ☆ next to any trending tag to follow it.</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>`;
+  loadMore.style.display = 'none';
+  let offset = 0;
+
+  const fetchPage = async () => {
+    try {
+      const posts = await api('GET', `/api/posts/following?offset=${offset}`);
+      if (offset === 0) container.innerHTML = '';
+      if (!posts.length && offset === 0) {
+        const tagList = [...followedTags].map(t => `<span class="trending-tag" onclick="filterByHashtag('${escHtml(t)}')">#${escHtml(t)}</span>`).join(' ');
+        container.innerHTML = `<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">
+          <div>No posts yet for your followed tags:</div>
+          <div style="margin-top:10px;">${tagList}</div>
+        </div>`;
+        return;
+      }
+      posts.forEach(p => {
+        container.insertAdjacentHTML('beforeend', renderPostCard(p));
+        if (p.hasPoll) loadPollData(p.id);
+      });
+      observePostCards();
+      offset += posts.length;
+      loadMore.style.display = posts.length === 20 ? '' : 'none';
+      loadMore.onclick = () => fetchPage();
+    } catch {
+      container.innerHTML = '<div class="feed-empty" style="text-align:center;padding:40px;color:var(--muted);">Failed to load.</div>';
+    }
+  };
+  fetchPage();
 }
 
 async function filterByHashtag(tag) {
@@ -7482,7 +8249,7 @@ let activeFeedTab = 'feed';
 function switchFeedTab(tab) {
   const prevTab = activeFeedTab;
   activeFeedTab = tab;
-  ['feed','network','top','saved'].forEach(t => {
+  ['feed','network','top','saved','scheduled','following'].forEach(t => {
     document.getElementById(`ftab-${t}`)?.classList.toggle('active', t === tab);
   });
 
@@ -7496,7 +8263,7 @@ function switchFeedTab(tab) {
     feedPostsEl .style.display = '';
     savedPostsEl.style.display = 'none';
     // Reload if we were on a different sub-feed (network/top) that wrote into feedPosts
-    if (prevTab === 'network' || prevTab === 'top') {
+    if (prevTab === 'network' || prevTab === 'top' || prevTab === 'scheduled') {
       feedOffset = 0;
       feedPostsEl.innerHTML = '';
       feedLoadMore.style.display = 'none';
@@ -7511,6 +8278,18 @@ function switchFeedTab(tab) {
     feedPostsEl.style.display = '';
     feedLoadMore.style.display = 'none';
     loadAltFeed(tab);
+  } else if (tab === 'scheduled') {
+    feedComposer.style.display = 'none';
+    savedPostsEl.style.display = 'none';
+    feedPostsEl.style.display = '';
+    feedLoadMore.style.display = 'none';
+    loadScheduledPosts();
+  } else if (tab === 'following') {
+    feedComposer.style.display = 'none';
+    savedPostsEl.style.display = 'none';
+    feedPostsEl.style.display = '';
+    feedLoadMore.style.display = 'none';
+    loadFollowingFeed();
   } else {
     feedComposer.style.display = 'none';
     feedPostsEl .style.display = 'none';
@@ -7992,6 +8771,8 @@ function onFeedInput(el) {
   if (!cc) return;
   cc.textContent = `${len} / 1000`;
   cc.className = len > 900 ? 'feed-char-count over' : len > 750 ? 'feed-char-count warn' : 'feed-char-count';
+  const draftBtn = document.getElementById('draftSaveBtn');
+  if (draftBtn) draftBtn.style.display = len > 0 ? 'inline-flex' : 'none';
 }
 
 /* ── Live New Members ── */

@@ -107,12 +107,43 @@ public class UserController {
             if (mutual != null && mutual > 0) connDegree = 2;
         }
 
-        result.put("connStatus",  connStatus);
-        result.put("connId",      connId);
-        result.put("isSelf",      me.equals(id));
-        result.put("connDegree",  connDegree);
-        result.put("openToWork",  toBool(p.get("open_to_work")));
-        result.put("isHiring",    toBool(p.get("is_hiring")));
+        result.put("connStatus",     connStatus);
+        result.put("connId",         connId);
+        result.put("isSelf",         me.equals(id));
+        result.put("connDegree",     connDegree);
+        result.put("openToWork",     toBool(p.get("open_to_work")));
+        result.put("isHiring",       toBool(p.get("is_hiring")));
+        // User status — respect expiry
+        String statusEmoji   = s(p, "status_emoji");
+        String statusText    = s(p, "status_text");
+        String statusExpires = s(p, "status_expires");
+        boolean statusActive = !statusText.isBlank() || !statusEmoji.isBlank();
+        if (statusActive && !statusExpires.isBlank()) {
+            try {
+                if (java.time.Instant.parse(statusExpires).isBefore(java.time.Instant.now()))
+                    statusActive = false;
+            } catch (Exception ignored) {}
+        }
+        result.put("statusEmoji",    statusActive ? statusEmoji   : "");
+        result.put("statusText",     statusActive ? statusText    : "");
+
+        // Pinned post
+        String pinnedId = s(p, "pinned_post_id");
+        if (!pinnedId.isBlank()) {
+            try {
+                List<Map<String, Object>> pinRows = jdbc.queryForList(
+                    "SELECT id, content, created_at FROM posts WHERE id=? AND user_id=?", pinnedId, id);
+                if (!pinRows.isEmpty()) {
+                    Map<String, Object> pp = pinRows.get(0);
+                    Map<String, Object> pinnedPost = new LinkedHashMap<>();
+                    pinnedPost.put("id",        pp.get("id"));
+                    pinnedPost.put("content",   pp.get("content"));
+                    pinnedPost.put("createdAt", pp.get("created_at"));
+                    result.put("pinnedPost",    pinnedPost);
+                    result.put("pinnedPostId",  pinnedId);
+                }
+            } catch (Exception ignored) {}
+        }
         return ResponseEntity.ok(result);
     }
 
