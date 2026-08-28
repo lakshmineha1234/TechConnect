@@ -166,8 +166,8 @@ public class SocialAuthController {
             "grant_type=authorization_code" +
             "&code=" + encode(code) +
             "&redirect_uri=" + encode(APP_BASE_URL + "/api/auth/linkedin/callback") +
-            "&client_id=" + LINKEDIN_CLIENT_ID +
-            "&client_secret=" + LINKEDIN_CLIENT_SECRET;
+            "&client_id=" + encode(LINKEDIN_CLIENT_ID) +
+            "&client_secret=" + encode(LINKEDIN_CLIENT_SECRET);
 
         HttpRequest tokenReq = HttpRequest.newBuilder()
             .uri(URI.create("https://www.linkedin.com/oauth/v2/accessToken"))
