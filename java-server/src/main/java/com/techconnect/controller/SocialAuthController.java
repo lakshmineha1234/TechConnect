@@ -177,7 +177,8 @@ public class SocialAuthController {
         Map<?, ?> tokenData = jsonGet(tokenReq);
         String token = str(tokenData, "access_token");
         if (token.isEmpty()) {
-            res.sendRedirect("/?social_error=" + encode("LinkedIn token exchange failed. Check your credentials."));
+            String liError = str(tokenData, "error") + ": " + str(tokenData, "error_description");
+            res.sendRedirect("/?social_error=" + encode("LinkedIn token failed: " + liError));
             return;
         }
 
