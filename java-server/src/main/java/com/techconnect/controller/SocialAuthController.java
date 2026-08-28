@@ -43,15 +43,18 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth")
 public class SocialAuthController {
 
-    // ── Credentials — replace with your values ────────────────────────────
-    // Google Client ID is used client-side in index.html (GOOGLE_CLIENT_ID constant)
-    static final String LINKEDIN_CLIENT_ID     = "";
-    static final String LINKEDIN_CLIENT_SECRET = "";
-    static final String GITHUB_CLIENT_ID       = "";
-    static final String GITHUB_CLIENT_SECRET   = "";
-    static final String APP_BASE_URL = System.getenv("APP_BASE_URL") != null
-        ? System.getenv("APP_BASE_URL").replaceAll("/+$", "")
-        : "http://localhost:8080";
+    // ── Credentials — set via environment variables ───────────────────────
+    static final String LINKEDIN_CLIENT_ID     = env("LINKEDIN_CLIENT_ID",     "");
+    static final String LINKEDIN_CLIENT_SECRET = env("LINKEDIN_CLIENT_SECRET", "");
+    static final String GITHUB_CLIENT_ID       = env("GITHUB_CLIENT_ID",       "");
+    static final String GITHUB_CLIENT_SECRET   = env("GITHUB_CLIENT_SECRET",   "");
+    static final String APP_BASE_URL           = env("APP_BASE_URL", "http://localhost:8080")
+                                                     .replaceAll("/+$", "");
+
+    private static String env(String name, String fallback) {
+        String v = System.getenv(name);
+        return (v != null && !v.isBlank()) ? v : fallback;
+    }
     // ─────────────────────────────────────────────────────────────────────
 
     private static final String PENDING_KEY = "pending_social_auth";
