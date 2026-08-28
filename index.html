@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>TechConnect</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100' height='100' rx='24' fill='%230A1628'/%3E%3Ccircle cx='73' cy='66' r='10' fill='%2300D9B5' opacity='.75'/%3E%3Ccircle cx='27' cy='66' r='13' fill='%2300D9B5'/%3E%3Cpath d='M 27,53 C 27,28 73,28 73,56' stroke='%2300D9B5' stroke-width='3.5' fill='none' stroke-linecap='round' opacity='.55'/%3E%3Ccircle cx='50' cy='32' r='4.5' fill='%23FFFFFF'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -148,10 +149,16 @@
   }
 
   .nav-brand {
-    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem;
-    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text; cursor: default; letter-spacing: .04em;
+    display: flex; align-items: center; gap: 10px; cursor: default; flex-shrink: 0; text-decoration: none;
   }
+  .nav-brand-icon { display: block; width: 34px; height: 34px; flex-shrink: 0; }
+  .nav-brand-wordmark {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.25rem;
+    letter-spacing: .01em; line-height: 1;
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .nav-brand-tech    { color: var(--accent); font-size: .9rem; font-weight: 600; line-height: 1.1; }
+  .nav-brand-connect { color: var(--text); font-size: 1.1rem; font-weight: 800; line-height: 1.1; }
 
   .nav-actions { display: flex; align-items: center; gap: 12px; position: relative; }
 
@@ -2620,7 +2627,9 @@
   @media (max-width: 640px) {
     /* Nav */
     nav { padding: 0 12px; height: 54px; gap: 6px; }
-    .nav-brand { font-size: 1rem; flex-shrink: 0; }
+    .nav-brand-icon { width: 28px; height: 28px; }
+    .nav-brand-tech { font-size: .75rem; }
+    .nav-brand-connect { font-size: .9rem; }
 
     /* Search bar — icon tap only, no visible text box */
     .nav-search-wrap { flex: 1; min-width: 0; max-width: 120px; }
@@ -2727,7 +2736,19 @@
 
 <div class="page">
   <nav>
-    <div class="nav-brand">TC</div>
+    <div class="nav-brand">
+      <svg class="nav-brand-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="100" height="100" rx="24" fill="#0A1628"/>
+        <circle cx="73" cy="66" r="10" fill="#00D9B5" opacity=".75"/>
+        <circle cx="27" cy="66" r="13" fill="#00D9B5"/>
+        <path d="M 27,53 C 27,28 73,28 73,56" stroke="#00D9B5" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".55"/>
+        <circle cx="50" cy="32" r="4.5" fill="#FFFFFF"/>
+      </svg>
+      <span class="nav-brand-wordmark">
+        <span class="nav-brand-tech">Tech</span>
+        <span class="nav-brand-connect">Connect</span>
+      </span>
+    </div>
     <div class="nav-search-wrap" id="navSearchWrap">
       <span class="nav-search-icon">🔍</span>
       <input class="nav-search-input" id="navSearchInput" type="text"
