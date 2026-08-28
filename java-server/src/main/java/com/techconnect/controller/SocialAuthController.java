@@ -13,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,7 +62,9 @@ public class SocialAuthController {
 
     private final JdbcTemplate jdbc;
     private final ObjectMapper mapper = new ObjectMapper();
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .build();
 
     public SocialAuthController(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
@@ -388,7 +391,9 @@ public class SocialAuthController {
 
     private Map<?, ?> jsonGet(HttpRequest req) throws Exception {
         HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-        return mapper.readValue(resp.body(), Map.class);
+        System.out.println("[OAuth] " + req.uri() + " → " + resp.statusCode() + " " + resp.body());
+        try { return mapper.readValue(resp.body(), Map.class); }
+        catch (Exception e) { return Map.of("error", "parse_error", "error_description", resp.body()); }
     }
 
     private static String providerCol(String provider) {
