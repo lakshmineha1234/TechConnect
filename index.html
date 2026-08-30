@@ -167,6 +167,7 @@
     position: relative; display: none; /* shown by JS after login */
   }
   .nav-search-wrap.visible { display: flex; align-items: center; }
+  .mobile-only { display: none; }
   .nav-search-input {
     width: 220px; background: rgba(255,255,255,.06); border: 1px solid var(--border2);
     border-radius: 22px; color: var(--text); padding: 7px 16px 7px 36px;
@@ -2639,19 +2640,25 @@
   @media (max-width: 640px) {
 
     /* ── Nav ── */
-    nav { padding: 0 12px; height: 54px; gap: 6px; }
+    nav { padding: 0 12px; height: 54px; gap: 0; }
     .nav-brand-icon { width: 28px; height: 28px; }
     .nav-brand-tech { font-size: .75rem; }
     .nav-brand-connect { font-size: .9rem; }
-    .nav-search-wrap { flex: 1; min-width: 0; max-width: 130px; }
-    .nav-search-input { font-size: .8rem; padding: 6px 8px; }
-    .nav-actions { gap: 4px; }
+    /* Collapse search to icon-only on mobile */
+    .nav-search-wrap { flex: 0 0 auto; max-width: none; cursor: pointer; padding: 0 6px; }
+    .nav-search-wrap.visible { display: flex; align-items: center; }
+    .nav-search-input { display: none; }
+    .nav-search-icon { font-size: 1.2rem; }
+    .mobile-only { display: flex !important; }
+    .nav-actions { gap: 2px; margin-left: auto; }
     .nav-actions .btn { font-size: .82rem; padding: 6px 10px; }
-    .theme-toggle { font-size: 1.1rem !important; padding: 4px 6px !important; background: none !important; border: none !important; }
-    .chat-btn     { font-size: 1.1rem !important; padding: 4px 6px !important; }
-    .notif-btn    { font-size: 1.1rem !important; padding: 4px 6px !important; }
+    /* Hide theme toggle in nav — accessible via avatar dropdown */
+    .theme-toggle { display: none !important; }
+    .chat-btn     { font-size: 1.2rem !important; padding: 4px 7px !important; }
+    .notif-btn    { font-size: 1.2rem !important; padding: 4px 7px !important; }
     .avatar-pill  { padding: 3px 6px 3px 3px; gap: 4px; }
     .avatar-info  { display: none; }
+    .chevron      { display: none; }
     .chevron      { display: none; }
     .dropdown     { right: 8px; left: 8px; width: auto; min-width: unset; }
 
@@ -2853,7 +2860,7 @@
         <span class="nav-brand-connect">Connect</span>
       </span>
     </div>
-    <div class="nav-search-wrap" id="navSearchWrap">
+    <div class="nav-search-wrap" id="navSearchWrap" onclick="openUnifiedSearchModal()">
       <span class="nav-search-icon">🔍</span>
       <input class="nav-search-input" id="navSearchInput" type="text"
              placeholder="Search people, posts, jobs…" maxlength="100"
@@ -4799,6 +4806,7 @@ function renderNav() {
       </div>
       <div class="dropdown" id="navDropdown">
         <div class="dd-item" onclick="openProfile()"><span class="dd-icon">👤</span> My Profile</div>
+        <div class="dd-item mobile-only" onclick="toggleTheme();closeDropdown();" id="themeToggleDd"><span class="dd-icon">☀️</span> Toggle Theme</div>
         ${(currentUser.statusEmoji || currentUser.statusText) ? `<div class="dd-item" onclick="openProfile();closeDropdown();" style="font-size:.8rem;color:var(--muted);padding:2px 16px 8px 36px;cursor:pointer;" title="Edit status">${escHtml((currentUser.statusEmoji||'') + ' ' + (currentUser.statusText||'')).trim()}</div>` : ''}
         <div class="dd-item" onclick="openRequestsModal();closeDropdown();"><span class="dd-icon">🔗</span> Connections</div>
         <div class="dd-item" onclick="openMyStats();closeDropdown();"><span class="dd-icon">📊</span> Post Analytics</div>
