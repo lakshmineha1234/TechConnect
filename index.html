@@ -2623,135 +2623,187 @@
   .project-edit-btn:hover { border-color: rgba(0,200,255,.4); color: var(--cyan); }
   .project-edit-btn.del:hover { border-color: var(--danger); color: var(--danger); }
 
-  /* ── Responsive ── */
+  /* ══════════════════════════════════════
+     RESPONSIVE — tablet (641–1024 px)
+  ══════════════════════════════════════ */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .events-grid  { grid-template-columns: repeat(2, 1fr); }
+    .jobs-grid    { grid-template-columns: repeat(2, 1fr); }
+    .profiles-grid { grid-template-columns: repeat(2, 1fr); }
+    .dash-grid    { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  /* ══════════════════════════════════════
+     RESPONSIVE — mobile (≤ 640 px)
+  ══════════════════════════════════════ */
   @media (max-width: 640px) {
-    /* Nav */
+
+    /* ── Nav ── */
     nav { padding: 0 12px; height: 54px; gap: 6px; }
     .nav-brand-icon { width: 28px; height: 28px; }
     .nav-brand-tech { font-size: .75rem; }
     .nav-brand-connect { font-size: .9rem; }
-
-    /* Search bar — icon tap only, no visible text box */
-    .nav-search-wrap { flex: 1; min-width: 0; max-width: 120px; }
+    .nav-search-wrap { flex: 1; min-width: 0; max-width: 130px; }
     .nav-search-input { font-size: .8rem; padding: 6px 8px; }
-
-    /* Nav action buttons — icon only, no text */
     .nav-actions { gap: 4px; }
     .nav-actions .btn { font-size: .82rem; padding: 6px 10px; }
-
-    /* Theme, chat, notif — compact icon buttons */
     .theme-toggle { font-size: 1.1rem !important; padding: 4px 6px !important; background: none !important; border: none !important; }
     .chat-btn     { font-size: 1.1rem !important; padding: 4px 6px !important; }
     .notif-btn    { font-size: 1.1rem !important; padding: 4px 6px !important; }
-
-    /* Avatar pill — hide name/role/chevron, just show the circle */
-    .avatar-pill { padding: 3px 6px 3px 3px; gap: 4px; }
+    .avatar-pill  { padding: 3px 6px 3px 3px; gap: 4px; }
     .avatar-info  { display: none; }
     .chevron      { display: none; }
+    .dropdown     { right: 8px; left: 8px; width: auto; min-width: unset; }
 
-    /* Dropdown — full width from right edge */
-    .dropdown { right: 0; left: auto; min-width: 220px; }
-
-    /* Notif panel */
-    .notif-panel { right: -60px; width: 300px; }
+    /* ── Notification panel — full-width below nav ── */
+    .notif-panel {
+      position: fixed; top: 54px; right: 0; left: 0;
+      width: 100%; border-radius: 0 0 16px 16px;
+      max-height: calc(100dvh - 54px); overflow-y: auto;
+    }
     .notif-bell-btn { font-size: 1.1rem; }
 
-    /* Hero */
-    .hero {
-      padding: 28px 20px 40px;
-      justify-content: flex-start;
-      min-height: unset;
-      flex: unset;
-    }
+    /* ── Hero (logged-out) ── */
+    .hero { padding: 28px 20px 40px; justify-content: flex-start; min-height: unset; flex: unset; }
     .pulse-ring-wrap { width: 60px; height: 60px; margin: 0 auto 18px; }
     .pulse-ring-icon { width: 60px; height: 60px; font-size: 1.5rem; }
-    .hero-tag { font-size: .66rem; margin-bottom: 10px; }
-    .hero-title { font-size: clamp(1.8rem, 8vw, 2.4rem); margin-bottom: 12px; }
-    .hero-sub { font-size: .88rem; margin-bottom: 24px; line-height: 1.55; }
-    .hero-ctas { flex-direction: column; align-items: stretch; gap: 10px; }
+    .hero-tag   { font-size: .66rem; margin-bottom: 10px; }
+    .hero-title { font-size: clamp(1.8rem, 8vw, 2.6rem); margin-bottom: 12px; }
+    .hero-sub   { font-size: .88rem; margin-bottom: 24px; line-height: 1.55; }
+    .hero-ctas  { flex-direction: column; align-items: stretch; gap: 10px; }
     .hero-ctas .btn { text-align: center; padding: 13px; font-size: .95rem; }
 
-    /* Feed */
-    .feed-section { padding: 0 12px; margin-bottom: 40px; }
-    .feed-composer { padding: 12px; }
+    /* ── Dashboard (logged-in hero) ── */
+    .welcome-text { font-size: 1.15rem; margin-bottom: 14px; }
+    .dash-grid  { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dash-card  { padding: 14px 10px; }
+    .dash-card-icon { font-size: 1.3rem; }
+    .dash-card-val  { font-size: 1.5rem; }
+    .dash-card-label { font-size: .7rem; }
+    .dash-completeness { padding: 14px 12px; }
+
+    /* ── Feed ── */
+    .feed-section { padding: 0 10px; margin-bottom: 40px; }
+    .feed-composer { padding: 12px 10px; }
     .feed-composer-avatar { width: 34px; height: 34px; font-size: .72rem; }
-    .feed-composer-footer { flex-wrap: wrap; gap: 8px; }
+    .feed-composer-footer { flex-wrap: wrap; gap: 6px; }
     .feed-composer-footer > div:first-child { flex-wrap: wrap; }
-    .feed-image-btn, .poll-toggle-btn { font-size: .78rem; padding: 5px 10px; }
-
-    /* Feed tabs — scrollable row */
-    .feed-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
-    .feed-tab  { font-size: .78rem; padding: 10px 13px; white-space: nowrap; }
-
-    /* Post cards */
+    .feed-image-btn, .poll-toggle-btn { font-size: .76rem; padding: 5px 9px; }
+    .feed-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; padding-bottom: 2px; }
+    .feed-tab  { font-size: .78rem; padding: 9px 12px; white-space: nowrap; }
     .feed-post { padding: 14px 12px; }
-    .feed-post-name { font-size: .88rem; }
-    .feed-post-content { font-size: .9rem; }
+    .feed-post-name    { font-size: .88rem; }
+    .feed-post-content { font-size: .9rem; line-height: 1.55; }
     .feed-post-actions { gap: 4px; flex-wrap: wrap; }
-    .feed-action-btn { font-size: .78rem; padding: 5px 8px; }
-    .post-image { border-radius: 8px; }
+    .feed-action-btn   { font-size: .76rem; padding: 5px 8px; }
+    .post-image  { border-radius: 8px; }
+    #feedCharCount { font-size: .75rem; }
 
-    /* Modals — full-screen sheet on mobile */
-    .modal-backdrop {
-      padding: 0;
-      align-items: flex-end;
-    }
+    /* ── Jobs ── */
+    .jobs-section { padding: 28px 10px 48px; }
+    .jobs-grid { grid-template-columns: 1fr; }
+    .jobs-view-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; padding-bottom: 4px; gap: 4px; }
+    .jobs-view-tab  { white-space: nowrap; font-size: .8rem; padding: 8px 14px; flex-shrink: 0; }
+    .job-card { padding: 14px 12px; }
+    .job-card-top  { flex-direction: column; gap: 6px; }
+    .job-card-actions { flex-wrap: wrap; gap: 6px; }
+    .job-card-skills  { gap: 4px; }
+    .job-card-title   { font-size: .95rem; }
+
+    /* ── Events ── */
+    .events-section { padding: 28px 10px 48px; }
+    .events-container { padding: 0; }
+    .events-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+    .events-heading { font-size: 1.25rem; }
+    .events-when-row { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; padding-bottom: 4px; }
+    .events-when-btn { white-space: nowrap; font-size: .78rem; padding: 7px 12px; flex-shrink: 0; }
+    .events-grid { grid-template-columns: 1fr; gap: 12px; }
+    .event-card  { padding: 14px 12px; }
+    .event-card-top { flex-direction: column; gap: 6px; }
+    .event-card-actions { flex-wrap: wrap; gap: 6px; }
+    .event-card-title   { font-size: .95rem; }
+
+    /* ── Search / People ── */
+    .search-section { padding: 28px 10px 48px; }
+    .search-heading { font-size: 1.25rem; }
+    .profiles-grid  { grid-template-columns: 1fr; gap: 12px; }
+    .search-bar-wrap { padding: 6px 6px 6px 12px; }
+    .profile-card { padding: 16px 12px; }
+    .filter-chips { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; padding-bottom: 2px; }
+    .filter-chip  { white-space: nowrap; flex-shrink: 0; }
+
+    /* ── Suggestions ── */
+    .suggestions-section { margin-bottom: 20px; }
+    .suggestion-card { min-width: 150px; max-width: 168px; padding: 16px 10px; }
+    .suggestions-title { font-size: .82rem; }
+
+    /* ── Live members ── */
+    .live-members-section { padding: 10px 14px; margin-bottom: 14px; }
+
+    /* ── Modals — bottom sheet ── */
+    .modal-backdrop { padding: 0; align-items: flex-end; }
     .modal {
-      padding: 20px 16px 36px;
-      border-radius: 18px 18px 0 0;
-      max-height: 96dvh;
-      height: auto;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      width: 100%;
-      max-width: 100% !important;
+      padding: 20px 16px 36px; border-radius: 18px 18px 0 0;
+      max-height: 96dvh; height: auto;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      width: 100%; max-width: 100% !important;
     }
-    /* Login / signup — make fields more compact */
+    .modal-close { top: 14px; right: 14px; }
+    .modal-header { margin-bottom: 18px; }
+    .modal-title  { font-size: 1.1rem; }
+
+    /* Login / Signup / Role — full screen */
     #loginBackdrop .modal,
     #signupBackdrop .modal,
     #socialRoleBackdrop .modal {
-      max-height: 100dvh;
-      border-radius: 0;
-      padding: 56px 16px 32px;
+      max-height: 100dvh; border-radius: 0; padding: 52px 16px 32px;
     }
     #loginBackdrop .field,
-    #signupBackdrop .field { margin-bottom: 12px; }
+    #signupBackdrop .field  { margin-bottom: 11px; }
     #loginBackdrop .modal-header,
-    #signupBackdrop .modal-header { margin-bottom: 16px; }
+    #signupBackdrop .modal-header { margin-bottom: 14px; }
     #loginBackdrop input,
-    #signupBackdrop input { padding: 9px 12px; font-size: .88rem; }
-    .social-btns { gap: 7px; }
-    .social-btn { padding: 8px 4px; font-size: .78rem; gap: 5px; }
-    .modal-close { top: 14px; right: 14px; }
+    #signupBackdrop input   { padding: 9px 12px; font-size: .88rem; }
+    .social-btns { gap: 6px; }
+    .social-btn  { padding: 8px 4px; font-size: .76rem; gap: 4px; }
+    .role-cards  { flex-direction: column; gap: 10px; }
+    .role-card   { padding: 14px 16px; }
+    .social-divider { margin: 16px 0 14px; }
 
-    /* Dashboard */
-    .dash-grid { grid-template-columns: 1fr 1fr; }
-    .dash-grid .dash-card:nth-child(n) { grid-column: auto; }
+    /* Connections modal tabs */
+    .requests-tabs { gap: 4px; }
+    .req-tab { font-size: .8rem; padding: 8px 12px; }
 
-    /* Profile */
+    /* Reactions viewer */
+    .react-viewer-tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+    .react-viewer-tab  { white-space: nowrap; flex-shrink: 0; font-size: .8rem; padding: 6px 12px; }
+
+    /* ── Profile (own edit form) ── */
     .field-row { grid-template-columns: 1fr; }
     .profile-avatar-section { flex-direction: column; text-align: center; }
-    .uprofile-hero { flex-direction: column; align-items: center; text-align: center; }
-    .uprofile-actions { justify-content: center; flex-wrap: wrap; }
-    .uprofile-name { justify-content: center; }
+    .section-heading { font-size: 1rem; }
+    .skill-input-row { flex-direction: column; }
+    .skill-input-row .btn { width: 100%; }
 
-    /* Search */
-    .profiles-grid { grid-template-columns: 1fr; }
-    .search-bar-wrap { padding: 6px 6px 6px 12px; }
+    /* ── User profile (viewed profile sheet) ── */
+    .uprofile-hero    { flex-direction: column; align-items: center; text-align: center; }
+    .uprofile-actions { justify-content: center; flex-wrap: wrap; gap: 8px; }
+    .uprofile-name    { justify-content: center; flex-wrap: wrap; }
+    .uprofile-avatar  { width: 80px; height: 80px; font-size: 1.8rem; flex-shrink: 0; }
+    .uprofile-section-title { font-size: .82rem; }
 
-    /* Chat */
-    .chat-panel { padding: 8px; }
-    .chat-msg-bubble { max-width: 85%; }
+    /* ── Chat ── */
+    .chat-panel { padding: 8px 6px; }
+    .chat-msg-bubble { max-width: 86%; font-size: .88rem; }
+    .chat-input-row  { gap: 6px; }
 
-    /* Jobs / Events */
-    .job-card { padding: 14px; }
-    .jobs-grid { grid-template-columns: 1fr; }
+    /* ── Post analytics modal ── */
+    .pa-stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .pa-sparkline { height: 56px; }
 
-    /* Avatar dropdown */
-    .dropdown { right: 8px; left: 8px; width: auto; }
-
-    /* Composer char count */
-    #feedCharCount { font-size: .75rem; }
+    /* ── Skill assessment modal ── */
+    .assess-question { font-size: .88rem; }
+    .assess-option   { padding: 10px 12px; font-size: .85rem; }
   }
 </style>
 </head>
