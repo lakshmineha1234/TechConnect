@@ -2768,12 +2768,9 @@
       padding: 52px 18px 40px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      transform: translateY(100%) scale(1);
-    }
-    #loginBackdrop.open .modal,
-    #signupBackdrop.open .modal,
-    #socialRoleBackdrop.open .modal {
-      transform: translateY(0) scale(1);
+      /* Let backdrop fade handle open/close — no slide transform */
+      transform: translateY(0) scale(1) !important;
+      opacity: 1 !important;
     }
     #loginBackdrop .field,
     #signupBackdrop .field  { margin-bottom: 11px; }
