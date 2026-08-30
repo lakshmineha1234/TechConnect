@@ -2752,23 +2752,32 @@
     .modal-header { margin-bottom: 18px; }
     .modal-title  { font-size: 1.1rem; }
 
-    /* Login / Signup / Role — true full-screen, scrollable */
+    /* Login / Signup / Role — full-screen page on mobile */
     #loginBackdrop,
     #signupBackdrop,
     #socialRoleBackdrop {
-      align-items: flex-start;
-      padding: 0;
+      background: var(--surface) !important;
+      backdrop-filter: none !important;
+      align-items: flex-start !important;
+      justify-content: flex-start !important;
+      padding: 0 !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
     }
     #loginBackdrop .modal,
     #signupBackdrop .modal,
     #socialRoleBackdrop .modal {
-      height: 100vh; height: 100dvh;
-      max-height: none;
-      border-radius: 0;
-      padding: 52px 18px 40px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      /* Let backdrop fade handle open/close — no slide transform */
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      max-width: 100% !important;
+      width: 100% !important;
+      max-height: none !important;
+      height: auto !important;
+      min-height: 100vh !important;
+      padding: 56px 24px 48px !important;
+      overflow-y: visible !important;
       transform: translateY(0) scale(1) !important;
       opacity: 1 !important;
     }
