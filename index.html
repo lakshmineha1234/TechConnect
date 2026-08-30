@@ -9319,7 +9319,7 @@ async function liveConnect(userId, btn) {
   btn.disabled = true;
   btn.textContent = '…';
   try {
-    await api('POST', `/api/connections/${userId}/request`);
+    await api('POST', '/api/connections/request', { targetUserId: userId });
     btn.className = 'live-member-conn-btn pending';
     btn.textContent = '⏳ Pending';
   } catch(e) {
@@ -10304,7 +10304,7 @@ function renderSearchConnBtn(u) {
 async function sendSearchConn(userId, btn) {
   btn.disabled = true; btn.textContent = '…';
   try {
-    await api('POST', '/api/connections/request', { recipientId: userId });
+    await api('POST', '/api/connections/request', { targetUserId: userId });
     btn.textContent = 'Pending'; btn.className = '';
     btn.style.cssText = 'font-size:.75rem;color:var(--muted);background:none;border:none;cursor:default;';
     // Refresh connection data
@@ -10318,7 +10318,7 @@ async function acceptSearchConn(userId, btn) {
     // Find the connection id from connData
     const pending = connData?.pendingIn?.find(c => c.requesterId === userId);
     if (pending) {
-      await api('PATCH', `/api/connections/${pending.id}`, { status: 'accepted' });
+      await api('POST', `/api/connections/${pending.id}/accept`);
       btn.textContent = 'Connected'; btn.className = '';
       btn.style.cssText = 'font-size:.75rem;color:var(--muted);background:none;border:none;cursor:default;';
       if (typeof loadConnections === 'function') loadConnections();
