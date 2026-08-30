@@ -118,7 +118,7 @@ public class SocialAuthController {
 
         String uid = UUID.randomUUID().toString();
         jdbc.update(
-            "INSERT INTO users (id,email,password_hash,role,first_name,last_name,google_id) VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO users (id,email,password_hash,role,first_name,last_name,google_id,email_verified) VALUES (?,?,?,?,?,?,?,TRUE)",
             uid, email, "", role, firstName, lastName, googleId);
         jdbc.update("INSERT INTO profiles (user_id) VALUES (?)", uid);
         session.setAttribute("userId", uid);
@@ -333,7 +333,7 @@ public class SocialAuthController {
 
         String uid = UUID.randomUUID().toString();
         jdbc.update(
-            "INSERT INTO users (id,email,password_hash,role,first_name,last_name," + idCol + ") VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO users (id,email,password_hash,role,first_name,last_name," + idCol + ",email_verified) VALUES (?,?,?,?,?,?,?,TRUE)",
             uid, email, "", role, firstName, lastName, providerId);
         jdbc.update("INSERT INTO profiles (user_id) VALUES (?)", uid);
 

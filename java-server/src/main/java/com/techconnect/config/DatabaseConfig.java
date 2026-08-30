@@ -411,6 +411,11 @@ public class DatabaseConfig {
                 """);
             jdbc.execute("CREATE INDEX IF NOT EXISTS idx_certs_user ON certifications(user_id, display_order)");
 
+            // Email verification (existing users default to verified so they aren't locked out)
+            try { jdbc.execute("ALTER TABLE users ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT TRUE"); } catch (Exception ignored) {}
+            try { jdbc.execute("ALTER TABLE users ADD COLUMN verify_token TEXT DEFAULT NULL"); } catch (Exception ignored) {}
+            try { jdbc.execute("CREATE INDEX IF NOT EXISTS idx_users_verify_token ON users(verify_token) WHERE verify_token IS NOT NULL"); } catch (Exception ignored) {}
+
             // Password reset tokens (expire after 1 hour)
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS password_reset_tokens (

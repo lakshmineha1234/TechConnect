@@ -1,8 +1,11 @@
 package com.techconnect.controller;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +18,16 @@ public class AuthController {
 
     private final JdbcTemplate jdbc;
     private final SimpMessagingTemplate ws;
+    private final JavaMailSender mailer;
     private final BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder(12);
 
-    public AuthController(JdbcTemplate jdbc, SimpMessagingTemplate ws) {
-        this.jdbc = jdbc;
-        this.ws   = ws;
+    @Value("${spring.mail.username:}")  private String fromEmail;
+    @Value("${techconnect.app-url:http://localhost:8080}") private String appUrl;
+
+    public AuthController(JdbcTemplate jdbc, SimpMessagingTemplate ws, JavaMailSender mailer) {
+        this.jdbc   = jdbc;
+        this.ws     = ws;
+        this.mailer = mailer;
     }
 
     // ── POST /api/auth/register ───────────────────────────────────────────────
@@ -48,43 +56,25 @@ public class AuthController {
             return err(409, "An account with that email already exists.");
         }
 
-        String id   = UUID.randomUUID().toString();
-        String hash = bcrypt.encode(password);
+        String id    = UUID.randomUUID().toString();
+        String hash  = bcrypt.encode(password);
+        String token = UUID.randomUUID().toString();
 
         jdbc.update(
-            "INSERT INTO users (id,email,password_hash,role,first_name,last_name) VALUES(?,?,?,?,?,?)",
-            id, email, hash, role, firstName, lastName);
+            "INSERT INTO users (id,email,password_hash,role,first_name,last_name,email_verified,verify_token) VALUES(?,?,?,?,?,?,FALSE,?)",
+            id, email, hash, role, firstName, lastName, token);
 
         jdbc.update(
             "INSERT INTO profiles (user_id,institution,company) VALUES(?,?,?)",
             id, institution, company);
 
-        session.setAttribute("userId", id);
+        // Send verification email
+        sendVerificationEmail(email, firstName, token);
 
-        // Broadcast new member to all connected clients
-        try {
-            String institution2 = institution;
-            String company2     = company;
-            Map<String, Object> broadcast = new LinkedHashMap<>();
-            broadcast.put("id",          id);
-            broadcast.put("name",        (firstName + " " + lastName).trim());
-            broadcast.put("firstName",   firstName);
-            broadcast.put("lastName",    lastName);
-            broadcast.put("role",        role);
-            broadcast.put("institution", institution2);
-            broadcast.put("company",     company2);
-            broadcast.put("bio",         "");
-            broadcast.put("location",    "");
-            broadcast.put("jobTitle",    "");
-            broadcast.put("skills",      List.of());
-            broadcast.put("joinedAt",    java.time.Instant.now().toString());
-            broadcast.put("connectionCount", 0);
-            broadcast.put("connectedWithMe", false);
-            broadcast.put("pendingWithMe",   false);
-            ws.convertAndSend("/topic/new-member", broadcast);
-        } catch (Exception ignored) {}
-
-        return ResponseEntity.status(201).body(Map.of("user", buildUser(id)));
+        return ResponseEntity.status(201).body(Map.of(
+            "needsVerification", true,
+            "email", email
+        ));
     }
 
     // ── POST /api/auth/login ──────────────────────────────────────────────────
@@ -109,6 +99,19 @@ public class AuthController {
         }
 
         Map<String, Object> user = rows.get(0);
+
+        // Block login if email not verified
+        Object verified = user.get("email_verified");
+        boolean isVerified = verified instanceof Boolean b ? b
+            : verified instanceof Number n ? n.intValue() != 0
+            : "true".equalsIgnoreCase(String.valueOf(verified));
+        if (!isVerified) {
+            return ResponseEntity.status(403).body(Map.of(
+                "error", "email_not_verified",
+                "email", email
+            ));
+        }
+
         session.setAttribute("userId", user.get("id"));
         return ok(Map.of("user", formatUser(user)));
     }
@@ -138,7 +141,53 @@ public class AuthController {
         return ok(Map.of("user", formatUser(rows.get(0))));
     }
 
+    // ── POST /api/auth/resend-verification ───────────────────────────────────
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Map<String, Object>> resendVerification(
+            @RequestBody Map<String, Object> body) {
+
+        String email = clean(body, "email").toLowerCase();
+        if (email.isEmpty()) return err(400, "Email required.");
+
+        List<Map<String, Object>> rows = jdbc.queryForList(
+            "SELECT id, first_name, email_verified FROM users WHERE email = ?", email);
+        if (rows.isEmpty()) return ok(Map.of("ok", true)); // don't reveal existence
+
+        Map<String, Object> user = rows.get(0);
+        Object verified = user.get("email_verified");
+        boolean isVerified = verified instanceof Boolean b ? b
+            : verified instanceof Number n ? n.intValue() != 0
+            : "true".equalsIgnoreCase(String.valueOf(verified));
+        if (isVerified) return ok(Map.of("ok", true)); // already verified, silently OK
+
+        String token = UUID.randomUUID().toString();
+        jdbc.update("UPDATE users SET verify_token = ? WHERE email = ?", token, email);
+        sendVerificationEmail(email, str(user, "first_name"), token);
+        return ok(Map.of("ok", true));
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void sendVerificationEmail(String email, String firstName, String token) {
+        try {
+            String link = appUrl + "/api/auth/verify-email?token=" + token;
+            String name = firstName.isEmpty() ? "there" : firstName;
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(fromEmail);
+            msg.setTo(email);
+            msg.setSubject("Verify your TechConnect email");
+            msg.setText(
+                "Hi " + name + ",\n\n" +
+                "Thanks for joining TechConnect! Please verify your email address by clicking the link below:\n\n" +
+                link + "\n\n" +
+                "This link does not expire.\n\n" +
+                "If you didn't create an account, you can ignore this email.\n\n" +
+                "— The TechConnect Team"
+            );
+            mailer.send(msg);
+        } catch (Exception ignored) {}
+    }
 
     private Map<String, Object> buildUser(String id) {
         return formatUser(jdbc.queryForList("SELECT * FROM users WHERE id = ?", id).get(0));
