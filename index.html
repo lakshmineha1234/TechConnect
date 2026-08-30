@@ -2752,11 +2752,28 @@
     .modal-header { margin-bottom: 18px; }
     .modal-title  { font-size: 1.1rem; }
 
-    /* Login / Signup / Role — full screen */
+    /* Login / Signup / Role — true full-screen, scrollable */
+    #loginBackdrop,
+    #signupBackdrop,
+    #socialRoleBackdrop {
+      align-items: flex-start;
+      padding: 0;
+    }
     #loginBackdrop .modal,
     #signupBackdrop .modal,
     #socialRoleBackdrop .modal {
-      max-height: 100dvh; border-radius: 0; padding: 52px 16px 32px;
+      height: 100vh; height: 100dvh;
+      max-height: none;
+      border-radius: 0;
+      padding: 52px 18px 40px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      transform: translateY(100%) scale(1);
+    }
+    #loginBackdrop.open .modal,
+    #signupBackdrop.open .modal,
+    #socialRoleBackdrop.open .modal {
+      transform: translateY(0) scale(1);
     }
     #loginBackdrop .field,
     #signupBackdrop .field  { margin-bottom: 11px; }
@@ -2768,7 +2785,7 @@
     .social-btn  { padding: 8px 4px; font-size: .76rem; gap: 4px; }
     .role-cards  { flex-direction: column; gap: 10px; }
     .role-card   { padding: 14px 16px; }
-    .social-divider { margin: 16px 0 14px; }
+    .social-divider { margin: 14px 0 12px; }
 
     /* Connections modal tabs */
     .requests-tabs { gap: 4px; }
