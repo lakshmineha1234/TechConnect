@@ -2683,16 +2683,37 @@
     .feed-action-btn { font-size: .78rem; padding: 5px 8px; }
     .post-image { border-radius: 8px; }
 
-    /* Modals — full width on mobile */
-    .modal-backdrop { padding: 10px 0 0; align-items: flex-end; }
+    /* Modals — full-screen sheet on mobile */
+    .modal-backdrop {
+      padding: 0;
+      align-items: flex-end;
+    }
     .modal {
-      padding: 20px 16px 28px;
+      padding: 20px 16px 36px;
       border-radius: 18px 18px 0 0;
-      max-height: 92vh;
+      max-height: 96dvh;
+      height: auto;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       width: 100%;
       max-width: 100% !important;
     }
+    /* Login / signup — make fields more compact */
+    #loginBackdrop .modal,
+    #signupBackdrop .modal,
+    #socialRoleBackdrop .modal {
+      max-height: 100dvh;
+      border-radius: 0;
+      padding: 56px 16px 32px;
+    }
+    #loginBackdrop .field,
+    #signupBackdrop .field { margin-bottom: 12px; }
+    #loginBackdrop .modal-header,
+    #signupBackdrop .modal-header { margin-bottom: 16px; }
+    #loginBackdrop input,
+    #signupBackdrop input { padding: 9px 12px; font-size: .88rem; }
+    .social-btns { gap: 7px; }
+    .social-btn { padding: 8px 4px; font-size: .78rem; gap: 5px; }
     .modal-close { top: 14px; right: 14px; }
 
     /* Dashboard */
