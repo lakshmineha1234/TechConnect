@@ -4918,8 +4918,37 @@ function render() {
 /* ════════════════════════════════════════
    MODAL HELPERS
 ════════════════════════════════════════ */
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+const MOBILE_FULLSCREEN_MODALS = new Set(['loginBackdrop','signupBackdrop','socialRoleBackdrop']);
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (window.innerWidth <= 640 && MOBILE_FULLSCREEN_MODALS.has(id)) {
+    const modal = el.querySelector('.modal');
+    Object.assign(el.style, {
+      background: 'var(--surface)', backdropFilter: 'none',
+      alignItems: 'flex-start', justifyContent: 'flex-start',
+      padding: '0', overflowY: 'auto'
+    });
+    if (modal) Object.assign(modal.style, {
+      background: 'transparent', border: 'none', boxShadow: 'none',
+      borderRadius: '0', maxWidth: '100%', width: '100%',
+      maxHeight: 'none', height: 'auto', minHeight: '100vh',
+      padding: '56px 24px 48px', overflowY: 'visible',
+      transform: 'translateY(0) scale(1)', opacity: '1'
+    });
+  }
+  el.classList.add('open');
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (MOBILE_FULLSCREEN_MODALS.has(id)) {
+    el.removeAttribute('style');
+    const modal = el.querySelector('.modal');
+    if (modal) modal.removeAttribute('style');
+  }
+  el.classList.remove('open');
+}
 
 document.querySelectorAll('.modal-backdrop').forEach(bd => {
   bd.addEventListener('click', e => { if (e.target === bd) closeModal(bd.id); });
