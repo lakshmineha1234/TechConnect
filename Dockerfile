@@ -3,7 +3,7 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /build
 COPY java-server/pom.xml .
 COPY java-server/src ./src
-RUN mvn package -DskipTests -q
+RUN mvn package -DskipTests
 
 # ── Stage 2: Run ─────────────────────────────────────────────────────────────
 FROM eclipse-temurin:21-jre-alpine

@@ -55,11 +55,7 @@
       <artifactId>spring-boot-starter-websocket</artifactId>
     </dependency>
 
-    <!-- Email (password reset) -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-mail</artifactId>
-    </dependency>
+    <!-- (email now sent via Resend HTTP API in EmailService — no SMTP dependency needed) -->
 
   </dependencies>
 
