@@ -58,12 +58,8 @@ public class PasswordResetController {
 
         String resetLink = appUrl + "/?reset=" + token;
 
-        // Try to send email if SMTP is configured; always return the link for dev/demo use
-        boolean emailSent = false;
-        if (fromEmail != null && !fromEmail.isBlank()) {
-            sendResetEmail(email, firstName, resetLink);
-            emailSent = true;
-        }
+        sendResetEmail(email, firstName, resetLink);
+        boolean emailSent = true;
 
         Map<String, Object> resp = new LinkedHashMap<>();
         resp.put("ok", true);
