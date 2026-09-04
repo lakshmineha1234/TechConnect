@@ -1,11 +1,9 @@
 package com.techconnect.controller;
 
+import com.techconnect.service.EmailService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,18 +18,15 @@ import static com.techconnect.controller.AuthController.err;
 public class PasswordResetController {
 
     private final JdbcTemplate jdbc;
-    private final JavaMailSender mailer;
+    private final EmailService emailService;
     private final BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
-
-    @Value("${spring.mail.username:}")
-    private String fromEmail;
 
     @Value("${techconnect.app-url:http://localhost:8080}")
     private String appUrl;
 
-    public PasswordResetController(JdbcTemplate jdbc, JavaMailSender mailer) {
-        this.jdbc   = jdbc;
-        this.mailer = mailer;
+    public PasswordResetController(JdbcTemplate jdbc, EmailService emailService) {
+        this.jdbc         = jdbc;
+        this.emailService = emailService;
     }
 
     // POST /api/auth/forgot-password  { email }
@@ -111,29 +106,16 @@ public class PasswordResetController {
         return ResponseEntity.ok(Map.of("ok", true, "message", "Password updated successfully. You can now log in."));
     }
 
-    @Async
     void sendResetEmail(String to, String firstName, String resetLink) {
-        try {
-            SimpleMailMessage msg = new SimpleMailMessage();
-            msg.setFrom(fromEmail);
-            msg.setTo(to);
-            msg.setSubject("Reset your TechConnect password");
-            msg.setText("""
-                Hi %s,
-
-                We received a request to reset your TechConnect password.
-                Click the link below to set a new password. This link expires in 1 hour.
-
-                %s
-
-                If you didn't request this, you can safely ignore this email.
-
-                — The TechConnect Team
-                """.formatted(firstName, resetLink));
-            mailer.send(msg);
-        } catch (Exception e) {
-            // Log but don't expose mail errors to the client
-            System.err.println("[PasswordReset] Failed to send email to " + to + ": " + e.getMessage());
-        }
+        emailService.send(
+            to,
+            "Reset your TechConnect password",
+            "Hi " + firstName + ",\n\n" +
+            "We received a request to reset your TechConnect password.\n" +
+            "Click the link below to set a new password. This link expires in 1 hour.\n\n" +
+            resetLink + "\n\n" +
+            "If you didn't request this, you can safely ignore this email.\n\n" +
+            "— The TechConnect Team"
+        );
     }
 }

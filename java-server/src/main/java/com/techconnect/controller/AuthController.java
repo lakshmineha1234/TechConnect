@@ -1,13 +1,11 @@
 package com.techconnect.controller;
 
+import com.techconnect.service.EmailService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,16 +17,15 @@ public class AuthController {
 
     private final JdbcTemplate jdbc;
     private final SimpMessagingTemplate ws;
-    private final JavaMailSender mailer;
+    private final EmailService emailService;
     private final BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder(12);
 
-    @Value("${spring.mail.username:}")  private String fromEmail;
     @Value("${techconnect.app-url:http://localhost:8080}") private String appUrl;
 
-    public AuthController(JdbcTemplate jdbc, SimpMessagingTemplate ws, JavaMailSender mailer) {
-        this.jdbc   = jdbc;
-        this.ws     = ws;
-        this.mailer = mailer;
+    public AuthController(JdbcTemplate jdbc, SimpMessagingTemplate ws, EmailService emailService) {
+        this.jdbc         = jdbc;
+        this.ws           = ws;
+        this.emailService = emailService;
     }
 
     // ── POST /api/auth/register ───────────────────────────────────────────────
@@ -170,25 +167,19 @@ public class AuthController {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    @Async
     void sendVerificationEmail(String email, String firstName, String token) {
-        try {
-            String link = appUrl + "/api/auth/verify-email?token=" + token;
-            String name = firstName.isEmpty() ? "there" : firstName;
-            SimpleMailMessage msg = new SimpleMailMessage();
-            msg.setFrom(fromEmail);
-            msg.setTo(email);
-            msg.setSubject("Verify your TechConnect email");
-            msg.setText(
-                "Hi " + name + ",\n\n" +
-                "Thanks for joining TechConnect! Please verify your email address by clicking the link below:\n\n" +
-                link + "\n\n" +
-                "This link does not expire.\n\n" +
-                "If you didn't create an account, you can ignore this email.\n\n" +
-                "— The TechConnect Team"
-            );
-            mailer.send(msg);
-        } catch (Exception ignored) {}
+        String link = appUrl + "/api/auth/verify-email?token=" + token;
+        String name = firstName.isEmpty() ? "there" : firstName;
+        emailService.send(
+            email,
+            "Verify your TechConnect email",
+            "Hi " + name + ",\n\n" +
+            "Thanks for joining TechConnect! Please verify your email address by clicking the link below:\n\n" +
+            link + "\n\n" +
+            "This link does not expire.\n\n" +
+            "If you didn't create an account, you can ignore this email.\n\n" +
+            "— The TechConnect Team"
+        );
     }
 
     private Map<String, Object> buildUser(String id) {
