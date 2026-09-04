@@ -3861,6 +3861,27 @@
   </div>
 </div>
 
+<!-- ══ DELETE ACCOUNT MODAL ══ -->
+<div class="modal-backdrop" id="deleteAccountBackdrop" onclick="if(event.target===this)closeModal('deleteAccountBackdrop')">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <span class="modal-title" style="color:var(--danger);">⚠️ Delete Account</span>
+      <button class="modal-close" onclick="closeModal('deleteAccountBackdrop')" aria-label="Close">✕</button>
+    </div>
+    <p style="font-size:.9rem;color:var(--text);margin-bottom:8px;">This will <strong>permanently delete</strong> your account and all your data — posts, connections, messages, applications, and everything else.</p>
+    <p style="font-size:.85rem;color:var(--danger);margin-bottom:18px;font-weight:600;">This cannot be undone.</p>
+    <div id="deleteAccountPwWrap">
+      <label class="form-label">Confirm your password</label>
+      <input type="password" id="deleteAccountPw" class="form-input" placeholder="Your current password" autocomplete="current-password" />
+    </div>
+    <p class="form-error" id="deleteAccountError" style="margin-top:8px;"></p>
+    <div class="confirm-btns" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeModal('deleteAccountBackdrop')">Cancel</button>
+      <button class="btn btn-danger" id="deleteAccountBtn" onclick="doDeleteAccount()">Delete My Account</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ PROFILE MODAL ══ -->
 <div class="modal-backdrop" id="profileBackdrop">
   <div class="modal wide" role="dialog" aria-modal="true">
@@ -4814,6 +4835,9 @@ function renderNav() {
         <div class="dd-item" onclick="openMutedUsersModal()"><span class="dd-icon">🔇</span> Muted Users</div>
         <div class="dd-item" onclick="openBlockedUsersModal()"><span class="dd-icon">🚫</span> Blocked Users</div>
         <div class="dd-divider"></div>
+        <div class="dd-item danger" onclick="openDeleteAccountModal();closeDropdown();">
+          <span class="dd-icon">🗑️</span> Delete Account
+        </div>
         <div class="dd-item danger" onclick="openModal('logoutBackdrop');closeDropdown();">
           <span class="dd-icon">🚪</span> Log Out
         </div>
@@ -5461,6 +5485,61 @@ async function doLogout() {
   activeChatUserId  = null;
   closeModal('logoutBackdrop');
   render();
+}
+
+/* ════════════════════════════════════════
+   AUTH — DELETE ACCOUNT
+════════════════════════════════════════ */
+function openDeleteAccountModal() {
+  const hasPw = currentUser && !currentUser.socialProvider;
+  document.getElementById('deleteAccountPwWrap').style.display = hasPw ? '' : 'none';
+  document.getElementById('deleteAccountPw').value = '';
+  document.getElementById('deleteAccountError').textContent = '';
+  document.getElementById('deleteAccountBtn').disabled = false;
+  openModal('deleteAccountBackdrop');
+}
+
+async function doDeleteAccount() {
+  const btn   = document.getElementById('deleteAccountBtn');
+  const errEl = document.getElementById('deleteAccountError');
+  const pw    = document.getElementById('deleteAccountPw').value;
+
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+
+  try {
+    await api('DELETE', '/api/auth/account', { password: pw });
+    // Wipe local state same as logout
+    disconnectWS();
+    closeChat();
+    stopNotifPolling();
+    stopChatPolling();
+    closeNotifPanel();
+    currentUser = null;
+    connData    = null;
+    chatUnread  = 0;
+    notifUnread = 0;
+    chatConversations = [];
+    activeChatUserId  = null;
+    closeModal('deleteAccountBackdrop');
+    render();
+    // Show a brief confirmation in the hero
+    setTimeout(() => {
+      const hero = document.getElementById('hero');
+      if (hero) {
+        const note = document.createElement('p');
+        note.style.cssText = 'color:var(--teal);font-size:.9rem;margin-top:12px;';
+        note.textContent = 'Your account has been permanently deleted.';
+        hero.appendChild(note);
+        setTimeout(() => note.remove(), 6000);
+      }
+    }, 300);
+  } catch (e) {
+    errEl.textContent = e.message || 'Could not delete account. Please try again.';
+    btn.disabled = false;
+    btn.textContent = 'Delete My Account';
+  }
 }
 
 /* ════════════════════════════════════════
