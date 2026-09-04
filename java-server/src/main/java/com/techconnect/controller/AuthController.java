@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -169,7 +170,8 @@ public class AuthController {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private void sendVerificationEmail(String email, String firstName, String token) {
+    @Async
+    void sendVerificationEmail(String email, String firstName, String token) {
         try {
             String link = appUrl + "/api/auth/verify-email?token=" + token;
             String name = firstName.isEmpty() ? "there" : firstName;

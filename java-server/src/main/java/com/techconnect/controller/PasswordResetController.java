@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -110,7 +111,8 @@ public class PasswordResetController {
         return ResponseEntity.ok(Map.of("ok", true, "message", "Password updated successfully. You can now log in."));
     }
 
-    private void sendResetEmail(String to, String firstName, String resetLink) {
+    @Async
+    void sendResetEmail(String to, String firstName, String resetLink) {
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(fromEmail);
