@@ -4063,6 +4063,23 @@
     <p class="form-error" id="profileError"></p>
     <button class="btn btn-grad" id="saveBtn" style="width:100%;padding:13px;margin-top:8px;" onclick="saveProfile()">Save Changes</button>
     <div class="save-confirm" id="saveConfirm">✓ Profile updated successfully!</div>
+
+    <!-- Change Password -->
+    <div style="border-top:1px solid var(--border2);margin-top:24px;padding-top:20px;">
+      <div class="section-heading" style="margin-bottom:12px;">🔑 Change Password</div>
+      <div class="field"><label>Current Password</label>
+        <input type="password" id="pfCurrentPw" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <div class="field"><label>New Password</label>
+        <input type="password" id="pfNewPw" placeholder="At least 6 characters" autocomplete="new-password" />
+      </div>
+      <div class="field"><label>Confirm New Password</label>
+        <input type="password" id="pfConfirmPw" placeholder="Repeat new password" autocomplete="new-password" />
+      </div>
+      <p class="form-error" id="changePwError"></p>
+      <div id="changePwSuccess" style="display:none;font-size:.85rem;color:var(--teal);margin-bottom:8px;">✓ Password updated successfully!</div>
+      <button class="btn btn-outline-grad" id="changePwBtn" style="width:100%;padding:12px;" onclick="doChangePassword()">Update Password</button>
+    </div>
   </div>
 </div>
 
@@ -5539,6 +5556,41 @@ async function doDeleteAccount() {
     errEl.textContent = e.message || 'Could not delete account. Please try again.';
     btn.disabled = false;
     btn.textContent = 'Delete My Account';
+  }
+}
+
+/* ════════════════════════════════════════
+   AUTH — CHANGE PASSWORD
+════════════════════════════════════════ */
+async function doChangePassword() {
+  const btn       = document.getElementById('changePwBtn');
+  const errEl     = document.getElementById('changePwError');
+  const successEl = document.getElementById('changePwSuccess');
+  const currentPw = document.getElementById('pfCurrentPw').value;
+  const newPw     = document.getElementById('pfNewPw').value;
+  const confirmPw = document.getElementById('pfConfirmPw').value;
+
+  errEl.textContent = '';
+  successEl.style.display = 'none';
+
+  if (!currentPw) { errEl.textContent = 'Enter your current password.'; return; }
+  if (newPw.length < 6) { errEl.textContent = 'New password must be at least 6 characters.'; return; }
+  if (newPw !== confirmPw) { errEl.textContent = 'Passwords do not match.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Updating…';
+  try {
+    await api('POST', '/api/auth/change-password', { currentPassword: currentPw, newPassword: newPw });
+    document.getElementById('pfCurrentPw').value = '';
+    document.getElementById('pfNewPw').value     = '';
+    document.getElementById('pfConfirmPw').value = '';
+    successEl.style.display = 'block';
+    setTimeout(() => { successEl.style.display = 'none'; }, 4000);
+  } catch (e) {
+    errEl.textContent = e.message || 'Could not update password.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Update Password';
   }
 }
 
