@@ -7247,7 +7247,9 @@ function renderReqList() {
     } else if (activeReqTab === 'sent') {
       actions = `<button class="btn-cancel-req" onclick="cancelRequest('${c.connId}','${c.userId}')">Cancel</button>`;
     } else {
-      actions = `<button class="btn-cancel-req" onclick="cancelRequest('${c.connId}','${c.userId}')">Remove</button>`;
+      actions = `
+        <button class="btn-accept" onclick="closeModal('requestsBackdrop');openChatWith('${c.userId}','${escHtml(c.name)}','${escHtml(c.role)}')">💬 Message</button>
+        <button class="btn-cancel-req" onclick="cancelRequest('${c.connId}','${c.userId}')">Remove</button>`;
     }
 
     const noteHtml = (activeReqTab === 'in' && c.note)
