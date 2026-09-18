@@ -117,11 +117,20 @@ public class SocialAuthController {
         if (!role.equals("student") && !role.equals("pro"))
             return err(400, "Role must be 'student' or 'pro'.");
 
-        String uid = UUID.randomUUID().toString();
-        jdbc.update(
-            "INSERT INTO users (id,email,password_hash,role,first_name,last_name,google_id,email_verified) VALUES (?,?,?,?,?,?,?,TRUE)",
-            uid, email, "", role, firstName, lastName, googleId);
-        jdbc.update("INSERT INTO profiles (user_id) VALUES (?)", uid);
+        // If a user with this email already exists, link google_id instead of inserting
+        List<Map<String,Object>> existing = jdbc.queryForList(
+            "SELECT id FROM users WHERE email = ?", email);
+        String uid;
+        if (!existing.isEmpty()) {
+            uid = (String) existing.get(0).get("id");
+            jdbc.update("UPDATE users SET google_id = ? WHERE id = ?", googleId, uid);
+        } else {
+            uid = UUID.randomUUID().toString();
+            jdbc.update(
+                "INSERT INTO users (id,email,password_hash,role,first_name,last_name,google_id,email_verified) VALUES (?,?,?,?,?,?,?,TRUE)",
+                uid, email, "", role, firstName, lastName, googleId);
+            jdbc.update("INSERT INTO profiles (user_id) VALUES (?)", uid);
+        }
         session.setAttribute("userId", uid);
         return ResponseEntity.ok(buildUserResponse(uid));
     }
