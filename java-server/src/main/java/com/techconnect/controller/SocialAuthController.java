@@ -95,13 +95,14 @@ public class SocialAuthController {
             return err(400, "Google credential missing required fields.");
 
         List<Map<String, Object>> rows = jdbc.queryForList(
-            "SELECT * FROM users WHERE google_id = ? OR (google_id = '' AND linkedin_id = '' AND github_id = '' AND email = ?)",
+            "SELECT * FROM users WHERE google_id = ? OR (COALESCE(google_id,'') = '' AND COALESCE(linkedin_id,'') = '' AND COALESCE(github_id,'') = '' AND email = ?)",
             googleId, email);
 
         if (!rows.isEmpty()) {
             Map<String, Object> u = rows.get(0);
             String uid = (String) u.get("id");
-            if ("".equals(u.getOrDefault("google_id", "")))
+            Object gid = u.get("google_id");
+            if (gid == null || "".equals(gid))
                 jdbc.update("UPDATE users SET google_id = ? WHERE id = ?", googleId, uid);
             session.setAttribute("userId", uid);
             return ResponseEntity.ok(buildUserResponse(uid));
@@ -331,11 +332,20 @@ public class SocialAuthController {
         String lastName   = p.getOrDefault("lastName", "");
         String idCol      = providerCol(provider);
 
-        String uid = UUID.randomUUID().toString();
-        jdbc.update(
-            "INSERT INTO users (id,email,password_hash,role,first_name,last_name," + idCol + ",email_verified) VALUES (?,?,?,?,?,?,?,TRUE)",
-            uid, email, "", role, firstName, lastName, providerId);
-        jdbc.update("INSERT INTO profiles (user_id) VALUES (?)", uid);
+        // If account already exists with this email, link the provider instead of inserting
+        List<Map<String,Object>> existing = jdbc.queryForList(
+            "SELECT id FROM users WHERE email = ?", email);
+        String uid;
+        if (!existing.isEmpty()) {
+            uid = (String) existing.get(0).get("id");
+            jdbc.update("UPDATE users SET " + idCol + " = ? WHERE id = ?", providerId, uid);
+        } else {
+            uid = UUID.randomUUID().toString();
+            jdbc.update(
+                "INSERT INTO users (id,email,password_hash,role,first_name,last_name," + idCol + ",email_verified) VALUES (?,?,?,?,?,?,?,TRUE)",
+                uid, email, "", role, firstName, lastName, providerId);
+            jdbc.update("INSERT INTO profiles (user_id) VALUES (?)", uid);
+        }
 
         session.removeAttribute(PENDING_KEY);
         session.setAttribute("userId", uid);
@@ -351,12 +361,13 @@ public class SocialAuthController {
 
         String idCol = providerCol(provider);
         List<Map<String,Object>> rows = jdbc.queryForList(
-            "SELECT * FROM users WHERE " + idCol + " = ? OR (" + idCol + " = '' AND google_id = '' AND linkedin_id = '' AND github_id = '' AND email = ?)",
+            "SELECT * FROM users WHERE " + idCol + " = ? OR (COALESCE(" + idCol + ",'') = '' AND COALESCE(google_id,'') = '' AND COALESCE(linkedin_id,'') = '' AND COALESCE(github_id,'') = '' AND email = ?)",
             providerId, email);
 
         if (!rows.isEmpty()) {
             String uid = (String) rows.get(0).get("id");
-            if ("".equals(rows.get(0).getOrDefault(idCol, "")))
+            Object pid = rows.get(0).get(idCol);
+            if (pid == null || "".equals(pid))
                 jdbc.update("UPDATE users SET " + idCol + " = ? WHERE id = ?", providerId, uid);
             session.setAttribute("userId", uid);
             res.sendRedirect("/?social=success");
