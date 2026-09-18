@@ -191,6 +191,8 @@ public class DatabaseConfig {
 
             // Add avatar_mime column to profiles (idempotent — ignore if already exists)
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN avatar_mime TEXT DEFAULT ''"); } catch (Exception ignored) {}
+            // Store avatar bytes in DB so they survive Render redeploys (filesystem is ephemeral)
+            try { jdbc.execute("ALTER TABLE profiles ADD COLUMN avatar_data BYTEA DEFAULT NULL"); } catch (Exception ignored) {}
             // Add resume_name column to profiles (idempotent)
             try { jdbc.execute("ALTER TABLE profiles ADD COLUMN resume_name TEXT DEFAULT ''"); } catch (Exception ignored) {}
             // Add image_url column to posts (idempotent)
