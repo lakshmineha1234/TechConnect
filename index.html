@@ -4941,6 +4941,10 @@ function renderHero() {
         <button class="btn btn-grad" style="font-size:.95rem;padding:12px 26px;" onclick="document.getElementById('searchSection').scrollIntoView({behavior:'smooth'})">Explore Network</button>
         <button class="btn btn-outline-grad" style="font-size:.95rem;padding:12px 26px;" onclick="document.getElementById('jobsSection').scrollIntoView({behavior:'smooth'})">Browse Jobs</button>
       </div>
+      <div id="dashTrending" style="display:none;margin-top:20px;padding:16px 18px;background:var(--surface2);border:1px solid var(--border2);border-radius:14px;">
+        <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">🔥 Trending Topics</div>
+        <div id="dashTrendingList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
 
     `;
   }
@@ -8729,16 +8733,34 @@ async function loadTrendingTags() {
     const tags = await api('GET', '/api/posts/trending-tags');
     const strip = document.getElementById('trendingTags');
     const wrap  = document.getElementById('trendingStrip');
-    if (!tags.length) { wrap.style.display = 'none'; return; }
-    strip.innerHTML = tags.map(t => {
-      const isFollowed = followedTags.has(t.tag);
-      return `<span class="trending-tag${activeHashtag === t.tag ? ' active' : ''}" style="display:inline-flex;align-items:center;gap:4px;">
-        <span onclick="filterByHashtag('${escHtml(t.tag)}')">#${escHtml(t.tag)} <span style="opacity:.6;font-size:.72rem;">${t.count}</span></span>
-        <button onclick="toggleFollowHashtag('${escHtml(t.tag)}',event)" title="${isFollowed ? 'Unfollow' : 'Follow'} #${escHtml(t.tag)}"
-          style="background:none;border:none;cursor:pointer;font-size:.82rem;color:${isFollowed ? 'var(--cyan)' : 'var(--muted)'};padding:0 2px;line-height:1;">${isFollowed ? '★' : '☆'}</button>
-      </span>`;
-    }).join('');
-    wrap.style.display = '';
+    if (!tags.length) { wrap.style.display = 'none'; } else {
+      strip.innerHTML = tags.map(t => {
+        const isFollowed = followedTags.has(t.tag);
+        return `<span class="trending-tag${activeHashtag === t.tag ? ' active' : ''}" style="display:inline-flex;align-items:center;gap:4px;">
+          <span onclick="filterByHashtag('${escHtml(t.tag)}')">#${escHtml(t.tag)} <span style="opacity:.6;font-size:.72rem;">${t.count}</span></span>
+          <button onclick="toggleFollowHashtag('${escHtml(t.tag)}',event)" title="${isFollowed ? 'Unfollow' : 'Follow'} #${escHtml(t.tag)}"
+            style="background:none;border:none;cursor:pointer;font-size:.82rem;color:${isFollowed ? 'var(--cyan)' : 'var(--muted)'};padding:0 2px;line-height:1;">${isFollowed ? '★' : '☆'}</button>
+        </span>`;
+      }).join('');
+      wrap.style.display = '';
+    }
+    // Also populate dashboard trending widget
+    const dashWrap = document.getElementById('dashTrending');
+    const dashList = document.getElementById('dashTrendingList');
+    if (dashWrap && dashList) {
+      if (!tags.length) { dashWrap.style.display = 'none'; } else {
+        dashList.innerHTML = tags.slice(0, 10).map(t =>
+          `<span onclick="document.getElementById('feedSection').scrollIntoView({behavior:'smooth'});setTimeout(()=>filterByHashtag('${escHtml(t.tag)}'),300);"
+            style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
+            background:var(--surface);border:1px solid var(--border2);border-radius:20px;
+            font-size:.8rem;color:var(--text);transition:border-color .15s;"
+            onmouseenter="this.style.borderColor='rgba(0,200,255,.4)'"
+            onmouseleave="this.style.borderColor=''"
+          >#${escHtml(t.tag)} <span style="color:var(--muted);font-size:.72rem;">${t.count}</span></span>`
+        ).join('');
+        dashWrap.style.display = '';
+      }
+    }
   } catch { document.getElementById('trendingStrip').style.display = 'none'; }
 }
 
